@@ -2,7 +2,9 @@
 const nextConfig = {
   output: 'export',
   basePath: '/Portfolio',
-  assetPrefix: '/Portfolio/',
-};
+  images: {
+    unoptimized: true, // Obligatoire pour le déploiement statique sur GitHub Pages
+  },
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig

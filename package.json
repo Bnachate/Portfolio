@@ -1,8 +1,8 @@
 {
-  "name": "portfolio_app",
+  "name": "Portfolio",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://nachate.brahim.github.io/Portfolio",
+  "homepage": "https://bnachate.github.io/Portfolio",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
