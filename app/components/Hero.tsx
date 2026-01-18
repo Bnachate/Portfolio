@@ -9,7 +9,7 @@ export function Hero() {
         <div className="flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1 text-center md:text-left">
             <h1 className="text-4xl md:text-6xl mb-4 text-gray-900">
-              Développeur Vue.js Reactds
+              Développeur Vue.js React gone
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 mb-8">
               { `Création d'expériences web modernes et performantes` }
