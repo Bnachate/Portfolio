@@ -18,7 +18,7 @@ const projects = [
     image: "https://images.unsplash.com/photo-1733503711060-1df31554390f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjB3ZWJzaXRlfGVufDF8fHx8MTc2ODU5ODI0OXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
     technologies: ["React", "Chart.js", "Redux", "REST API"],
     github: "https://github.com",
-    demo: "https://example.com",
+    demo: "https://examples.com",
   },
   {
     id: 3,
