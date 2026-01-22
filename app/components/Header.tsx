@@ -1,6 +1,7 @@
 "use client";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import { Button } from './common/Button'
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -23,24 +24,23 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            <button onClick={() => scrollToSection("accueil")} className="text-gray-700 hover:text-cyan-600 transition-colors">
-              Accueil
-            </button>
-            <button onClick={() => scrollToSection("projets")} className="text-gray-700 hover:text-cyan-600 transition-colors">
-              Projets
-            </button>
-            {/* <button onClick={() => scrollToSection("competences")} className="text-gray-700 hover:text-cyan-600 transition-colors">
-              Compétences
-            </button> */}
-            <button onClick={() => scrollToSection("experience")} className="text-gray-700 hover:text-cyan-600 transition-colors">
-              Expérience
-            </button>
-            <a
-              href="#contact"
-              className="bg-cyan-600 text-white px-6 py-2 rounded-lg hover:bg-cyan-700 transition-colors"
-            >
+              <Button variant="ghost" className="w-auto" onClick={() => scrollToSection("accueil")}>
+                Accueil
+              </Button>
+              <Button variant="ghost" className="w-auto" onClick={() => scrollToSection("projets")}>
+                Projets
+              </Button>
+              {/* <button onClick={() => scrollToSection("competences")} className="text-gray-700 hover:text-cyan-600 transition-colors">
+                Compétences
+              </button> */}
+              <Button variant="ghost" className="w-auto" onClick={() => scrollToSection("experience")}>
+                Expérience
+              </Button>
+            <Button variant="plain" onClick={() => scrollToSection("experience")}>
+            <a href="#contact">
               Contact
             </a>
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
