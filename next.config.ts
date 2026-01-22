@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
-  basePath: '',
+  basePath: ':Portfolio',
   images: {
     unoptimized: true, // Obligatoire pour le déploiement statique sur GitHub Pages
   },
