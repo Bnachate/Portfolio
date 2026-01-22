@@ -1,6 +1,7 @@
 "use client";
 import { Github, Linkedin, Mail } from "lucide-react";
 import { ImageWithFallback } from "./common/ImageWithFallback";
+import { Button } from './common/Button'
 
 export function Hero() {
   return (
@@ -9,7 +10,7 @@ export function Hero() {
         <div className="flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1 text-center md:text-left">
             <h1 className="text-4xl md:text-6xl mb-4 text-gray-900">
-              Développeur Vue.js React niopy
+              Développeur Vue.js React
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 mb-8">
               { `Création d'expériences web modernes et performantes` }
@@ -18,19 +19,21 @@ export function Hero() {
               Passionné par le développement web, je transforme des idées en applications 
               élégantes et intuitives. Spécialisé en React, TypeScript et design moderne.
             </p>
-            <div className="flex gap-4 justify-center md:justify-start mb-8">
-              <a
-                href="#contact"
-                className="bg-cyan-600 text-white px-8 py-3 rounded-lg hover:bg-cyan-700 transition-colors"
-              >
-                Me contacter
-              </a>
-              <a
-                href="#projets"
-                className="border-2 border-cyan-600 text-cyan-600 px-8 py-3 rounded-lg hover:bg-cyan-50 transition-colors"
-              >
-                Voir mes projets
-              </a>
+            <div className="flex gap-4 justify-end md:justify-start mb-8">
+              <Button variant="outline" className="">
+                <a
+                  href="#contact"
+                >
+                  Me contacter
+                </a>
+              </Button>
+              <Button variant="outline">
+                <a
+                  href="#projets"
+                >
+                  Voir mes projets
+                </a>
+              </Button>
             </div>
             <div className="flex gap-6 justify-center md:justify-start">
               <a href="https://github.com/Bnachate" target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-cyan-600 transition-colors">
