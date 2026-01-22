@@ -1,4 +1,5 @@
 import { Calendar, ArrowUpRight } from "lucide-react";
+import { Button } from './common/Button'
 
 const experiences = [
   {
@@ -87,8 +88,12 @@ export function Experience() {
             ))}
           </div>
           <div className="flex mt-5">
-          <button>View all CV</button>
-          <ArrowUpRight size={16} />
+          <Button variant="ghost">
+            <a href="/CV_Brahim_Nachate_Developpeur_Front-End.pdf" target="_blank">
+              View all CV
+            </a>
+            <ArrowUpRight size={16} />
+          </Button>
           </div>
         </div>
       </div>
