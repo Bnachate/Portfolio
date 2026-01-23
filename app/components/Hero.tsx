@@ -5,7 +5,7 @@ import { Button } from './common/Button'
 
 export function Hero() {
   return (
-    <section id="accueil" className="pt-24 pb-16 md:pt-32 md:pb-24 bg-gradient-to-b from-cyan-50 to-white">
+    <section id="accueil" className="pt-24 pb-16 md:pt-32 md:pb-24 bg-linear-to-b from-cyan-50 to-white">
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1 text-center md:text-left">
@@ -16,7 +16,7 @@ export function Hero() {
               { `Création d'expériences web modernes et performantes` }
             </p>
             <p className="text-lg text-gray-700 mb-8 max-w-2xl">
-              Passionné par le développement web, je transforme des idées en applications 
+              Passionné par le développement web, je transforme des idées en applications
               élégantes et intuitives. Spécialisé en React, TypeScript et design moderne.
             </p>
             <div className="flex gap-4 justify-end md:justify-start mb-8">
