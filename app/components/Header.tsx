@@ -2,6 +2,7 @@
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from './common/Button'
+import Link from "next/link";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -24,23 +25,29 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-              <Button variant="ghost" className="w-auto" onClick={() => scrollToSection("accueil")}>
-                Accueil
-              </Button>
-              <Button variant="ghost" className="w-auto" onClick={() => scrollToSection("projets")}>
-                Projets
-              </Button>
-              {/* <button onClick={() => scrollToSection("competences")} className="text-gray-700 hover:text-cyan-600 transition-colors">
-                Compétences
-              </button> */}
-              <Button variant="ghost" className="w-auto" onClick={() => scrollToSection("experience")}>
-                Expérience
-              </Button>
-            <Button variant="plain" onClick={() => scrollToSection("experience")}>
-            <a href="#contact">
-              Contact
-            </a>
+            <Button variant="ghost" className="w-auto" onClick={() => scrollToSection("accueil")}>
+              Accueil
             </Button>
+            <Button variant="ghost" className="w-auto" onClick={() => scrollToSection("projets")}>
+              Projets
+            </Button>
+            {/* <button onClick={() => scrollToSection("competences")} className="text-gray-700 hover:text-cyan-600 transition-colors">
+              Compétences
+            </button> */}
+            <Button variant="ghost" className="w-auto" onClick={() => scrollToSection("experience")}>
+              Expérience
+            </Button>
+            <Button variant="plain" onClick={() => scrollToSection("experience")}>
+              <a href="#contact">
+                Contact
+              </a>
+            </Button>
+            <Link
+              href="/login"
+              className="border border-cyan-600 text-cyan-600 px-6 py-2 rounded-lg hover:bg-cyan-50 transition-colors"
+            >
+              Connexion
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
