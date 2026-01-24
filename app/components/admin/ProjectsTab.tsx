@@ -122,7 +122,7 @@ export function ProjectsTab() {
                 resetForm();
                 setIsDialogOpen(true);
               }}
-              className="bg-cyan-600 hover:bg-cyan-700"
+              className="w-auto px-5"
             >
               <Plus size={20} className="mr-2" />
               Nouveau projet
@@ -211,63 +211,90 @@ export function ProjectsTab() {
           </DialogContent>
         </Dialog>
       </div>
-
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Titre</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Technologies</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+        <Table className="w-full">
+          <TableHeader className="bg-gray-50/50">
+            <TableRow className="hover:bg-transparent border-b border-gray-100">
+              <TableHead className="py-5 px-6 font-semibold text-gray-900">Projet</TableHead>
+              <TableHead className="py-5 font-semibold text-gray-900">Description</TableHead>
+              <TableHead className="py-5 font-semibold text-gray-900">Technologies</TableHead>
+              <TableHead className="py-5 text-right px-6 font-semibold text-gray-900">Actions</TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody>
             {projects.map((project) => (
-              <TableRow key={project.id}>
-                <TableCell className="font-medium">{project.title}</TableCell>
-                <TableCell className="max-w-md truncate">{project.description}</TableCell>
+              <TableRow
+                key={project.id}
+                className="group transition-all hover:bg-cyan-50/20 border-b border-gray-50 last:border-0"
+              >
+                {/* TITRE DU PROJET */}
+                <TableCell className="py-5 px-6">
+                  <div className="flex flex-col">
+                    <span className="font-bold text-gray-800 text-base group-hover:text-cyan-700 transition-colors">
+                      {project.title}
+                    </span>
+                    {project.demoUrl && (
+                      <span className="text-[10px] uppercase tracking-wider text-cyan-600 font-bold">
+                        Live Demo Available
+                      </span>
+                    )}
+                  </div>
+                </TableCell>
+
+                {/* DESCRIPTION */}
+                <TableCell className="max-w-md">
+                  <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                    {project.description}
+                  </p>
+                </TableCell>
+
+                {/* TECHNOLOGIES */}
                 <TableCell>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1.5">
                     {project.technologies.slice(0, 3).map((tech, idx) => (
                       <span
                         key={idx}
-                        className="bg-cyan-100 text-cyan-800 text-xs px-2 py-1 rounded"
+                        className="inline-flex items-center rounded-full bg-cyan-50 px-2.5 py-0.5 text-xs font-medium text-cyan-700 border border-cyan-100"
                       >
                         {tech}
                       </span>
                     ))}
                     {project.technologies.length > 3 && (
-                      <span className="text-xs text-gray-500">
+                      <span className="flex items-center justify-center rounded-full bg-gray-50 px-2 py-0.5 text-[10px] font-bold text-gray-400 border border-gray-100">
                         +{project.technologies.length - 3}
                       </span>
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="text-right">
+
+                {/* ACTIONS */}
+                <TableCell className="text-right px-5">
                   <div className="flex justify-end gap-2">
                     {project.demoUrl && (
-                      <a
-                        href={project.demoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-500 hover:text-cyan-600"
+                      <Button
+                        variant="ghost"
+                        className="w-auto"
                       >
-                        <ExternalLink size={18} />
-                      </a>
+                        <a href={project.demoUrl} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink size={18} />
+                        </a>
+                      </Button>
                     )}
-                    <button
+                    <Button
+                      variant="ghost"
+                      className="w-auto"
                       onClick={() => handleEdit(project)}
-                      className="text-gray-500 hover:text-blue-600"
                     >
                       <Pencil size={18} />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="w-auto"
                       onClick={() => handleDelete(project.id)}
-                      className="text-gray-500 hover:text-red-600"
                     >
                       <Trash2 size={18} />
-                    </button>
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>

@@ -124,6 +124,7 @@ export function ExperienceTab() {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button
+              className="w-auto px-5"
               onClick={() => {
                 resetForm();
                 setIsDialogOpen(true);
@@ -208,47 +209,75 @@ export function ExperienceTab() {
           </DialogContent>
         </Dialog>
       </div>
-
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Poste</TableHead>
-              <TableHead>Entreprise</TableHead>
-              <TableHead>Période</TableHead>
-              <TableHead>Réalisations</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+        <Table className="w-full">
+          <TableHeader className="bg-gray-50/50">
+            <TableRow className="hover:bg-transparent border-b border-gray-100">
+              <TableHead className="py-5 px-6 font-semibold text-gray-900">Poste</TableHead>
+              <TableHead className="py-5 font-semibold text-gray-900">Entreprise</TableHead>
+              <TableHead className="py-5 font-semibold text-gray-900">Période</TableHead>
+              <TableHead className="py-5 font-semibold text-gray-900">Réalisations</TableHead>
+              <TableHead className="py-5 text-right px-6 font-semibold text-gray-900">Actions</TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody>
             {experiences.map((experience) => (
-              <TableRow key={experience.id}>
-                <TableCell className="font-medium">{experience.title}</TableCell>
-                <TableCell>{experience.company}</TableCell>
+              <TableRow
+                key={experience.id}
+                className="group transition-all hover:bg-cyan-50/20 border-b border-gray-50 last:border-0"
+              >
+                {/* POSTE */}
+                <TableCell className="py-5 px-6">
+                  <span className="font-bold text-gray-800 text-base block group-hover:text-cyan-700 transition-colors">
+                    {experience.title}
+                  </span>
+                </TableCell>
+
+                {/* ENTREPRISE */}
                 <TableCell>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Calendar size={14} />
+                  <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+                    {experience.company}
+                  </div>
+                </TableCell>
+
+                {/* PÉRIODE */}
+                <TableCell>
+                  <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
+                    <Calendar size={14} className="text-cyan-500" />
                     {experience.period}
                   </div>
                 </TableCell>
+
+                {/* RÉALISATIONS */}
                 <TableCell>
-                  <div className="text-sm text-gray-600">
-                    {experience.achievements.length} réalisation
-                    {experience.achievements.length > 1 ? "s" : ""}
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-md bg-cyan-100 text-cyan-700 text-xs font-bold">
+                      {experience.achievements.length}
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      réalisation{experience.achievements.length > 1 ? "s" : ""}
+                    </span>
                   </div>
                 </TableCell>
-                <TableCell className="text-right">
+
+                {/* ACTIONS */}
+                <TableCell className="text-right px-6">
                   <div className="flex justify-end gap-2">
-                    <button
+                    <Button
+                      variant="ghost"
+                      className="w-auto"
                       onClick={() => handleEdit(experience)}
                     >
                       <Pencil size={18} />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="w-auto"
                       onClick={() => handleDelete(experience.id)}
                     >
                       <Trash2 size={18} />
-                    </button>
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>

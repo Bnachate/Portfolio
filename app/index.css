@@ -411,6 +411,13 @@
 }
 
 @layer utilities {
+  .tab-active {
+    /* Sélecteur natif pour Radix */
+    &[data-state="active"] {
+      color: var(--color-cyan-600);
+      border-color: var(--color-cyan-600);
+    }
+  }
 
   .cursor-pointer {
     cursor: pointer
@@ -1095,6 +1102,10 @@
     padding-inline: calc(var(--spacing) * 4);
   }
 
+  .px-5 {
+    padding-inline: calc(var(--spacing) * 5);
+  }
+
   .px-6 {
     padding-inline: calc(var(--spacing) * 6);
   }
@@ -1121,6 +1132,10 @@
 
   .py-4 {
     padding-block: calc(var(--spacing) * 4);
+  }
+
+  .py-5 {
+    padding-block: calc(var(--spacing) * 5);
   }
 
   .py-8 {
