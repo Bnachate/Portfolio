@@ -42,7 +42,7 @@ export default function AdminPage() {
               </Link>
               <button
                 onClick={handleLogout}
-                className="bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors flex items-center gap-2"
+                className="bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:text-red-100 transition-colors flex items-center gap-2"
               >
                 <LogOut size={20} />
                 <span className="hidden sm:inline">Déconnexion</span>
@@ -54,32 +54,32 @@ export default function AdminPage() {
 
       {/* Admin Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs defaultValue="projects" className="space-y-6">
+        <Tabs defaultValue="experiences" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 lg:grid-cols-4 h-auto gap-2 bg-transparent">
             <TabsTrigger
-              value="projects"
-              className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2 py-3"
-            >
-              <FolderKanban size={18} />
-              Projets
-            </TabsTrigger>
-            <TabsTrigger
-              value="experience"
-              className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2 py-3"
+              value="experiences"
+              className="flex items-center gap-2 py-3"
             >
               <Briefcase size={18} />
               Expériences
             </TabsTrigger>
             <TabsTrigger
               value="contacts"
-              className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2 py-3"
+              className="flex items-center gap-2 py-3"
             >
               <Mail size={18} />
               Messages
             </TabsTrigger>
             <TabsTrigger
+              value="projects"
+              className="flex items-center gap-2 py-3"
+            >
+              <FolderKanban size={18} />
+              Projets
+            </TabsTrigger>
+            <TabsTrigger
               value="hero"
-              className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2 py-3"
+              className="flex items-center gap-2 py-3"
             >
               <Home size={18} />
               Hero
@@ -90,7 +90,7 @@ export default function AdminPage() {
             <ProjectsTab />
           </TabsContent>
 
-          <TabsContent value="experience" className="space-y-4">
+          <TabsContent value="experiences" className="space-y-4">
             <ExperienceTab />
           </TabsContent>
 
