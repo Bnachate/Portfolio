@@ -44,7 +44,7 @@ export function Header() {
             </Button>
             <Link
               href="/login"
-              className="border border-cyan-600 text-cyan-600 px-6 py-2 rounded-lg hover:bg-cyan-50 transition-colors"
+              className="border border-cyan-600 text-cyan-600 px-6 py-2 rounded-lg hover:bg-cyan-50 transition-colors hidden"
             >
               Connexion
             </Link>
