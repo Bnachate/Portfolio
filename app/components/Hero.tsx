@@ -49,7 +49,7 @@ export function Hero() {
           </div>
           <div className="flex-1 max-w-md relative h-96 w-full">
             <ImageWithFallback
-              src="https://media.licdn.com/dms/image/v2/D4E03AQG_EUscfKZ8gw/profile-displayphoto-crop_800_800/B4EZuh0VXsMAAI-/0/1767946409941?e=1770249600&v=beta&t=DhhrORd89Fqqs-ZZ0v2ysO4Bl-ulc6OWVMIBH0PnyNY"
+              src="/brahim_nachate.png"
               alt="Developer front-end"
               className="rounded-2xl shadow-2xl object-cover"
             />
