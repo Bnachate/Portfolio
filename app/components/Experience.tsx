@@ -1,5 +1,6 @@
-import { Calendar, ArrowUpRight } from "lucide-react";
-import { Button } from './common/Button'
+import { ArrowUpRight } from "lucide-react";
+import { Button } from './common/Button';
+import { ExperienceCard } from "./experience/ExperienceCard";
 
 const experiences = [
   {
@@ -48,52 +49,16 @@ export function Experience() {
             <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-cyan-200"></div>
 
             {experiences.map((exp) => (
-              <div key={exp.id} className="relative pl-20 pb-12 last:pb-0">
-                {/* Point sur la timeline */}
-                <div className="absolute left-6 top-2 w-5 h-5 bg-cyan-600 rounded-full border-4 border-white shadow-lg z-10"></div>
-
-                {/* Carte de l'expérience */}
-                <div className="bg-gray-50 rounded-xl p-6 hover:shadow-lg transition-shadow border border-gray-100">
-                  <div className="flex items-start justify-between flex-wrap gap-4 mb-3">
-                    <div className="flex-1">
-                      <h3 className="text-xl text-gray-900 mb-1">
-                        {exp.title}
-                      </h3>
-                      <p className="text-lg text-cyan-600 mb-2">{exp.company}</p>
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-600 text-sm bg-white px-3 py-1.5 rounded-full border border-gray-200">
-                      <Calendar size={16} />
-                      <span>{exp.period}</span>
-                      <span className="text-gray-400">•</span>
-                      <span>{exp.duration}</span>
-                    </div>
-                  </div>
-
-                  <p className="text-gray-600 mb-4 leading-relaxed">
-                    {exp.description}
-                  </p>
-
-                  <div className="flex flex-wrap gap-2">
-                    {exp.stack.map((tech) => (
-                      <span
-                        key={tech}
-                        className="bg-white border border-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <ExperienceCard key={exp.id} exp={exp}/>
             ))}
           </div>
           <div className="flex mt-5">
-          <Button variant="ghost">
-            <a href="/CV_Brahim_Nachate_Developpeur_Front-End.pdf" target="_blank">
-              View all CV
-            </a>
-            <ArrowUpRight size={16} />
-          </Button>
+            <Button variant="ghost">
+              <a href="/CV_Brahim_Nachate_Developpeur_Front-End.pdf" target="_blank">
+                View all CV
+              </a>
+              <ArrowUpRight size={16} />
+            </Button>
           </div>
         </div>
       </div>
