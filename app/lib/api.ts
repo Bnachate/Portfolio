@@ -1,7 +1,8 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
+import { getCookie, deleteCookies } from './cookies';
 
 // Configuration de l'URL de base de l'API
-const API_BASE_URL = 'https://portfolioback-end-production.up.railway.app';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portfolioback-end-production.up.railway.app';
 
 // Créer une instance axios avec withCredentials pour les cookies
 const apiClient: AxiosInstance = axios.create({
@@ -33,18 +34,33 @@ const processQueue = (error: Error | null) => {
 };
 
 // Fonction pour rafraîchir le token
-// Les cookies HttpOnly sont gérés par le backend
+// Récupère le refreshToken du cookie et l'utilise pour obtenir un nouveau accessToken
 const refreshAccessToken = async () => {
   try {
-    // Appeler l'endpoint de refresh
-    // Le backend va automatiquement mettre le nouveau token dans le cookie HttpOnly
-    await axios.post(`${API_BASE_URL}/auth/refresh-tokens`, {}, {
-      withCredentials: true,
-    });
+    const refreshToken = getCookie('refreshToken');
+
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    // Appeler l'endpoint de refresh avec le refreshToken
+    const response = await axios.post(
+      `${API_BASE_URL}/auth/refresh-tokens`,
+      { refreshToken },
+      { withCredentials: true }
+    );
+
+    // Stocker le nouveau token dans le cookie
+    if (response.data?.data?.accessToken) {
+      const oneDay = 24 * 60 * 60 * 1000;
+      const expireAccessToken = new Date(new Date().getTime() + oneDay);
+      document.cookie = `accessToken=${response.data.data.accessToken}; expires=${expireAccessToken.toUTCString()}; path=/; SameSite=Strict`;
+    }
 
     return true;
   } catch (error) {
-    // Rediriger vers login si le refresh échoue
+    // Token refresh échoué, rediriger vers login
+    deleteCookies();
     if (typeof window !== 'undefined') {
       window.location.href = '/login';
     }

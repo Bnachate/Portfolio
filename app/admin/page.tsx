@@ -8,14 +8,53 @@ import { ProjectsTab } from "../components/admin/ProjectsTab";
 import { ExperienceTab } from "../components/admin/ExperienceTab";
 import { ContactsTab } from "../components/admin/ContactsTab";
 import { HeroTab } from "../components/admin/HeroTab";
+import { useAuth } from "../lib/useAuth";
+import { logout } from "../lib/api-examples";
+import { useState } from "react";
 
 export default function AdminPage() {
   const router = useRouter();
+  const { isLoading, isAuthenticated } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const handleLogout = () => {
-    // Mock logout - in production, this would clear session
-    router.push("/");
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      console.log('🔐 Logout démarré');
+      await logout();
+      console.log('✅ Logout complété');
+      
+      // Petit délai pour s'assurer que les cookies sont bien supprimés
+      setTimeout(() => {
+        console.log('🔄 Redirection vers /login');
+        router.push("/login");
+      }, 500);
+    } catch (error) {
+      console.error('❌ Erreur lors de la déconnexion:', error);
+      // Rediriger quand même
+      setTimeout(() => {
+        console.log('🔄 Redirection vers /login (avec erreur)');
+        router.push("/login");
+      }, 500);
+    }
   };
+
+  // Afficher un spinner en attente de vérification
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600"></div>
+          <p className="mt-4 text-gray-600">Vérification de l'authentification...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Ne pas afficher la page si pas authentifié (redirection en cours)
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -42,10 +81,11 @@ export default function AdminPage() {
               </Link>
               <button
                 onClick={handleLogout}
-                className="bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:text-red-100 transition-colors flex items-center gap-2"
+                disabled={isLoggingOut}
+                className="bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <LogOut size={20} />
-                <span className="hidden sm:inline">Déconnexion</span>
+                <span className="hidden sm:inline">{isLoggingOut ? 'Déconnexion...' : 'Déconnexion'}</span>
               </button>
             </div>
           </div>
