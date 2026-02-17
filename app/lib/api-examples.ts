@@ -1,11 +1,11 @@
 /**
- * Exemples d'utilisation du client API avec cookies HttpOnly
+ * Exemples d'utilisation du client API
  *
- * Les tokens sont automatiquement stockés dans les cookies HttpOnly par le backend.
- * Pas besoin de gérer manuellement les tokens en localStorage !
+ * Les tokens sont stockés dans les cookies après login/signup
  */
 
 import apiClient from '@/app/lib/api';
+import { setCookies, deleteCookies } from './cookies';
 
 // ============ EXEMPLES ============
 
@@ -13,17 +13,6 @@ import apiClient from '@/app/lib/api';
 export const getUsers = async () => {
   try {
     const response = await apiClient.get('/users');
-    return response.data;
-  } catch (error) {
-    console.error('Erreur lors de la récupération des utilisateurs:', error);
-    throw error;
-  }
-};
-
-// 2. GET avec paramètres
-export const getUserById = async (id: string) => {
-  try {
-    const response = await apiClient.get(`/users/${id}`);
     return response.data;
   } catch (error) {
     console.error('Erreur lors de la récupération de l\'utilisateur:', error);
@@ -64,12 +53,29 @@ export const deleteUser = async (id: string) => {
   }
 };
 
-// 6. LOGIN - Tokens seront stockés dans les cookies HttpOnly par le backend
+// 6. SIGNUP - Inscription d'un nouvel utilisateur
+export const signup = async (name: string, email: string, password: string) => {
+  try {
+    const response = await apiClient.post('/auth/sign-up', { name, email, password });
+    // Stocker les tokens dans les cookies en fonction de la réponse (structure: data.accessToken et data.refreshToken)
+    if (response.data?.data?.accessToken && response.data?.data?.refreshToken) {
+      setCookies(response.data.data.accessToken, response.data.data.refreshToken);
+    }
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de l\'inscription:', error);
+    throw error;
+  }
+};
+
+// 7. LOGIN - Connexion
 export const login = async (email: string, password: string) => {
   try {
     const response = await apiClient.post('/auth/sign-in', { email, password });
-    // Le backend met automatiquement les tokens dans les cookies HttpOnly
-    // Pas besoin de stocker manuellement !
+    // Stocker les tokens dans les cookies en fonction de la réponse (structure: data.accessToken et data.refreshToken)
+    if (response.data?.data?.accessToken && response.data?.data?.refreshToken) {
+      setCookies(response.data.data.accessToken, response.data.data.refreshToken);
+    }
     return response.data;
   } catch (error) {
     console.error('Erreur lors de la connexion:', error);
@@ -77,13 +83,19 @@ export const login = async (email: string, password: string) => {
   }
 };
 
-// 7. LOGOUT
+// 8. LOGOUT
 export const logout = async () => {
   try {
-    await apiClient.post('/auth/logout');
-    // Le backend supprime automatiquement les cookies
+    console.log('🔄 Début du logout');
+    
+    // Supprimer les cookies
+    deleteCookies();
+    console.log('✅ Cookies supprimés');
   } catch (error) {
-    console.error('Erreur lors de la déconnexion:', error);
+    console.error('❌ Erreur lors de la déconnexion:', error);
+    // Toujours supprimer les cookies même si l'API échoue
+    console.log('⚠️ Suppression forcée des cookies malgré l\'erreur');
+    deleteCookies();
     throw error;
   }
 };

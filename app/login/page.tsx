@@ -3,22 +3,38 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, AlertCircle } from "lucide-react";
 import { Button } from "../components/common/Button";
 import { Input } from "../components/common/input";
 import { Label } from "../components/common/label";
+import { login } from "../lib/api-examples";
 
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock authentication - in production, this would verify credentials
-    if (email && password) {
+    setError("");
+    setIsLoading(true);
+
+    try {
+      // Appel à l'API pour se connecter
+      await login(email, password);
+
+      // Succès : rediriger vers la page admin
+      // Les tokens sont automatiquement stockés dans les cookies
       router.push("/admin");
+    } catch (err: any) {
+      // Gestion des erreurs
+      const errorMessage = err.response?.data?.message || "Email ou mot de passe incorrect";
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -35,6 +51,14 @@ export default function LoginPage() {
 
         {/* Login Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+              <AlertCircle size={20} />
+              <span className="text-sm">{error}</span>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Field */}
             <div className="space-y-2">
@@ -89,8 +113,12 @@ export default function LoginPage() {
             </div>
 
             {/* Submit Button */}
-            <Button type="submit" className="w-full bg-cyan-600 hover:bg-cyan-700">
-              Se connecter
+            <Button
+              type="submit"
+              className="w-full bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading}
+            >
+              {isLoading ? "Connexion en cours..." : "Se connecter"}
             </Button>
           </form>
 

@@ -3,29 +3,56 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, AlertCircle } from "lucide-react";
 import { Button } from "../components/common/Button";
 import { Input } from "../components/common/input";
 import { Label } from "../components/common/label";
+import { signup } from "../lib/api-examples";
 
 export default function SignUpPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock registration - in production, this would create account
-    if (formData.password === formData.confirmPassword) {
-      router.push("/login");
-    } else {
-      alert("Les mots de passe ne correspondent pas");
+    setError("");
+
+    // Validation des mots de passe
+    if (formData.password !== formData.confirmPassword) {
+      setError("Les mots de passe ne correspondent pas");
+      return;
+    }
+
+    // Validation de la longueur du mot de passe
+    if (formData.password.length < 6) {
+      setError("Le mot de passe doit contenir au moins 6 caractères");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Appel à l'API pour créer le compte
+      await signup(formData.firstName, formData.email, formData.password);
+
+      // Succès : rediriger vers la page admin
+      // Les tokens sont automatiquement stockés dans les cookies
+      router.push("/admin");
+    } catch (err: any) {
+      // Gestion des erreurs
+      const errorMessage = err.response?.data?.message || "Erreur lors de la création du compte";
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -42,6 +69,14 @@ export default function SignUpPage() {
 
         {/* SignUp Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+              <AlertCircle size={20} />
+              <span className="text-sm">{error}</span>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Name Field */}
             <div className="space-y-2">
@@ -52,8 +87,8 @@ export default function SignUpPage() {
                   id="name"
                   type="text"
                   placeholder="Jean Dupont"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                   className="pl-10"
                   required
                 />
@@ -126,7 +161,7 @@ export default function SignUpPage() {
             </div>
 
             {/* Terms */}
-            <div className="flex items-start gap-2 text-sm">
+            {/* <div className="flex items-start gap-2 text-sm">
               <input type="checkbox" required className="mt-1 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500" />
               <span className="text-gray-600">
                 J&apos;accepte les{" "}
@@ -138,11 +173,15 @@ export default function SignUpPage() {
                   politique de confidentialité
                 </Link>
               </span>
-            </div>
+            </div> */}
 
             {/* Submit Button */}
-            <Button type="submit" className="w-full bg-cyan-600 hover:bg-cyan-700">
-              Créer mon compte
+            <Button
+              type="submit"
+              className="w-full bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading}
+            >
+              {isLoading ? "Création en cours..." : "Créer mon compte"}
             </Button>
           </form>
 
