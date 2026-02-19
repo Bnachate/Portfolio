@@ -50,23 +50,18 @@ export const getCookie = (name: string): string | null => {
  */
 export const deleteCookies = () => {
   try {
-    // Multiple méthodes de suppression pour s'assurer que ça fonctionne
     const pastDate = 'Thu, 01 Jan 1970 00:00:00 UTC';
-    
-    // Méthode 1 : Sans SameSite
-    document.cookie = `accessToken=; expires=${pastDate}; path=/`;
-    document.cookie = `refreshToken=; expires=${pastDate}; path=/`;
-    
-    // Méthode 2 : Avec max-age=0
-    document.cookie = 'accessToken=; max-age=0; path=/';
-    document.cookie = 'refreshToken=; max-age=0; path=/';
-    
-    // Méthode 3 : Définir à vide explicitement
-    document.cookie = 'accessToken=; path=/; expires=0';
-    document.cookie = 'refreshToken=; path=/; expires=0';
-    
-    console.log('✅ Cookies supprimés');
-    console.log('Cookies actuels:', document.cookie);
+    document.cookie = `accessToken=; expires=${pastDate}; path=/; SameSite=Strict`;
+    document.cookie = 'accessToken=; max-age=-1; path=/';
+
+    document.cookie = `refreshToken=; expires=${pastDate}; path=/; SameSite=Strict`;
+    document.cookie = 'refreshToken=; max-age=-1; path=/';
+
+    setTimeout(() => {
+      console.log('📋 Cookies après suppression:', document.cookie);
+      console.log('✅ Suppression terminée');
+    }, 100);
+
   } catch (error) {
     console.error('❌ Erreur lors de la suppression des cookies:', error);
   }

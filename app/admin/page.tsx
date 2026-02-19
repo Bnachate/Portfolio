@@ -20,26 +20,15 @@ export default function AdminPage() {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      console.log('🔐 Logout démarré');
       await logout();
-      console.log('✅ Logout complété');
-      
-      // Petit délai pour s'assurer que les cookies sont bien supprimés
       setTimeout(() => {
-        console.log('🔄 Redirection vers /login');
-        router.push("/login");
+        router.push("/");
       }, 500);
     } catch (error) {
       console.error('❌ Erreur lors de la déconnexion:', error);
-      // Rediriger quand même
-      setTimeout(() => {
-        console.log('🔄 Redirection vers /login (avec erreur)');
-        router.push("/login");
-      }, 500);
     }
   };
 
-  // Afficher un spinner en attente de vérification
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -51,7 +40,6 @@ export default function AdminPage() {
     );
   }
 
-  // Ne pas afficher la page si pas authentifié (redirection en cours)
   if (!isAuthenticated) {
     return null;
   }
@@ -82,7 +70,7 @@ export default function AdminPage() {
               <button
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 active:bg-red-800 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-medium"
               >
                 <LogOut size={20} />
                 <span className="hidden sm:inline">{isLoggingOut ? 'Déconnexion...' : 'Déconnexion'}</span>

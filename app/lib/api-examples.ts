@@ -86,15 +86,14 @@ export const login = async (email: string, password: string) => {
 // 8. LOGOUT
 export const logout = async () => {
   try {
-    console.log('🔄 Début du logout');
-    
-    // Supprimer les cookies
+    try {
+      await apiClient.post('/auth/logout');
+    } catch (apiError) {
+      console.warn('⚠️ Erreur API logout (non bloquant):', apiError);
+    }
     deleteCookies();
-    console.log('✅ Cookies supprimés');
   } catch (error) {
     console.error('❌ Erreur lors de la déconnexion:', error);
-    // Toujours supprimer les cookies même si l'API échoue
-    console.log('⚠️ Suppression forcée des cookies malgré l\'erreur');
     deleteCookies();
     throw error;
   }
