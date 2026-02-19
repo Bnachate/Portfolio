@@ -40,8 +40,6 @@ export function HeroTab() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock save - in production, this would save to database
-    console.log("Saving hero data:", formData);
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3000);
   };
@@ -218,7 +216,7 @@ export function HeroTab() {
             <RotateCcw size={18} className="mr-2" />
             Réinitialiser
           </Button>
-          <Button type="submit" className="bg-cyan-600 hover:bg-cyan-700">
+          <Button type="submit" variant="plain" color="primary" className="w-auto">
             <Save size={18} className="mr-2" />
             {isSaved ? "✓ Sauvegardé" : "Sauvegarder les modifications"}
           </Button>

@@ -77,59 +77,59 @@ export default function SignUpPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="">
             {/* Name Field */}
-            <div className="space-y-2">
-              <Label htmlFor="name">Nom complet</Label>
+            <div className="mb-3">
+              <Label htmlFor="name" className="mb-1">Nom complet</Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <User className="absolute left-1 top-2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <Input
                   id="name"
                   type="text"
                   placeholder="Jean Dupont"
                   value={formData.firstName}
                   onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                  className="pl-10"
+                  className="px-7 py-2"
                   required
                 />
               </div>
             </div>
 
             {/* Email Field */}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            <div className="mb-3">
+              <Label htmlFor="email" className="mb-1">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Mail className="absolute left-1 top-2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <Input
                   id="email"
                   type="email"
                   placeholder="votre@email.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="pl-10"
+                  className="px-7 py-2"
                   required
                 />
               </div>
             </div>
 
             {/* Password Field */}
-            <div className="space-y-2">
-              <Label htmlFor="password">Mot de passe</Label>
+            <div className="mb-3">
+              <Label htmlFor="password" className="mb-1">Mot de passe</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Lock className="absolute left-1 top-2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="pl-10 pr-10"
+                  className="px-7 py-2"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-0 top-2 mr-1 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -137,48 +137,34 @@ export default function SignUpPage() {
             </div>
 
             {/* Confirm Password Field */}
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+            <div>
+              <Label htmlFor="confirmPassword" className="mb-1">Confirmer le mot de passe</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Lock className="absolute left-1 top-2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className="pl-10 pr-10"
+                  className="px-7 py-2"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-0 top-2 mr-1 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
             </div>
 
-            {/* Terms */}
-            {/* <div className="flex items-start gap-2 text-sm">
-              <input type="checkbox" required className="mt-1 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500" />
-              <span className="text-gray-600">
-                J&apos;accepte les{" "}
-                <Link href="#" className="text-cyan-600 hover:text-cyan-700">
-                  conditions d&apos;utilisation
-                </Link>{" "}
-                et la{" "}
-                <Link href="#" className="text-cyan-600 hover:text-cyan-700">
-                  politique de confidentialité
-                </Link>
-              </span>
-            </div> */}
-
-            {/* Submit Button */}
             <Button
+              variant="plain"
+              color="primary"
               type="submit"
-              className="w-full bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full mt-5"
               disabled={isLoading}
             >
               {isLoading ? "Création en cours..." : "Créer mon compte"}
@@ -186,10 +172,7 @@ export default function SignUpPage() {
           </form>
 
           {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
+          <div className="relative mt-3">
             <div className="relative flex justify-center text-sm">
               <span className="px-4 bg-white text-gray-500">Ou</span>
             </div>
