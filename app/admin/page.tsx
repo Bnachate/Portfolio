@@ -9,8 +9,8 @@ import { ExperienceTab } from "../components/admin/ExperienceTab";
 import { ContactsTab } from "../components/admin/ContactsTab";
 import { HeroTab } from "../components/admin/HeroTab";
 import { useAuth } from "../lib/useAuth";
-import { logout } from "../lib/api-examples";
-import { useState } from "react";
+import { logout, getExperiences, getTags } from "../lib/api-examples";
+import { useState, useEffect } from "react";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -34,7 +34,7 @@ export default function AdminPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600"></div>
-          <p className="mt-4 text-gray-600">Vérification de l'authentification...</p>
+          <p className="mt-4 text-gray-600">Vérification de l&'authentification...</p>
         </div>
       </div>
     );
@@ -119,7 +119,7 @@ export default function AdminPage() {
           </TabsContent>
 
           <TabsContent value="experiences" className="space-y-4">
-            <ExperienceTab />
+            <ExperienceTab experiences={experiences} tags={tags} />
           </TabsContent>
 
           <TabsContent value="contacts" className="space-y-4">

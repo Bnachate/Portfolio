@@ -69,9 +69,13 @@ const refreshAccessToken = async () => {
 };
 
 // Interceptor pour les requêtes
-// Pas besoin d'ajouter le token manuellement, les cookies HttpOnly s'envoient automatiquement
+// Ajouter le token Bearer dans l'Authorization header
 apiClient.interceptors.request.use(
   (config) => {
+    const accessToken = getCookie('accessToken');
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
     return config;
   },
   (error) => {
