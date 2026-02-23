@@ -11,62 +11,50 @@ import { Textarea } from "../common/textarea";
 
 interface Experience {
   id: number;
-  title: string;
+  job: string;
   company: string;
-  period: string;
+  startDate: string;
+  endDate: string | null;
   description: string;
-  achievements: string[];
+  tags: string[];
 }
 
-export function ExperienceTab() {
-  const [experiences, setExperiences] = useState<Experience[]>([
-    {
-      id: 1,
-      title: "Développeur Front-End Senior",
-      company: "Tech Innovation",
-      period: "2022 - Présent",
-      description: "Développement d'applications web modernes avec React et TypeScript",
-      achievements: [
-        "Migration complète vers React 18",
-        "Amélioration des performances de 40%",
-        "Mise en place de tests E2E",
-      ],
-    },
-    {
-      id: 2,
-      title: "Développeur Full-Stack",
-      company: "Digital Solutions",
-      period: "2020 - 2022",
-      description: "Développement full-stack d'applications web et mobiles",
-      achievements: [
-        "Développement de 5+ applications",
-        "Formation d'équipe junior",
-        "Mise en place CI/CD",
-      ],
-    },
-    {
-      id: 3,
-      title: "Développeur Junior",
-      company: "StartUp Web",
-      period: "2018 - 2020",
-      description: "Développement front-end et apprentissage des meilleures pratiques",
-      achievements: [
-        "Développement UI/UX",
-        "Intégration API REST",
-        "Collaboration agile",
-      ],
-    },
-  ]);
+interface Tag {
+  id: number;
+  name: string;
+}
+
+export function ExperienceTab({experiences, tags}: {experiences: Experience[], tags: string[] }) {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingExperience, setEditingExperience] = useState<Experience | null>(null);
   const [formData, setFormData] = useState<Partial<Experience>>({
-    title: "",
+    job: "",
     company: "",
-    period: "",
     description: "",
-    achievements: [],
+    startDate: "",
+    endDate: "",
   });
+  const [experiences, setExperiences] = useState([]);
+  const [tags, setTags] = useState([]);
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      const fetchData = async () => {
+        try {
+          const [experiences, tags] = await Promise.all([
+            getExperiences(),
+            getTags(),
+          ]);
+          console.log('📊 Données chargées:', { experiences, tags });
+          setExperiences(experiences);
+          setTags(tags);
+        } catch (error) {
+          console.error('❌ Erreur lors du chargement des données:', error);
+        }
+      };
+      fetchData();
+    }
+  }, [isAuthenticated, isLoading]);
 
   const handleEdit = (experience: Experience) => {
     setEditingExperience(experience);
@@ -102,11 +90,11 @@ export function ExperienceTab() {
 
   const resetForm = () => {
     setFormData({
-      title: "",
+      job: "",
       company: "",
-      period: "",
+      startDate: "",
+      endDate: "",
       description: "",
-      achievements: [],
     });
     setEditingExperience(null);
     setIsDialogOpen(false);
@@ -142,11 +130,11 @@ export function ExperienceTab() {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Titre du poste</Label>
+                <Label htmlFor="job">Titre du poste</Label>
                 <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  id="job"
+                  value={formData.job}
+                  onChange={(e) => setFormData({ ...formData, job: e.target.value })}
                   required
                 />
               </div>
@@ -161,13 +149,30 @@ export function ExperienceTab() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="period">Période</Label>
+                  <Label htmlFor="startDate">Date de début</Label>
                   <Input
-                    id="period"
-                    value={formData.period}
-                    onChange={(e) => setFormData({ ...formData, period: e.target.value })}
+                    id="startDate"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                     placeholder="2020 - 2022"
                     required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="endDate">Date de fin</Label>
+                  <Input
+                    id="endDate"
+                    value={formData.endDate ?? 'Aujourd\'hui'}
+                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                    placeholder="2020 - 2022"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="endDate">Tags</Label>
+                  <select
+                    multiple
+                    value={formData.tags}
                   />
                 </div>
               </div>
@@ -182,15 +187,15 @@ export function ExperienceTab() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="achievements">Réalisations (une par ligne)</Label>
+                <Label htmlFor="tags">Description</Label>
                 <Textarea
-                  id="achievements"
+                  id="tags"
                   rows={5}
-                  value={formData.achievements?.join("\n")}
+                  value={formData.tags?.join("\n")}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      achievements: e.target.value.split("\n").filter((a) => a.trim()),
+                      tags: e.target.value.split("\n").filter((a) => a.trim()),
                     })
                   }
                   placeholder="Chaque réalisation sur une nouvelle ligne"
@@ -209,81 +214,80 @@ export function ExperienceTab() {
           </DialogContent>
         </Dialog>
       </div>
-      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-        <Table className="w-full">
-          <TableHeader className="bg-gray-50/50">
-            <TableRow className="hover:bg-transparent border-b border-gray-100">
-              <TableHead className="py-5 px-6 font-semibold text-gray-900">Poste</TableHead>
-              <TableHead className="py-5 font-semibold text-gray-900">Entreprise</TableHead>
-              <TableHead className="py-5 font-semibold text-gray-900">Période</TableHead>
-              <TableHead className="py-5 font-semibold text-gray-900">Réalisations</TableHead>
-              <TableHead className="py-5 text-right px-6 font-semibold text-gray-900">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {experiences.map((experience) => (
-              <TableRow
-                key={experience.id}
-                className="group transition-all hover:bg-cyan-50/20 border-b border-gray-50 last:border-0"
-              >
-                {/* POSTE */}
-                <TableCell className="py-5 px-6">
-                  <span className="font-bold text-gray-800 text-base block group-hover:text-cyan-700 transition-colors">
-                    {experience.title}
-                  </span>
-                </TableCell>
-
-                {/* ENTREPRISE */}
-                <TableCell>
-                  <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
-                    {experience.company}
-                  </div>
-                </TableCell>
-
-                {/* PÉRIODE */}
-                <TableCell>
-                  <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
-                    <Calendar size={14} className="text-cyan-500" />
-                    {experience.period}
-                  </div>
-                </TableCell>
-
-                {/* RÉALISATIONS */}
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-md bg-cyan-100 text-cyan-700 text-xs font-bold">
-                      {experience.achievements.length}
-                    </span>
-                    <span className="text-sm text-gray-600">
-                      réalisation{experience.achievements.length > 1 ? "s" : ""}
-                    </span>
-                  </div>
-                </TableCell>
-
-                {/* ACTIONS */}
-                <TableCell className="text-right px-6">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      className="w-auto"
-                      onClick={() => handleEdit(experience)}
-                    >
-                      <Pencil size={18} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="w-auto"
-                      onClick={() => handleDelete(experience.id)}
-                    >
-                      <Trash2 size={18} />
-                    </Button>
-                  </div>
-                </TableCell>
+      <div className="flex justify-center w-full">
+        <div className="w-7xl overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm ">
+          <Table className="w-full">
+            <TableHeader className="bg-gray-50/50">
+              <TableRow className="hover:bg-transparent border-b border-gray-100">
+                <TableHead className="py-5 px-6 font-semibold text-gray-900">Poste</TableHead>
+                <TableHead className="py-5 font-semibold text-gray-900">Entreprise</TableHead>
+                <TableHead className="py-5 font-semibold text-gray-900">Période</TableHead>
+                <TableHead className="py-5 font-semibold text-gray-900">Réalisations</TableHead>
+                <TableHead className="py-5 text-right px-6 font-semibold text-gray-900">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+
+            <TableBody>
+              {experiences.map((experience) => (
+                <TableRow
+                  key={experience.id}
+                  className="group transition-all hover:bg-cyan-50/20 border-b border-gray-50 last:border-0"
+                >
+                  {/* POSTE */}
+                  <TableCell className="py-5 px-6">
+                    <span className="font-bold text-gray-800 text-base block group-hover:text-cyan-700 transition-colors">
+                      {experience.job}
+                    </span>
+                  </TableCell>
+
+                  {/* ENTREPRISE */}
+                  <TableCell>
+                    <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+                      {experience.company}
+                    </div>
+                  </TableCell>
+
+                  {/* PÉRIODE */}
+                  <TableCell>
+                    <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
+                      <Calendar size={14} className="text-cyan-500" />
+                      {experience.startDate} - {experience.endDate}
+                    </div>
+                  </TableCell>
+
+                  {/* RÉALISATIONS */}
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">
+                        {experience.description}
+                      </span>
+                    </div>
+                  </TableCell>
+
+                  {/* ACTIONS */}
+                  <TableCell className="text-right px-6">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        className="w-auto"
+                        onClick={() => handleEdit(experience)}
+                      >
+                        <Pencil size={18} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-auto"
+                        onClick={() => handleDelete(experience.id)}
+                      >
+                        <Trash2 size={18} />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );

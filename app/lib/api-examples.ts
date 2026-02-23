@@ -99,6 +99,30 @@ export const logout = async () => {
   }
 };
 
+// 9. GET EXPERIENCES
+export const getExperiences = async () => {
+  try {
+    const response = await apiClient.get('/experiences');
+    console.log('✅ Expériences récupérées:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Erreur lors de la récupération des expériences:', error);
+    throw error;
+  }
+};
+
+// 10. GET TAGS
+export const getTags = async () => {
+  try {
+    const response = await apiClient.get('/tags');
+    console.log('✅ Tags récupérés:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Erreur lors de la récupération des tags:', error);
+    throw error;
+  }
+};
+
 // ============ UTILISATION DANS UN COMPOSANT ============
 
 /*
