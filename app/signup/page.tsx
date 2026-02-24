@@ -7,7 +7,7 @@ import { Eye, EyeOff, Mail, Lock, User, AlertCircle } from "lucide-react";
 import { Button } from "../components/common/Button";
 import { Input } from "../components/common/input";
 import { Label } from "../components/common/label";
-import { signup } from "../lib/api-examples";
+import { signup } from "../services/auth.service.ts";
 
 export default function SignUpPage() {
   const router = useRouter();
