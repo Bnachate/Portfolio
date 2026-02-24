@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import dayjs from "dayjs";
 import { Plus, Pencil, Trash2, Calendar } from "lucide-react";
 import { Button } from "../common/Button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../common/table";
@@ -8,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "../common/input";
 import { Label } from "../common/label";
 import { Textarea } from "../common/textarea";
+import { getExperiences, getTags } from "../../services/admin.service";
+import { useAuth } from "../../config/useAuth";
 
 interface Experience {
   id: number;
@@ -24,7 +27,8 @@ interface Tag {
   name: string;
 }
 
-export function ExperienceTab({experiences, tags}: {experiences: Experience[], tags: string[] }) {
+export function ExperienceTab() {
+  const { isLoading, isAuthenticated } = useAuth();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingExperience, setEditingExperience] = useState<Experience | null>(null);
@@ -35,19 +39,20 @@ export function ExperienceTab({experiences, tags}: {experiences: Experience[], t
     startDate: "",
     endDate: "",
   });
-  const [experiences, setExperiences] = useState([]);
-  const [tags, setTags] = useState([]);
+  const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
       const fetchData = async () => {
         try {
-          const [experiences, tags] = await Promise.all([
+          const [exp, expTags] = await Promise.all([
             getExperiences(),
             getTags(),
           ]);
-          console.log('📊 Données chargées:', { experiences, tags });
-          setExperiences(experiences);
-          setTags(tags);
+          setExperiences(exp.data.data);
+          setTags(expTags.data);
+          console.log('exp:', exp);
+          console.log('✅ expTags.data', expTags.data);
         } catch (error) {
           console.error('❌ Erreur lors du chargement des données:', error);
         }
@@ -72,18 +77,17 @@ export function ExperienceTab({experiences, tags}: {experiences: Experience[], t
     e.preventDefault();
     if (editingExperience) {
       // Update existing experience
-      setExperiences(
-        experiences.map((exp) =>
-          exp.id === editingExperience.id ? { ...formData, id: editingExperience.id } as Experience : exp
-        )
-      );
+      // setExperiences(
+      //   experiences.map((exp) =>
+      //     exp.id === editingExperience.id ? { ...formData, id: editingExperience.id } as Experience : exp
+      //   )
+      // );
     } else {
       // Add new experience
-      const newExperience = {
-        ...formData,
-        id: Math.max(...experiences.map((e) => e.id), 0) + 1,
-      } as Experience;
-      setExperiences([...experiences, newExperience]);
+      // const newExperience = {
+      //   ...formData,
+      // } as Experience;
+      // setExperiences([...experiences, newExperience]);
     }
     resetForm();
   };
@@ -98,6 +102,16 @@ export function ExperienceTab({experiences, tags}: {experiences: Experience[], t
     });
     setEditingExperience(null);
     setIsDialogOpen(false);
+  };
+
+  const formatDate = (value: string | null) => {
+    if (!value) return "Aujourd'hui";
+    if (/^\d{2}-\d{2}-\d{4}$/.test(value)) return value;
+
+    const parsed = dayjs(value);
+    if (!parsed.isValid()) return value;
+
+    return parsed.format("DD-MM-YYYY");
   };
 
   return (
@@ -169,11 +183,23 @@ export function ExperienceTab({experiences, tags}: {experiences: Experience[], t
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="endDate">Tags</Label>
+                  <Label htmlFor="tags">Tags</Label>
                   <select
+                    id="tags"
                     multiple
-                    value={formData.tags}
-                  />
+                    value={formData.tags ?? []}
+                    onChange={(e) => {
+                      const selectedTags = Array.from(e.target.selectedOptions, (option) => option.value);
+                      setFormData({ ...formData, tags: selectedTags });
+                    }}
+                    className="w-full min-h-28 rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs"
+                  >
+                    {tags.map((tag) => (
+                      <option key={tag.id} value={tag.name}>
+                        {tag.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div className="space-y-2">
@@ -222,7 +248,7 @@ export function ExperienceTab({experiences, tags}: {experiences: Experience[], t
                 <TableHead className="py-5 px-6 font-semibold text-gray-900">Poste</TableHead>
                 <TableHead className="py-5 font-semibold text-gray-900">Entreprise</TableHead>
                 <TableHead className="py-5 font-semibold text-gray-900">Période</TableHead>
-                <TableHead className="py-5 font-semibold text-gray-900">Réalisations</TableHead>
+                <TableHead className="py-5 font-semibold text-gray-900">Missions</TableHead>
                 <TableHead className="py-5 text-right px-6 font-semibold text-gray-900">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -251,7 +277,7 @@ export function ExperienceTab({experiences, tags}: {experiences: Experience[], t
                   <TableCell>
                     <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
                       <Calendar size={14} className="text-cyan-500" />
-                      {experience.startDate} - {experience.endDate}
+                      {formatDate(experience.startDate)} - {formatDate(experience.endDate)}
                     </div>
                   </TableCell>
 

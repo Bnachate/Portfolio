@@ -3,8 +3,8 @@ import { Menu, X, LogOut, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { Button } from './common/Button'
 import Link from "next/link";
-import { isAuthenticated } from '@/app/lib/cookies';
-import { logout } from '@/app/lib/api-examples';
+import { isAuthenticated } from '@/app/config/cookies';
+import { logout } from '@/app/services/auth.service.ts';
 import { useRouter } from "next/navigation";
 
 export function Header() {
