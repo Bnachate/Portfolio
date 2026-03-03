@@ -10,7 +10,7 @@ import { Input } from "../common/input";
 import { Label } from "../common/label";
 import { Textarea } from "../common/textarea";
 import { getExperiences, getTags } from "../../services/admin.service";
-import { useAuth } from "../../config/useAuth";
+import { useAuth } from "../../config/useAuth.config";
 
 interface Experience {
   id: number;
@@ -136,7 +136,7 @@ export function ExperienceTab() {
               Nouvelle expérience
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl bg-white max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingExperience ? "Modifier l'expérience" : "Nouvelle expérience"}

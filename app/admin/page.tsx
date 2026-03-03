@@ -8,7 +8,7 @@ import { ProjectsTab } from "../components/admin/ProjectsTab";
 import { ExperienceTab } from "../components/admin/ExperienceTab";
 import { ContactsTab } from "../components/admin/ContactsTab";
 import { HeroTab } from "../components/admin/HeroTab";
-import { useAuth } from "../config/useAuth";
+import { useAuth } from "../config/useAuth.config";
 import { logout } from "../services/auth.service";
 import { useState } from "react";
 

@@ -1,5 +1,5 @@
-import apiClient from '@/app/config/api';
-import { setCookies, deleteCookies } from '../config/cookies';
+import apiClient from '@/app/config/api.config';
+import { setCookies, deleteCookies } from '../config/cookies.config';
 
 
 export const signup = async (name: string, email: string, password: string) => {

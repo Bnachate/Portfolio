@@ -4,10 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from "lucide-react";
-import { Button } from "../components/common/Button";
-import { Input } from "../components/common/input";
-import { Label } from "../components/common/label";
-import { login } from "../services/auth.service.ts";
+import { Button } from "../../components/common/Button";
+import { Input } from "../../components/common/input";
+import { Label } from "../../components/common/label";
+import { login } from "../../services/auth.service";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -132,7 +132,7 @@ export default function LoginPage() {
           <div className="text-center">
             <p className="text-gray-600">
               Pas encore de compte ?{" "}
-              <Link href="/signup" className="text-cyan-600 hover:text-cyan-700 font-medium">
+              <Link href="/auth/signup" className="text-cyan-600 hover:text-cyan-700 font-medium">
                 Créer un compte
               </Link>
             </p>

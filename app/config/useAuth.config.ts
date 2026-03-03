@@ -7,7 +7,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated } from './cookies';
+import { isAuthenticated } from './cookies.config';
 
 /**
  * Hook pour vérifier l'authentification
@@ -31,7 +31,7 @@ export const useAuth = () => {
 
       if (!authenticated) {
         // Rediriger vers login si pas authentifié
-        router.push('/login');
+        router.push('/auth/login');
       } else {
         setIsAuth(true);
       }

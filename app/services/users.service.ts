@@ -1,4 +1,4 @@
-import apiClient from '@/app/config/api';
+import apiClient from '@/app/config/api.config';
 
 export const getUsers = async () => {
   try {
