@@ -19,7 +19,7 @@ export function middleware(request: NextRequest) {
 
     if (!accessToken) {
       // Rediriger vers login si pas de token
-      return NextResponse.redirect(new URL('/login', request.url));
+      return NextResponse.redirect(new URL('/auth/login', request.url));
     }
   }
 

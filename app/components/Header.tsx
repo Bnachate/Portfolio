@@ -3,8 +3,8 @@ import { Menu, X, LogOut, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { Button } from './common/Button'
 import Link from "next/link";
-import { isAuthenticated } from '@/app/config/cookies';
-import { logout } from '@/app/services/auth.service.ts';
+import { isAuthenticated } from '@/app/config/cookies.config';
+import { logout } from '../services/auth.service';
 import { useRouter } from "next/navigation";
 
 export function Header() {
@@ -61,7 +61,7 @@ export function Header() {
             </Button>
             {!isAuth && (
               <Link
-                href="/login"
+                href="/auth/login"
                 className="border border-cyan-600 text-cyan-600 px-6 py-2 rounded-lg hover:bg-cyan-50 transition-colors"
               >
                 Connexion
@@ -111,16 +111,17 @@ export function Header() {
               Contact
             </a>
             {isAuth ? (
-              <button
+              <Button
+                variant="plain"
+                color="secondary"
                 onClick={handleLogout}
-                className="border border-red-600 text-red-600 px-6 py-2 rounded-lg hover:bg-red-50 transition-colors flex items-center gap-2 justify-center"
               >
                 <LogOut size={20} />
                 Déconnexion
-              </button>
+              </Button>
             ) : (
               <Link
-                href="/login"
+                href="/auth/login"
                 className="border border-cyan-600 text-cyan-600 px-6 py-2 rounded-lg hover:bg-cyan-50 transition-colors text-center"
               >
                 Connexion

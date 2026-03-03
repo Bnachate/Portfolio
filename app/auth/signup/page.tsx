@@ -4,10 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, User, AlertCircle } from "lucide-react";
-import { Button } from "../components/common/Button";
-import { Input } from "../components/common/input";
-import { Label } from "../components/common/label";
-import { signup } from "../services/auth.service.ts";
+import { Button } from "../../components/common/Button";
+import { Input } from "../../components/common/input";
+import { Label } from "../../components/common/label";
+import { signup } from "../../services/auth.service";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -182,7 +182,7 @@ export default function SignUpPage() {
           <div className="text-center">
             <p className="text-gray-600">
               Déjà un compte ?{" "}
-              <Link href="/login" className="text-cyan-600 hover:text-cyan-700 font-medium">
+              <Link href="/auth/login" className="text-cyan-600 hover:text-cyan-700 font-medium">
                 Se connecter
               </Link>
             </p>
