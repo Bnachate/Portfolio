@@ -2,15 +2,16 @@
 
 import { useState, useEffect } from "react";
 import dayjs from "dayjs";
-import { Plus, Pencil, Trash2, Calendar } from "lucide-react";
+import { Pencil, Trash2, Calendar } from "lucide-react";
 import { Button } from "../common/Button";
+import { TagChip } from "../common/TagChip";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../common/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../common/dialog";
-import { Input } from "../common/input";
-import { Label } from "../common/label";
-import { Textarea } from "../common/textarea";
+import { ExperienceDialog } from "./experience-tab/ExperienceDialog";
 import { getExperiences, getTags } from "../../services/admin.service";
 import { useAuth } from "../../config/useAuth.config";
+import isEqual from 'lodash/isEqual';
+import pickBy from 'lodash/pickBy';
+import { createExperience, updateExperience, deleteExperience } from "../../services/admin.service";
 
 interface Experience {
   id: number;
@@ -19,40 +20,58 @@ interface Experience {
   startDate: string;
   endDate: string | null;
   description: string;
-  tags: string[];
+  tags: Partial<Tag>[];
 }
 
 interface Tag {
   id: number;
   name: string;
+  createDate: string;
+  deletedDate: string | null;
+  description: string | null;
+  featuredImageUrl: string | null;
+  schema: string | null;
+  updateDate: string | null;
 }
+
+const normalizeTagNames = (tagValues?: Partial<Tag>[] | undefined) => {
+  if (!tagValues) return [];
+  return tagValues.map((tag) => ({ id: tag.id, name: tag.name }));
+  // .map((tag) => (typeof tag === "string" ? tag : tag?.name))
+  // .filter((name): name is string => Boolean(name));
+};
 
 export function ExperienceTab() {
   const { isLoading, isAuthenticated } = useAuth();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingExperience, setEditingExperience] = useState<Experience | null>(null);
+  const [editingExperience, setEditingExperience] = useState<Partial<Experience> | null>(null);
   const [formData, setFormData] = useState<Partial<Experience>>({
     job: "",
     company: "",
     description: "",
     startDate: "",
     endDate: "",
+    tags: []
   });
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+
+  const fetchExperiences = async () => {
+    const exp = await getExperiences();
+    setExperiences(exp.data.data);
+  };
+
+  const fetchTags = async () => {
+    const expTags = await getTags();
+    setTags(expTags.data);
+  };
+
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
       const fetchData = async () => {
         try {
-          const [exp, expTags] = await Promise.all([
-            getExperiences(),
-            getTags(),
-          ]);
-          setExperiences(exp.data.data);
-          setTags(expTags.data);
-          console.log('exp:', exp);
-          console.log('✅ expTags.data', expTags.data);
+          await Promise.all([fetchExperiences(), fetchTags()]);
         } catch (error) {
           console.error('❌ Erreur lors du chargement des données:', error);
         }
@@ -63,33 +82,46 @@ export function ExperienceTab() {
 
   const handleEdit = (experience: Experience) => {
     setEditingExperience(experience);
-    setFormData(experience);
+    setFormData({ ...experience, tags: experience.tags });
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer cette expérience ?")) {
-      setExperiences(experiences.filter((e) => e.id !== id));
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingExperience && editingExperience.id) {
+        const onlyEditedValues = pickBy(
+          formData,
+          (value, key) => !isEqual(value, editingExperience?.[key as keyof Experience])
+        );
+
+        if (Array.isArray(onlyEditedValues.tags)) {
+          onlyEditedValues.tags = onlyEditedValues.tags.map((tag) => tag.id) as Partial<Tag>[];
+        }
+
+        await updateExperience({ id: editingExperience.id, ...onlyEditedValues });
+      } else {
+        const normalizedTags = formData.tags?.map((tag) => tag.id);
+        await createExperience({ ...formData, tags: normalizedTags } as Experience);
+      }
+
+      await fetchExperiences();
+      setIsDialogOpen(false);
+      resetForm();
+    } catch (error) {
+      console.error("❌ Erreur lors de la soumission de l'expérience:", error);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingExperience) {
-      // Update existing experience
-      // setExperiences(
-      //   experiences.map((exp) =>
-      //     exp.id === editingExperience.id ? { ...formData, id: editingExperience.id } as Experience : exp
-      //   )
-      // );
-    } else {
-      // Add new experience
-      // const newExperience = {
-      //   ...formData,
-      // } as Experience;
-      // setExperiences([...experiences, newExperience]);
+  const handleDelete = async (id: number) => {
+    if (confirm("Êtes-vous sûr de vouloir supprimer cette expérience ?")) {
+      try {
+        await deleteExperience({ id });
+        await fetchExperiences();
+      } catch (error) {
+        console.error("❌ Erreur lors de la suppression de l'expérience:", error);
+      }
     }
-    resetForm();
   };
 
   const resetForm = () => {
@@ -99,6 +131,7 @@ export function ExperienceTab() {
       startDate: "",
       endDate: "",
       description: "",
+      tags: []
     });
     setEditingExperience(null);
     setIsDialogOpen(false);
@@ -114,6 +147,16 @@ export function ExperienceTab() {
     return parsed.format("DD-MM-YYYY");
   };
 
+  const selectedTags = formData.tags ? normalizeTagNames(formData.tags) : [];
+
+  const handleTagsChange = (nextTags: Partial<Tag>[]) => {
+    setFormData({ ...formData, tags: nextTags });
+  };
+
+  const handleFormChange = (nextFormData: Partial<Experience>) => {
+    setFormData(nextFormData);
+  };
+
   return (
     <div className="bg-white rounded-lg shadow">
       <div className="p-6 border-b border-gray-200 flex items-center justify-between">
@@ -123,132 +166,29 @@ export function ExperienceTab() {
             {experiences.length} expérience{experiences.length > 1 ? "s" : ""} au total
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button
-              className="w-auto px-5"
-              onClick={() => {
-                resetForm();
-                setIsDialogOpen(true);
-              }}
-            >
-              <Plus size={20} className="mr-2" />
-              Nouvelle expérience
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl bg-white max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingExperience ? "Modifier l'expérience" : "Nouvelle expérience"}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="job">Titre du poste</Label>
-                <Input
-                  id="job"
-                  value={formData.job}
-                  onChange={(e) => setFormData({ ...formData, job: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="company">Entreprise</Label>
-                  <Input
-                    id="company"
-                    value={formData.company}
-                    onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="startDate">Date de début</Label>
-                  <Input
-                    id="startDate"
-                    value={formData.startDate}
-                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                    placeholder="2020 - 2022"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="endDate">Date de fin</Label>
-                  <Input
-                    id="endDate"
-                    value={formData.endDate ?? 'Aujourd\'hui'}
-                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                    placeholder="2020 - 2022"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="tags">Tags</Label>
-                  <select
-                    id="tags"
-                    multiple
-                    value={formData.tags ?? []}
-                    onChange={(e) => {
-                      const selectedTags = Array.from(e.target.selectedOptions, (option) => option.value);
-                      setFormData({ ...formData, tags: selectedTags });
-                    }}
-                    className="w-full min-h-28 rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs"
-                  >
-                    {tags.map((tag) => (
-                      <option key={tag.id} value={tag.name}>
-                        {tag.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  rows={3}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="tags">Description</Label>
-                <Textarea
-                  id="tags"
-                  rows={5}
-                  value={formData.tags?.join("\n")}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      tags: e.target.value.split("\n").filter((a) => a.trim()),
-                    })
-                  }
-                  placeholder="Chaque réalisation sur une nouvelle ligne"
-                  required
-                />
-              </div>
-              <div className="flex justify-end gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={resetForm}>
-                  Annuler
-                </Button>
-                <Button type="submit" className="bg-cyan-600 hover:bg-cyan-700">
-                  {editingExperience ? "Mettre à jour" : "Créer"}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <ExperienceDialog
+          isOpen={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          isEditing={Boolean(editingExperience)}
+          formData={formData}
+          tags={tags}
+          selectedTags={selectedTags}
+          onFormChange={handleFormChange}
+          onTagsChange={handleTagsChange}
+          onSubmit={handleSubmit}
+          onReset={resetForm}
+        />
       </div>
       <div className="flex justify-center w-full">
-        <div className="w-7xl overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm ">
+        <div className="flex w-full overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm ">
           <Table className="w-full">
             <TableHeader className="bg-gray-50/50">
               <TableRow className="hover:bg-transparent border-b border-gray-100">
                 <TableHead className="py-5 px-6 font-semibold text-gray-900">Poste</TableHead>
                 <TableHead className="py-5 font-semibold text-gray-900">Entreprise</TableHead>
                 <TableHead className="py-5 font-semibold text-gray-900">Période</TableHead>
-                <TableHead className="py-5 font-semibold text-gray-900">Missions</TableHead>
+                <TableHead className="py-5 font-semibold text-gray-900">Description</TableHead>
+                <TableHead className="py-5 font-semibold text-gray-900">Tags</TableHead>
                 <TableHead className="py-5 text-right px-6 font-semibold text-gray-900">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -287,6 +227,15 @@ export function ExperienceTab() {
                       <span className="text-sm text-gray-600">
                         {experience.description}
                       </span>
+                    </div>
+                  </TableCell>
+
+                  {/* TAGS */}
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {normalizeTagNames(experience.tags).map((tag, index) => (
+                        <TagChip key={`${experience.id}-${tag.id}-${index}`} label={tag.name ?? ''} />
+                      ))}
                     </div>
                   </TableCell>
 

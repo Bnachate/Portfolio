@@ -56,12 +56,6 @@ export const deleteCookies = () => {
 
     document.cookie = `refreshToken=; expires=${pastDate}; path=/; SameSite=Strict`;
     document.cookie = 'refreshToken=; max-age=-1; path=/';
-
-    setTimeout(() => {
-      console.log('📋 Cookies après suppression:', document.cookie);
-      console.log('✅ Suppression terminée');
-    }, 100);
-
   } catch (error) {
     console.error('❌ Erreur lors de la suppression des cookies:', error);
   }
