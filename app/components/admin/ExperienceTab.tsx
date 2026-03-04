@@ -2,16 +2,16 @@
 
 import { useState, useEffect } from "react";
 import dayjs from "dayjs";
-import { Pencil, Trash2, Calendar } from "lucide-react";
+import { Pencil, Calendar } from "lucide-react";
 import { Button } from "../common/Button";
 import { TagChip } from "../common/TagChip";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../common/table";
-import { ExperienceDialog } from "./experience-tab/ExperienceDialog";
-import { getExperiences, getTags } from "../../services/admin.service";
+import { ExperienceDialog } from "./modal/ExperienceDialog";
+import { DeleteExperienceDialog } from "./modal/DeleteExperienceDialog";
+import { getExperiences, getTags, createExperience, updateExperience, deleteExperience } from "../../services/admin.service";
 import { useAuth } from "../../config/useAuth.config";
 import isEqual from 'lodash/isEqual';
 import pickBy from 'lodash/pickBy';
-import { createExperience, updateExperience, deleteExperience } from "../../services/admin.service";
 
 interface Experience {
   id: number;
@@ -34,17 +34,11 @@ interface Tag {
   updateDate: string | null;
 }
 
-const normalizeTagNames = (tagValues?: Partial<Tag>[] | undefined) => {
-  if (!tagValues) return [];
-  return tagValues.map((tag) => ({ id: tag.id, name: tag.name }));
-  // .map((tag) => (typeof tag === "string" ? tag : tag?.name))
-  // .filter((name): name is string => Boolean(name));
-};
-
 export function ExperienceTab() {
   const { isLoading, isAuthenticated } = useAuth();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [editingExperience, setEditingExperience] = useState<Partial<Experience> | null>(null);
   const [formData, setFormData] = useState<Partial<Experience>>({
     job: "",
@@ -56,6 +50,11 @@ export function ExperienceTab() {
   });
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+
+  const normalizeTagNames = (tagValues?: Partial<Tag>[] | undefined) => {
+    if (!tagValues) return [];
+    return tagValues.map((tag) => ({ id: tag.id, name: tag.name }));
+  };
 
   const fetchExperiences = async () => {
     const exp = await getExperiences();
@@ -114,13 +113,12 @@ export function ExperienceTab() {
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer cette expérience ?")) {
-      try {
-        await deleteExperience({ id });
-        await fetchExperiences();
-      } catch (error) {
-        console.error("❌ Erreur lors de la suppression de l'expérience:", error);
-      }
+    try {
+      await deleteExperience({ id });
+      await fetchExperiences();
+      setDeleteTargetId(null);
+    } catch (error) {
+      console.error("❌ Erreur lors de la suppression de l'expérience:", error);
     }
   };
 
@@ -249,13 +247,13 @@ export function ExperienceTab() {
                       >
                         <Pencil size={18} />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        className="w-auto"
-                        onClick={() => handleDelete(experience.id)}
-                      >
-                        <Trash2 size={18} />
-                      </Button>
+                      <DeleteExperienceDialog
+                        isOpen={deleteTargetId === experience.id}
+                        onOpenChange={(open) => setDeleteTargetId(open ? experience.id : null)}
+                        experienceId={experience.id}
+                        onSubmit={() => handleDelete(experience.id)}
+                        onReset={() => setDeleteTargetId(null)}
+                      />
                     </div>
                   </TableCell>
                 </TableRow>
