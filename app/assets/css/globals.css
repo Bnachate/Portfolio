@@ -1,1 +1,8 @@
 @import "tailwindcss";
+
+:root {
+	--input-background: #f3f3f5;
+    --primary: #030213;
+    --input: transparent;
+}
+
