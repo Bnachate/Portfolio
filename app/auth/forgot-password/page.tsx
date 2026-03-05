@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
-import { Button } from "../components/common/Button";
-import { Input } from "../components/common/input";
-import { Label } from "../components/common/label";
+import { Button } from "../../components/common/Button";
+import { Input } from "../../components/common/input";
+import { Label } from "../../components/common/label";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -34,7 +34,7 @@ export default function ForgotPasswordPage() {
               Veuillez vérifier votre boîte de réception.
             </p>
             <div className="space-y-3">
-              <Link href="/login">
+              <Link href="/auth/login">
                 <Button className="w-full bg-cyan-600 hover:bg-cyan-700">
                   Retour à la connexion
                 </Button>
@@ -105,7 +105,7 @@ export default function ForgotPasswordPage() {
 
           {/* Back to Login */}
           <div className="mt-6 text-center">
-            <Link href="/login" className="inline-flex items-center gap-2 text-cyan-600 hover:text-cyan-700 text-sm">
+            <Link href="/auth/login" className="inline-flex items-center gap-2 text-cyan-600 hover:text-cyan-700 text-sm">
               <ArrowLeft size={16} />
               Retour à la connexion
             </Link>
