@@ -1,11 +1,26 @@
 "use client";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { Button } from './common/Button'
 import Link from "next/link";
+import { isAuthenticated } from '@/app/config/cookies.config';
+import { logout } from '../services/auth.service';
+import { useRouter } from "next/navigation";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAuth, setIsAuth] = useState(isAuthenticated());
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setIsAuth(false);
+      setIsMenuOpen(false);
+    } catch (error) {
+      console.error('❌ Erreur lors de la déconnexion:', error);
+    }
+  };
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -13,6 +28,10 @@ export function Header() {
       element.scrollIntoView({ behavior: "smooth" });
       setIsMenuOpen(false);
     }
+  };
+
+  const redirectToAdmin = () => {
+    router.push("/admin");
   };
 
   return (
@@ -37,17 +56,28 @@ export function Header() {
             <Button variant="ghost" className="w-auto" onClick={() => scrollToSection("experience")}>
               Expérience
             </Button>
-            <Button variant="plain" onClick={() => scrollToSection("experience")}>
-              <a href="#contact">
-                Contact
-              </a>
+            <Button variant="ghost" className="w-auto" onClick={() => scrollToSection("contact")}>
+              Contact
             </Button>
-            <Link
-              href="/login"
-              className="border border-cyan-600 text-cyan-600 px-6 py-2 rounded-lg hover:bg-cyan-50 transition-colors hidden"
-            >
-              Connexion
-            </Link>
+            {!isAuth && (
+              <Link
+                href="/auth/login"
+                className="border border-cyan-600 text-cyan-600 px-6 py-2 rounded-lg hover:bg-cyan-50 transition-colors"
+              >
+                Connexion
+              </Link>
+            )}
+            {isAuth && (
+              <div>
+                <Button variant="outline" color="primary" className="mr-4" onClick={redirectToAdmin}>
+                  Admin
+                  <ExternalLink size={20} className="opacity-70" />
+                </Button>
+                <Button variant="plain" color="secondary" className="" onClick={handleLogout}>
+                  Déconnexion
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -80,6 +110,23 @@ export function Header() {
             >
               Contact
             </a>
+            {isAuth ? (
+              <Button
+                variant="plain"
+                color="secondary"
+                onClick={handleLogout}
+              >
+                <LogOut size={20} />
+                Déconnexion
+              </Button>
+            ) : (
+              <Link
+                href="/auth/login"
+                className="border border-cyan-600 text-cyan-600 px-6 py-2 rounded-lg hover:bg-cyan-50 transition-colors text-center"
+              >
+                Connexion
+              </Link>
+            )}
           </div>
         )}
       </nav>
