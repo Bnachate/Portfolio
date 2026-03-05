@@ -49,7 +49,7 @@ export function Hero() {
           </div>
           <div className="flex-1 max-w-md relative h-96 w-full">
             <ImageWithFallback
-              src="/brahim_nachate.png"
+              src="/my_photo.jpeg"
               alt="Developer front-end"
               className="rounded-2xl shadow-2xl object-cover"
             />

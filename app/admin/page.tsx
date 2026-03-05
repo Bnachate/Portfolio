@@ -8,20 +8,47 @@ import { ProjectsTab } from "../components/admin/ProjectsTab";
 import { ExperienceTab } from "../components/admin/ExperienceTab";
 import { ContactsTab } from "../components/admin/ContactsTab";
 import { HeroTab } from "../components/admin/HeroTab";
+import { useAuth } from "../config/useAuth.config";
+import { logout } from "../services/auth.service";
+import { useState } from "react";
 
 export default function AdminPage() {
   const router = useRouter();
+  const { isLoading, isAuthenticated } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const handleLogout = () => {
-    // Mock logout - in production, this would clear session
-    router.push("/");
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      setTimeout(() => {
+        router.push("/");
+      }, 500);
+    } catch (error) {
+      console.error('❌ Erreur lors de la déconnexion:', error);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600"></div>
+          <p className="mt-4 text-gray-600">Vérification de l&apos;authentification...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Admin Header */}
       <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <div className="bg-cyan-600 text-white p-2 rounded-lg">
@@ -42,10 +69,11 @@ export default function AdminPage() {
               </Link>
               <button
                 onClick={handleLogout}
-                className="bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors flex items-center gap-2"
+                disabled={isLoggingOut}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 active:bg-red-800 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-medium"
               >
                 <LogOut size={20} />
-                <span className="hidden sm:inline">Déconnexion</span>
+                <span className="hidden sm:inline">{isLoggingOut ? 'Déconnexion...' : 'Déconnexion'}</span>
               </button>
             </div>
           </div>
@@ -53,33 +81,33 @@ export default function AdminPage() {
       </header>
 
       {/* Admin Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs defaultValue="projects" className="space-y-6">
+      <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Tabs defaultValue="experiences" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 lg:grid-cols-4 h-auto gap-2 bg-transparent">
             <TabsTrigger
-              value="projects"
-              className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2 py-3"
-            >
-              <FolderKanban size={18} />
-              Projets
-            </TabsTrigger>
-            <TabsTrigger
-              value="experience"
-              className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2 py-3"
+              value="experiences"
+              className="flex items-center gap-2 py-3"
             >
               <Briefcase size={18} />
               Expériences
             </TabsTrigger>
             <TabsTrigger
               value="contacts"
-              className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2 py-3"
+              className="flex items-center gap-2 py-3"
             >
               <Mail size={18} />
               Messages
             </TabsTrigger>
             <TabsTrigger
+              value="projects"
+              className="flex items-center gap-2 py-3"
+            >
+              <FolderKanban size={18} />
+              Projets
+            </TabsTrigger>
+            <TabsTrigger
               value="hero"
-              className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2 py-3"
+              className="flex items-center gap-2 py-3"
             >
               <Home size={18} />
               Hero
@@ -90,7 +118,7 @@ export default function AdminPage() {
             <ProjectsTab />
           </TabsContent>
 
-          <TabsContent value="experience" className="space-y-4">
+          <TabsContent value="experiences" className="space-y-4">
             <ExperienceTab />
           </TabsContent>
 
