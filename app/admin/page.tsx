@@ -48,7 +48,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Admin Header */}
       <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <div className="bg-cyan-600 text-white p-2 rounded-lg">
@@ -81,7 +81,7 @@ export default function AdminPage() {
       </header>
 
       {/* Admin Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="experiences" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 lg:grid-cols-4 h-auto gap-2 bg-transparent">
             <TabsTrigger

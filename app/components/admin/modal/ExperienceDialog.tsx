@@ -2,10 +2,11 @@
 
 import { Plus } from "lucide-react";
 import { Button } from "../../common/Button";
+import { DatePicker } from "../../common/DatePicker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../../common/dialog";
 import { Input } from "../../common/input";
 import { Label } from "../../common/label";
-import { MultiSelectTags } from "../../common/MultiSelectTags";
+import { MultiSelectTags } from "../experience-tab/MultiSelectTags";
 import { Textarea } from "../../common/textarea";
 
 interface TagOption {
@@ -32,6 +33,7 @@ interface ExperienceDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   isEditing: boolean;
+  submitDisabled: boolean;
   formData: Partial<ExperienceDialogFormData>;
   tags: TagOption[];
   selectedTags: Partial<TagOption>[];
@@ -45,6 +47,7 @@ export function ExperienceDialog({
   isOpen,
   onOpenChange,
   isEditing,
+  submitDisabled,
   formData,
   tags,
   selectedTags,
@@ -53,6 +56,8 @@ export function ExperienceDialog({
   onSubmit,
   onReset,
 }: ExperienceDialogProps) {
+  const descriptionLength = (formData.description ?? "").length;
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
@@ -81,6 +86,7 @@ export function ExperienceDialog({
               id="job"
               value={formData.job ?? ""}
               onChange={(e) => onFormChange({ ...formData, job: e.target.value })}
+              maxLength={100}
               required
             />
           </div>
@@ -92,28 +98,28 @@ export function ExperienceDialog({
                 id="company"
                 value={formData.company ?? ""}
                 onChange={(e) => onFormChange({ ...formData, company: e.target.value })}
+                maxLength={50}
                 required
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="startDate">Date de début</Label>
-              <Input
+              <DatePicker
                 id="startDate"
                 value={formData.startDate ?? ""}
-                onChange={(e) => onFormChange({ ...formData, startDate: e.target.value })}
-                placeholder="2020 - 2022"
+                onChange={(value) => onFormChange({ ...formData, startDate: value })}
                 required
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="endDate">Date de fin</Label>
-              <Input
+              <DatePicker
                 id="endDate"
-                value={formData.endDate ?? "Aujourd'hui"}
-                onChange={(e) => onFormChange({ ...formData, endDate: e.target.value })}
-                placeholder="2020 - 2022"
+                value={formData.endDate ?? ""}
+                min={formData.startDate ?? undefined}
+                onChange={(value) => onFormChange({ ...formData, endDate: value || null })}
               />
             </div>
 
@@ -133,18 +139,25 @@ export function ExperienceDialog({
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
-              rows={3}
+              rows={4}
+              className="field-sizing-fixed resize-y whitespace-pre-wrap break-words"
               value={formData.description ?? ""}
               onChange={(e) => onFormChange({ ...formData, description: e.target.value })}
+              maxLength={512}
               required
             />
+            <p className="text-right text-xs text-gray-500">{descriptionLength}/512</p>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onReset}>
               Annuler
             </Button>
-            <Button type="submit" className="bg-cyan-600 hover:bg-cyan-700">
+            <Button
+              type="submit"
+              className="bg-cyan-600 hover:bg-cyan-700"
+              disabled={submitDisabled}
+            >
               {isEditing ? "Mettre à jour" : "Créer"}
             </Button>
           </div>

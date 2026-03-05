@@ -57,7 +57,7 @@ export function MultiSelectTags({
         <button
           type="button"
           id={id}
-          className="w-full min-h-10 rounded-md border border-input bg-(--input-background) px-2 py-1.5 text-sm shadow-xs flex items-center justify-between"
+          className="w-full min-h-10 h-full max-h-50 rounded-md border border-input bg-(--input-background) px-2 py-1.5 text-sm shadow-xs flex items-center justify-between overflow-y-auto resize-none"
         >
           <span className="flex flex-1 flex-wrap gap-1.5 text-left pr-2">
             {selectedValues.length > 0 ? (

@@ -22,6 +22,17 @@ interface Tag {
 
 type UpdateExperiencePayload = Partial<CreateExperiencePayload> & { id: number };
 
+interface CreateProjectPayload {
+  title: string;
+  description: string;
+  image: string;
+  technologies: string[];
+  codeUrl?: string;
+  demoUrl?: string;
+}
+
+type UpdateProjectPayload = Partial<CreateProjectPayload> & { id: number };
+
 export const getExperiences = async () => {
   try {
     const response = await apiClient.get('/experiences');
@@ -68,6 +79,46 @@ export const deleteExperience = async (payload: UpdateExperiencePayload) => {
     return response;
   } catch (error) {
     console.error('❌ Erreur lors de la suppression de l\'expérience:', error);
+    throw error;
+  }
+};
+
+export const getProjects = async () => {
+  try {
+    const response = await apiClient.get('/projects');
+    return response.data;
+  } catch (error) {
+    console.error('❌ Erreur lors de la récupération des projets:', error);
+    throw error;
+  }
+};
+
+export const createProject = async (payload: CreateProjectPayload) => {
+  try {
+    const response = await apiClient.post('/projects', payload);
+    return response;
+  } catch (error) {
+    console.error('❌ Erreur lors de la création du projet:', error);
+    throw error;
+  }
+};
+
+export const updateProject = async (payload: UpdateProjectPayload) => {
+  try {
+    const response = await apiClient.patch('/projects/', payload);
+    return response;
+  } catch (error) {
+    console.error('❌ Erreur lors de la mise à jour du projet:', error);
+    throw error;
+  }
+};
+
+export const deleteProject = async (payload: UpdateProjectPayload) => {
+  try {
+    const response = await apiClient.delete(`/projects/${payload.id}`);
+    return response;
+  } catch (error) {
+    console.error('❌ Erreur lors de la suppression du projet:', error);
     throw error;
   }
 };
