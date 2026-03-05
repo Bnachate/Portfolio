@@ -4,9 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Lock, CheckCircle } from "lucide-react";
-import { Button } from "../components/common/Button";
-import { Input } from "../components/common/input";
-import { Label } from "../components/common/label";
+import { Button } from "../../components/common/Button";
+import { Input } from "../../components/common/input";
+import { Label } from "../../components/common/label";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -24,7 +24,7 @@ export default function ResetPasswordPage() {
       // Mock password reset - in production, this would update password
       setIsSuccess(true);
       setTimeout(() => {
-        router.push("/login");
+        router.push("/auth/login");
       }, 2000);
     } else {
       alert("Les mots de passe ne correspondent pas");
@@ -134,7 +134,7 @@ export default function ResetPasswordPage() {
 
           {/* Back to Login */}
           <div className="mt-6 text-center">
-            <Link href="/login" className="text-cyan-600 hover:text-cyan-700 text-sm">
+            <Link href="/auth/login" className="text-cyan-600 hover:text-cyan-700 text-sm">
               Retour à la connexion
             </Link>
           </div>

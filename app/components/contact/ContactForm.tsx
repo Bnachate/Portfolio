@@ -50,14 +50,14 @@ export function ContactForm() {
               Nom
             </label>
             <input
+              value={formData.name}
+              required
               type="text"
               id="name"
               name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-600 focus:border-transparent outline-none"
               placeholder="Votre nom"
+              onChange={handleChange}
             />
           </div>
 

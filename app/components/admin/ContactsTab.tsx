@@ -6,6 +6,7 @@ import { Button } from "../common/Button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../common/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../common/dialog";
 import { Badge } from "../common/badge";
+import { cn } from "../common/utils";
 
 interface Contact {
   id: number;
@@ -128,64 +129,87 @@ export function ContactsTab() {
       </div>
 
       <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Statut</TableHead>
-              <TableHead>Nom</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Sujet</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {contacts.map((contact) => (
-              <TableRow
-                key={contact.id}
-                className={contact.status === "nouveau" ? "bg-blue-50/50" : ""}
-              >
-                <TableCell>{getStatusBadge(contact.status)}</TableCell>
-                <TableCell className="font-medium">{contact.name}</TableCell>
-                <TableCell>
-                  <a
-                    href={`mailto:${contact.email}`}
-                    className="text-cyan-600 hover:text-cyan-700 flex items-center gap-1"
-                  >
-                    <Mail size={14} />
-                    {contact.email}
-                  </a>
-                </TableCell>
-                <TableCell className="max-w-xs truncate">{contact.subject}</TableCell>
-                <TableCell className="text-sm text-gray-600">
-                  {new Date(contact.date).toLocaleDateString("fr-FR")}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      title="Voir le message"
-                      onClick={() => handleView(contact)}
-                    >
-                      <Eye size={18} />
-                    </Button>
-                    {contact.status !== "traité" && (
-                      <Button
-                        onClick={() => handleStatusChange(contact.id, "traité")}
-                      >
-                        <CheckCircle size={18} />
-                      </Button>
-                    )}
-                    <Button
-                      onClick={() => handleDelete(contact.id)}
-                    >
-                      <Trash2 size={18} />
-                    </Button>
-                  </div>
-                </TableCell>
+        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+          <Table>
+            <TableHeader className="bg-gray-50/50">
+              <TableRow className="hover:bg-transparent border-b border-gray-100">
+                <TableHead className="py-5 px-5 font-semibold text-gray-900">Nom</TableHead>
+                <TableHead className="py-5 font-semibold text-gray-900">Email</TableHead>
+                <TableHead className="py-5 font-semibold text-gray-900">Message</TableHead>
+                <TableHead className="py-5 font-semibold text-gray-900">Date</TableHead>
+                <TableHead className="py-5 text-right font-semibold text-gray-900">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {contacts.map((contact) => (
+                <TableRow
+                  key={contact.id}
+                  className={cn(
+                    "group transition-colors border-b border-gray-50 last:border-0",
+                    contact.status === "nouveau" ? "bg-cyan-50/30 hover:bg-cyan-50/50" : "hover:bg-gray-50/50"
+                  )}
+                >
+                  <TableCell className="">
+                    <div className="flex items-center gap-3">
+                      {/* Petit indicateur visuel pour les nouveaux messages */}
+                      {(
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                        </span>
+                      )}
+                      <span className="font-semibold text-gray-800">{contact.name}</span>
+                    </div>
+                  </TableCell>
+
+                  <TableCell>
+                    <a
+                      href={`mailto:${contact.email}`}
+                      className="text-gray-600 hover:text-cyan-600 transition-colors flex items-center gap-2 w-fit decoration-cyan-200 underline-offset-4 hover:underline"
+                    >
+                      <Mail size={14} className="opacity-70" />
+                      {contact.email}
+                    </a>
+                  </TableCell>
+
+                  <TableCell className="max-w-xs">
+                    <p className="truncate text-gray-600 italic">{contact.subject}</p>
+                  </TableCell>
+
+                  <TableCell className="text-sm">
+                    <div className="flex flex-col">
+                      <span className="text-gray-700 font-medium">
+                        {new Date(contact.date).toLocaleDateString("fr-FR", { day: 'numeric', month: 'short' })}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {new Date(contact.date).getFullYear()}
+                      </span>
+                    </div>
+                  </TableCell>
+
+                  <TableCell className="px-5">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        className=" w-auto"
+                        onClick={() => handleView(contact)}
+                      >
+                        <Eye size={18} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-auto"
+                        onClick={() => handleDelete(contact.id)}
+                      >
+                        <Trash2 size={18} />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       {/* Message Detail Dialog */}
