@@ -1,6 +1,5 @@
 "use client";
 
-import { Plus } from "lucide-react";
 import { Button } from "../../common/Button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../../common/dialog";
 import { Trash2 } from "lucide-react";
@@ -45,7 +44,7 @@ export function DeleteExperienceDialog({
             <Button variant="outline" onClick={onReset}>
               Annuler
             </Button>
-            <Button variant="plain" onClick={() => onSubmit(experienceId)}>
+            <Button variant="plain" color="secondary" onClick={() => onSubmit(experienceId)}>
               Supprimer
             </Button>
           </div>

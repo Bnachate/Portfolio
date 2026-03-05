@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import dayjs from "dayjs";
 import { Pencil, Calendar } from "lucide-react";
 import { Button } from "../common/Button";
-import { TagChip } from "../common/TagChip";
+import { TagChip } from "./experience-tab/TagChip";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../common/table";
 import { ExperienceDialog } from "./modal/ExperienceDialog";
 import { DeleteExperienceDialog } from "./modal/DeleteExperienceDialog";
@@ -34,6 +34,39 @@ interface Tag {
   updateDate: string | null;
 }
 
+function TruncateWithTooltip({
+  text,
+  className,
+}: {
+  text: string;
+  className: string;
+}) {
+  const textRef = useRef<HTMLSpanElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useEffect(() => {
+    const element = textRef.current;
+    if (!element) return;
+
+    const checkTruncate = () => {
+      setIsTruncated(element.scrollWidth > element.clientWidth);
+    };
+
+    checkTruncate();
+
+    const observer = new ResizeObserver(checkTruncate);
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, [text]);
+
+  return (
+    <span ref={textRef} className={className} title={isTruncated ? text : undefined}>
+      {text}
+    </span>
+  );
+}
+
 export function ExperienceTab() {
   const { isLoading, isAuthenticated } = useAuth();
 
@@ -54,6 +87,26 @@ export function ExperienceTab() {
   const normalizeTagNames = (tagValues?: Partial<Tag>[] | undefined) => {
     if (!tagValues) return [];
     return tagValues.map((tag) => ({ id: tag.id, name: tag.name }));
+  };
+
+  const normalizeTagIds = (tagValues?: Partial<Tag>[] | undefined) => {
+    if (!tagValues) return [];
+    return tagValues
+      .map((tag) => tag.id)
+      .filter((id): id is number => typeof id === "number")
+      .sort((a, b) => a - b);
+  };
+
+  const normalizeEndDate = (value?: string | null) => {
+    if (!value || value === "Aujourd'hui") return null;
+    return value;
+  };
+
+  const toDateInputValue = (value?: string | null) => {
+    if (!value) return "";
+    const parsed = dayjs(value);
+    if (!parsed.isValid()) return "";
+    return parsed.format("YYYY-MM-DD");
   };
 
   const fetchExperiences = async () => {
@@ -81,7 +134,12 @@ export function ExperienceTab() {
 
   const handleEdit = (experience: Experience) => {
     setEditingExperience(experience);
-    setFormData({ ...experience, tags: experience.tags });
+    setFormData({
+      ...experience,
+      startDate: toDateInputValue(experience.startDate),
+      endDate: toDateInputValue(experience.endDate),
+      tags: experience.tags,
+    });
     setIsDialogOpen(true);
   };
 
@@ -90,7 +148,7 @@ export function ExperienceTab() {
     try {
       if (editingExperience && editingExperience.id) {
         const onlyEditedValues = pickBy(
-          formData,
+          { ...formData, endDate: normalizeEndDate(formData.endDate) },
           (value, key) => !isEqual(value, editingExperience?.[key as keyof Experience])
         );
 
@@ -98,10 +156,18 @@ export function ExperienceTab() {
           onlyEditedValues.tags = onlyEditedValues.tags.map((tag) => tag.id) as Partial<Tag>[];
         }
 
+        if ("endDate" in onlyEditedValues) {
+          onlyEditedValues.endDate = normalizeEndDate(onlyEditedValues.endDate as string | null);
+        }
+
         await updateExperience({ id: editingExperience.id, ...onlyEditedValues });
       } else {
         const normalizedTags = formData.tags?.map((tag) => tag.id);
-        await createExperience({ ...formData, tags: normalizedTags } as Experience);
+        await createExperience({
+          ...formData,
+          endDate: normalizeEndDate(formData.endDate),
+          tags: normalizedTags,
+        } as Experience);
       }
 
       await fetchExperiences();
@@ -147,6 +213,40 @@ export function ExperienceTab() {
 
   const selectedTags = formData.tags ? normalizeTagNames(formData.tags) : [];
 
+  const isCreateFormValid = Boolean(
+    formData.job?.trim() &&
+    formData.company?.trim() &&
+    formData.description?.trim() &&
+    formData.startDate &&
+    normalizeTagIds(formData.tags).length > 0
+  );
+
+  const hasEditChanges = (() => {
+    if (!editingExperience) return false;
+
+    const currentValues = {
+      job: formData.job ?? "",
+      company: formData.company ?? "",
+      description: formData.description ?? "",
+      startDate: formData.startDate ?? "",
+      endDate: normalizeEndDate(formData.endDate),
+      tags: normalizeTagIds(formData.tags),
+    };
+
+    const initialValues = {
+      job: editingExperience.job ?? "",
+      company: editingExperience.company ?? "",
+      description: editingExperience.description ?? "",
+      startDate: editingExperience.startDate ?? "",
+      endDate: normalizeEndDate(editingExperience.endDate),
+      tags: normalizeTagIds(editingExperience.tags),
+    };
+
+    return !isEqual(currentValues, initialValues);
+  })();
+
+  const isSubmitDisabled = editingExperience ? !hasEditChanges : !isCreateFormValid;
+
   const handleTagsChange = (nextTags: Partial<Tag>[]) => {
     setFormData({ ...formData, tags: nextTags });
   };
@@ -168,6 +268,7 @@ export function ExperienceTab() {
           isOpen={isDialogOpen}
           onOpenChange={setIsDialogOpen}
           isEditing={Boolean(editingExperience)}
+          submitDisabled={isSubmitDisabled}
           formData={formData}
           tags={tags}
           selectedTags={selectedTags}
@@ -179,7 +280,7 @@ export function ExperienceTab() {
       </div>
       <div className="flex justify-center w-full">
         <div className="flex w-full overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm ">
-          <Table className="w-full">
+          <Table className="w-full table-fixed">
             <TableHeader className="bg-gray-50/50">
               <TableRow className="hover:bg-transparent border-b border-gray-100">
                 <TableHead className="py-5 px-6 font-semibold text-gray-900">Poste</TableHead>
@@ -198,39 +299,47 @@ export function ExperienceTab() {
                   className="group transition-all hover:bg-cyan-50/20 border-b border-gray-50 last:border-0"
                 >
                   {/* POSTE */}
-                  <TableCell className="py-5 px-6">
-                    <span className="font-bold text-gray-800 text-base block group-hover:text-cyan-700 transition-colors">
-                      {experience.job}
-                    </span>
+                  <TableCell className="py-5 px-6 max-w-[180px]">
+                    <TruncateWithTooltip
+                      text={experience.job}
+                      className="font-bold text-gray-800 text-base block truncate group-hover:text-cyan-700 transition-colors"
+                    />
                   </TableCell>
 
                   {/* ENTREPRISE */}
                   <TableCell>
-                    <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
-                      {experience.company}
+                    <div className="inline-flex max-w-[160px] items-center truncate px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+                      <TruncateWithTooltip
+                        text={experience.company}
+                        className="block truncate"
+                      />
                     </div>
                   </TableCell>
 
                   {/* PÉRIODE */}
                   <TableCell>
-                    <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
+                    <div className="flex max-w-[220px] items-center gap-2 truncate text-sm text-gray-500 font-medium">
                       <Calendar size={14} className="text-cyan-500" />
-                      {formatDate(experience.startDate)} - {formatDate(experience.endDate)}
+                      <TruncateWithTooltip
+                        text={`${formatDate(experience.startDate)} - ${formatDate(experience.endDate)}`}
+                        className="block truncate"
+                      />
                     </div>
                   </TableCell>
 
                   {/* RÉALISATIONS */}
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">
-                        {experience.description}
-                      </span>
+                      <TruncateWithTooltip
+                        text={experience.description}
+                        className="block max-w-[280px] truncate text-sm text-gray-600"
+                      />
                     </div>
                   </TableCell>
 
                   {/* TAGS */}
-                  <TableCell>
-                    <div className="flex items-center gap-2">
+                  <TableCell className="w-auto">
+                    <div className="inline-flex flex-wrap gap-2 overflow-x-auto max-h-24">
                       {normalizeTagNames(experience.tags).map((tag, index) => (
                         <TagChip key={`${experience.id}-${tag.id}-${index}`} label={tag.name ?? ''} />
                       ))}
