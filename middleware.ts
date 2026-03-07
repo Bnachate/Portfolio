@@ -14,10 +14,11 @@ export function middleware(request: NextRequest) {
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
 
   if (isProtectedRoute) {
-    // Vérifier si le token existe dans les cookies
+    // Vérifier si les tokens existent dans les cookies
     const accessToken = request.cookies.get('accessToken')?.value;
+    const refreshToken = request.cookies.get('refreshToken')?.value;
 
-    if (!accessToken) {
+    if (!accessToken || !refreshToken) {
       // Rediriger vers login si pas de token
       return NextResponse.redirect(new URL('/auth/login', request.url));
     }
