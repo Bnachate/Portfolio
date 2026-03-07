@@ -4,10 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, User, AlertCircle } from "lucide-react";
-import { Button } from "../../components/common/Button";
-import { Input } from "../../components/common/input";
-import { Label } from "../../components/common/label";
-import { signup } from "../../services/auth.service";
+import { Button } from "@/app/components/common/Button";
+import { Input } from "@/app/components/common/input";
+import { Label } from "@/app/components/common/label";
+import { signup } from "@/app/services/auth.service";
 
 export default function SignUpPage() {
   const router = useRouter();

@@ -4,12 +4,13 @@ import { useState, useEffect, useRef } from "react";
 import dayjs from "dayjs";
 import { Pencil, Calendar } from "lucide-react";
 import { Button } from "../common/Button";
-import { TagChip } from "./experience-tab/TagChip";
+import { TagChip } from "./common/TagChip";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../common/table";
-import { ExperienceDialog } from "./modal/ExperienceDialog";
-import { DeleteExperienceDialog } from "./modal/DeleteExperienceDialog";
-import { getExperiences, getTags, createExperience, updateExperience, deleteExperience } from "../../services/admin.service";
-import { useAuth } from "../../config/useAuth.config";
+import { ExperienceDialog } from "./experiences-tab/modal/ExperienceDialog";
+import { DeleteExperienceDialog } from "./experiences-tab/modal/DeleteExperienceDialog";
+import { getExperiences, createExperience, updateExperience, deleteExperience } from "@/app/services/admin/experiences.service";
+import { getTags } from "@/app/services/admin/tags.service";
+import { useAuth } from "@/app/config/useAuth.config";
 import isEqual from 'lodash/isEqual';
 import pickBy from 'lodash/pickBy';
 
@@ -17,6 +18,7 @@ interface Experience {
   id: number;
   job: string;
   company: string;
+  position: number;
   startDate: string;
   endDate: string | null;
   description: string;
@@ -76,6 +78,7 @@ export function ExperienceTab() {
   const [formData, setFormData] = useState<Partial<Experience>>({
     job: "",
     company: "",
+    position: 0,
     description: "",
     startDate: "",
     endDate: "",
@@ -192,6 +195,7 @@ export function ExperienceTab() {
     setFormData({
       job: "",
       company: "",
+      position: 0,
       startDate: "",
       endDate: "",
       description: "",
@@ -216,6 +220,8 @@ export function ExperienceTab() {
   const isCreateFormValid = Boolean(
     formData.job?.trim() &&
     formData.company?.trim() &&
+    typeof formData.position === "number" &&
+    formData.position >= 0 &&
     formData.description?.trim() &&
     formData.startDate &&
     normalizeTagIds(formData.tags).length > 0
@@ -227,6 +233,7 @@ export function ExperienceTab() {
     const currentValues = {
       job: formData.job ?? "",
       company: formData.company ?? "",
+      position: formData.position ?? 0,
       description: formData.description ?? "",
       startDate: formData.startDate ?? "",
       endDate: normalizeEndDate(formData.endDate),
@@ -236,6 +243,7 @@ export function ExperienceTab() {
     const initialValues = {
       job: editingExperience.job ?? "",
       company: editingExperience.company ?? "",
+      position: editingExperience.position ?? 0,
       description: editingExperience.description ?? "",
       startDate: editingExperience.startDate ?? "",
       endDate: normalizeEndDate(editingExperience.endDate),
@@ -283,6 +291,7 @@ export function ExperienceTab() {
           <Table className="w-full table-fixed">
             <TableHeader className="bg-gray-50/50">
               <TableRow className="hover:bg-transparent border-b border-gray-100">
+                <TableHead className="py-5 font-semibold text-gray-900">Position</TableHead>
                 <TableHead className="py-5 px-6 font-semibold text-gray-900">Poste</TableHead>
                 <TableHead className="py-5 font-semibold text-gray-900">Entreprise</TableHead>
                 <TableHead className="py-5 font-semibold text-gray-900">Période</TableHead>
@@ -298,8 +307,16 @@ export function ExperienceTab() {
                   key={experience.id}
                   className="group transition-all hover:bg-cyan-50/20 border-b border-gray-50 last:border-0"
                 >
+
+                  {/* POSITION */}
+                  <TableCell className="max-w-10">
+                    <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                      {experience.position}
+                    </span>
+                  </TableCell>
+
                   {/* POSTE */}
-                  <TableCell className="py-5 px-6 max-w-[180px]">
+                  <TableCell className="py-5 px-6 max-w-45">
                     <TruncateWithTooltip
                       text={experience.job}
                       className="font-bold text-gray-800 text-base block truncate group-hover:text-cyan-700 transition-colors"
@@ -308,7 +325,7 @@ export function ExperienceTab() {
 
                   {/* ENTREPRISE */}
                   <TableCell>
-                    <div className="inline-flex max-w-[160px] items-center truncate px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+                    <div className="inline-flex max-w-40 items-center truncate px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
                       <TruncateWithTooltip
                         text={experience.company}
                         className="block truncate"
@@ -318,7 +335,7 @@ export function ExperienceTab() {
 
                   {/* PÉRIODE */}
                   <TableCell>
-                    <div className="flex max-w-[220px] items-center gap-2 truncate text-sm text-gray-500 font-medium">
+                    <div className="flex max-w-55 items-center gap-2 truncate text-sm text-gray-500 font-medium">
                       <Calendar size={14} className="text-cyan-500" />
                       <TruncateWithTooltip
                         text={`${formatDate(experience.startDate)} - ${formatDate(experience.endDate)}`}
@@ -332,7 +349,7 @@ export function ExperienceTab() {
                     <div className="flex items-center gap-2">
                       <TruncateWithTooltip
                         text={experience.description}
-                        className="block max-w-[280px] truncate text-sm text-gray-600"
+                        className="block max-w-70 truncate text-sm text-gray-600"
                       />
                     </div>
                   </TableCell>
