@@ -5,7 +5,7 @@ interface TagChipProps {
 
 export function TagChip({ label, onRemove }: TagChipProps) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-xs text-gray-600">
+    <span className="inline-flex items-center gap-1 rounded-full bg-cyan-100 px-2 py-1 text-xs text-gray-600">
       {label}
       {onRemove && (
         <span

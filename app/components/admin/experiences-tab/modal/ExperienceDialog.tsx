@@ -1,13 +1,13 @@
 "use client";
 
 import { Plus } from "lucide-react";
-import { Button } from "../../common/Button";
-import { DatePicker } from "../../common/DatePicker";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../../common/dialog";
-import { Input } from "../../common/input";
-import { Label } from "../../common/label";
-import { MultiSelectTags } from "../experience-tab/MultiSelectTags";
-import { Textarea } from "../../common/textarea";
+import { Button } from "@/app/components/common/Button";
+import { DatePicker } from "@/app/components/common/DatePicker";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/app/components/common/dialog";
+import { Input } from "@/app/components/common/input";
+import { Label } from "@/app/components/common/label";
+import { MultiSelectTags } from "@/app/components/admin/common/MultiSelectTags";
+import { Textarea } from "@/app/components/common/textarea";
 
 interface TagOption {
   id: number;
@@ -23,6 +23,7 @@ interface TagOption {
 interface ExperienceDialogFormData {
   job?: string;
   company?: string;
+  position?: number;
   startDate?: string;
   endDate?: string | null;
   description?: string;
@@ -104,6 +105,19 @@ export function ExperienceDialog({
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="position">Position</Label>
+              <Input
+                id="position"
+                type="number"
+                min={0}
+                value={formData.position ?? 0}
+                onChange={(e) => onFormChange({ ...formData, position: Number(e.target.value) })}
+                placeholder="0"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="startDate">Date de début</Label>
               <DatePicker
                 id="startDate"
@@ -122,20 +136,20 @@ export function ExperienceDialog({
                 onChange={(value) => onFormChange({ ...formData, endDate: value || null })}
               />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="tags">Tags</Label>
-              <MultiSelectTags
-                id="tags"
-                options={tags}
-                selectedValues={selectedTags}
-                onChange={onTagsChange}
-                placeholder="Sélectionner des tags"
-              />
-            </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 col-span-2">
+            <Label htmlFor="tags">Tags</Label>
+            <MultiSelectTags
+              id="tags"
+              options={tags}
+              selectedValues={selectedTags}
+              onChange={onTagsChange}
+              placeholder="Sélectionner des tags"
+            />
+          </div>
+
+          <div className="space-y-2 col-span-2">
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
