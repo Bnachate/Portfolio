@@ -34,11 +34,11 @@ export function MultiSelectTags({
   const [isOpen, setIsOpen] = useState(false);
 
   const isTagMatched = (option: MultiSelectTagOption) => {
-    return selectedValues.some(value => value.name?.includes(option.name))
-  }
+    return selectedValues.some(value => value.name?.includes(option.name));
+  };
 
   const toggleTag = (tag: Partial<MultiSelectTagOption>) => {
-    const selectedValuesIds = selectedValues.map((value) => value.id)
+    const selectedValuesIds = selectedValues.map((value) => value.id);
     const nextValues = selectedValuesIds.includes(tag.id)
       ? selectedValues.filter((value) => value.id !== tag.id)
       : [...selectedValues, tag];
@@ -63,8 +63,7 @@ export function MultiSelectTags({
             {selectedValues.length > 0 ? (
               selectedValues.map((value, index) => (
                 <TagChip
-                  key={index
-                  }
+                  key={index}
                   label={value.name ?? ''}
                   onRemove={() => removeTag(value)}
                 />
