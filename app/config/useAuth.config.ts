@@ -1,6 +1,6 @@
 /**
- * Hook personnalisé pour protéger les pages authentifiées
- * Vérifie si l'utilisateur est connecté et redirige vers login si nécessaire
+ * Custom hook to protect authenticated pages
+ * Checks whether the user is logged in and redirects to login if needed
  */
 
 'use client';
@@ -10,10 +10,10 @@ import { useRouter } from 'next/navigation';
 import { isAuthenticated } from './cookies.config';
 
 /**
- * Hook pour vérifier l'authentification
- * Redirige automatiquement vers /login si pas authentifié
+ * Hook to check authentication
+ * Automatically redirects to /login if not authenticated
  *
- * Utilisation:
+ * Usage:
  * const { isLoading } = useAuth();
  *
  * if (isLoading) return <LoadingSpinner />;
@@ -25,12 +25,12 @@ export const useAuth = () => {
   const [isAuth, setIsAuth] = useState(false);
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est authentifié
+    // Check whether the user is authenticated
     const checkAuth = () => {
       const authenticated = isAuthenticated();
 
       if (!authenticated) {
-        // Rediriger vers login si pas authentifié
+        // Redirect to login if not authenticated
         router.push('/auth/login');
       } else {
         setIsAuth(true);

@@ -26,13 +26,13 @@ export default function SignUpPage() {
     e.preventDefault();
     setError("");
 
-    // Validation des mots de passe
+    // Check that passwords match
     if (formData.password !== formData.confirmPassword) {
       setError("Les mots de passe ne correspondent pas");
       return;
     }
 
-    // Validation de la longueur du mot de passe
+    // Check password length
     if (formData.password.length < 6) {
       setError("Le mot de passe doit contenir au moins 6 caractères");
       return;
@@ -41,14 +41,14 @@ export default function SignUpPage() {
     setIsLoading(true);
 
     try {
-      // Appel à l'API pour créer le compte
+      // Call the API to create the account
       await signup(formData.firstName, formData.email, formData.password);
 
-      // Succès : rediriger vers la page admin
-      // Les tokens sont automatiquement stockés dans les cookies
+      // Success: redirect to the admin page
+      // Tokens are automatically stored in cookies
       router.push("/admin");
     } catch (err: any) {
-      // Gestion des erreurs
+      // Error handling
       const errorMessage = err.response?.data?.message || "Erreur lors de la création du compte";
       setError(errorMessage);
     } finally {

@@ -23,14 +23,14 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Appel à l'API pour se connecter
+      // Call the API to sign in
       await login(email, password);
 
-      // Succès : rediriger vers la page admin
-      // Les tokens sont automatiquement stockés dans les cookies
+      // Success: redirect to the admin page
+      // Tokens are automatically stored in cookies
       router.push("/admin");
     } catch (err: any) {
-      // Gestion des erreurs
+      // Error handling
       const errorMessage = err.response?.data?.message || "Email ou mot de passe incorrect";
       setError(errorMessage);
     } finally {
