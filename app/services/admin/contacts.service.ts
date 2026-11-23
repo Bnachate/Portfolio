@@ -9,5 +9,5 @@ export const updateContactStatus = (id: number, status: ContactStatus) =>
 export const deleteContact = (id: number) => apiClient.delete(`/contacts/${id}`);
 
 /** Public: used by the contact form. */
-export const sendContactMessage = (payload: { name: string; email: string; message: string; website?: string }) =>
+export const sendContactMessage = (payload: { name: string; email: string; subject: string; message: string; website?: string }) =>
   apiClient.post('/contacts', payload);
