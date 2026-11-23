@@ -21,7 +21,7 @@ proxy.ts        redirects /admin to the login page without a session
 
 ## Local development
 
-No database to install: without `DATABASE_URL`, the app uses **PGlite**, an embedded Postgres stored in `./.pglite`.
+No database to install: without `DATABASE_URL`, the app uses **PGlite**, an embedded Postgres stored in `./.pglite` (works with both `npm run dev` and `npm start`; refused on Vercel, where the filesystem is not persistent).
 
 ```bash
 npm install

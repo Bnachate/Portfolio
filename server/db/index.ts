@@ -40,8 +40,10 @@ function connect(): Connection {
     };
   }
 
-  if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_PGLITE) {
-    throw new Error('DATABASE_URL must be set in production');
+  // On Vercel the filesystem is ephemeral: an embedded database would silently lose data.
+  // Locally, PGlite is fine for both `npm run dev` and `npm start`.
+  if (process.env.VERCEL) {
+    throw new Error('DATABASE_URL must be set on Vercel (Project Settings > Environment Variables)');
   }
 
   const client = new PGlite(PGLITE_DIR);
