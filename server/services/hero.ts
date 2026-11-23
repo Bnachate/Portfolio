@@ -8,10 +8,10 @@ export type HeroDTO = z.infer<typeof heroSchema>;
 
 // Shown until the hero is saved once from the admin
 export const DEFAULT_HERO: HeroDTO = {
-  title: 'Développeur Vue.js React',
-  subtitle: "Création d'expériences web modernes et performantes",
+  title: 'Développeur Full-Stack',
+  subtitle: "7 ans d'expérience · Vue.js, React, Node.js, Java",
   description:
-    'Passionné par le développement web, je transforme des idées en applications élégantes et intuitives. Spécialisé en React, TypeScript et design moderne.',
+    "Je conçois et développe des applications web de bout en bout : interfaces en Vue.js et React, API REST en Node.js et Java / Spring Boot. Attaché à la qualité du code, aux tests et à l'expérience utilisateur, j'aime participer aux choix d'architecture et partager mes connaissances avec l'équipe.",
   primaryButtonText: 'Me contacter',
   primaryButtonUrl: '#contact',
   secondaryButtonText: 'Voir mes projets',
