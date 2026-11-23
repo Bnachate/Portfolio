@@ -15,7 +15,7 @@ export function ContactForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulation d'envoi de formulaire
+    // Simulated form submission
     setSubmitted(true);
     setTimeout(() => {
       setSubmitted(false);

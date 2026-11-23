@@ -315,7 +315,7 @@ export function ExperienceTab() {
                     </span>
                   </TableCell>
 
-                  {/* POSTE */}
+                  {/* JOB TITLE */}
                   <TableCell className="py-5 px-6 max-w-45">
                     <TruncateWithTooltip
                       text={experience.job}
@@ -323,7 +323,7 @@ export function ExperienceTab() {
                     />
                   </TableCell>
 
-                  {/* ENTREPRISE */}
+                  {/* COMPANY */}
                   <TableCell>
                     <div className="inline-flex max-w-40 items-center truncate px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
                       <TruncateWithTooltip
@@ -333,7 +333,7 @@ export function ExperienceTab() {
                     </div>
                   </TableCell>
 
-                  {/* PÉRIODE */}
+                  {/* PERIOD */}
                   <TableCell>
                     <div className="flex max-w-55 items-center gap-2 truncate text-sm text-gray-500 font-medium">
                       <Calendar size={14} className="text-cyan-500" />
@@ -344,7 +344,7 @@ export function ExperienceTab() {
                     </div>
                   </TableCell>
 
-                  {/* RÉALISATIONS */}
+                  {/* DESCRIPTION */}
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <TruncateWithTooltip

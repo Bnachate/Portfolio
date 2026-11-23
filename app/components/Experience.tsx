@@ -46,7 +46,7 @@ export function Experience() {
 
         <div className="max-w-4xl mx-auto">
           <div className="relative">
-            {/* Ligne verticale de la timeline */}
+            {/* Timeline vertical line */}
             <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-cyan-200"></div>
 
             {experiences.map((exp) => (

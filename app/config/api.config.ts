@@ -2,20 +2,20 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import { getCookie, deleteCookies } from './cookies.config';
 import { withBasePath } from './basePath';
 
-// Configuration de l'URL de base de l'API
+// API base URL configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portfolioback-end-production.up.railway.app';
 
-// Créer une instance axios avec withCredentials pour les cookies
+// Create an axios instance with withCredentials for cookies
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
-  withCredentials: true, // Important : envoie les cookies avec chaque requête
+  withCredentials: true, // Important: sends cookies with every request
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Variables pour gérer le refresh token
+// State used to handle token refresh
 let isRefreshing = false;
 let failedQueue: Array<{
   onSuccess: () => void;
@@ -34,8 +34,8 @@ const processQueue = (error: Error | null) => {
   failedQueue = [];
 };
 
-// Fonction pour rafraîchir le token
-// Récupère le refreshToken du cookie et l'utilise pour obtenir un nouveau accessToken
+// Refreshes the access token
+// Reads the refreshToken cookie and uses it to get a new accessToken
 const refreshAccessToken = async () => {
   try {
     const refreshToken = getCookie('refreshToken');
@@ -44,14 +44,14 @@ const refreshAccessToken = async () => {
       throw new Error('No refresh token available');
     }
 
-    // Appeler l'endpoint de refresh avec le refreshToken
+    // Call the refresh endpoint with the refreshToken
     const response = await axios.post(
       `${API_BASE_URL}/auth/refresh-tokens`,
       { refreshToken },
       { withCredentials: true }
     );
 
-    // Stocker le nouveau token dans le cookie
+    // Store the new token in the cookie
     if (response.data?.data?.accessToken) {
       const oneDay = 24 * 60 * 60 * 1000;
       const expireAccessToken = new Date(new Date().getTime() + oneDay);
@@ -60,7 +60,7 @@ const refreshAccessToken = async () => {
 
     return true;
   } catch (error) {
-    // Token refresh échoué, rediriger vers login
+    // Token refresh failed, redirect to login
     deleteCookies();
     if (typeof window !== 'undefined') {
       window.location.href = withBasePath('/auth/login/');
@@ -69,8 +69,8 @@ const refreshAccessToken = async () => {
   }
 };
 
-// Interceptor pour les requêtes
-// Ajouter le token Bearer dans l'Authorization header
+// Request interceptor
+// Adds the Bearer token to the Authorization header
 apiClient.interceptors.request.use(
   (config) => {
     const accessToken = getCookie('accessToken');
@@ -84,16 +84,16 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Interceptor pour gérer les erreurs et le refresh token
+// Response interceptor handling errors and token refresh
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as any;
 
-    // Si erreur 401 et pas déjà tenté un refresh
+    // On 401, if a refresh has not been attempted yet
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        // Le refresh est déjà en cours, mettre en queue
+        // A refresh is already in progress, queue the request
         return new Promise((resolve, reject) => {
           failedQueue.push({
             onSuccess: () => {
