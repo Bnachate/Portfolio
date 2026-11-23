@@ -17,10 +17,11 @@ export async function listContacts() {
   return db.select(publicColumns).from(contactMessages).orderBy(desc(contactMessages.createdAt));
 }
 
-export async function createContact(input: { name: string; email: string; subject?: string; message: string }) {
+// subject stays nullable in the database for messages sent before it became required
+export async function createContact(input: { name: string; email: string; subject: string; message: string }) {
   const [contact] = await db
     .insert(contactMessages)
-    .values({ ...input, subject: input.subject || null })
+    .values(input)
     .returning({ id: contactMessages.id });
   return contact;
 }

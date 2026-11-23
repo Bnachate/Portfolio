@@ -111,6 +111,7 @@ export function ContactsTab() {
               <TableRow className="hover:bg-transparent border-b border-gray-100">
                 <TableHead className="py-5 px-5 font-semibold text-gray-900">Nom</TableHead>
                 <TableHead className="py-5 font-semibold text-gray-900">Email</TableHead>
+                <TableHead className="py-5 font-semibold text-gray-900">Sujet</TableHead>
                 <TableHead className="py-5 font-semibold text-gray-900">Message</TableHead>
                 <TableHead className="py-5 font-semibold text-gray-900">Date</TableHead>
                 <TableHead className="py-5 text-right font-semibold text-gray-900">Actions</TableHead>
@@ -149,7 +150,11 @@ export function ContactsTab() {
                   </TableCell>
 
                   <TableCell className="max-w-xs">
-                    <p className="truncate text-gray-600 italic">{contact.subject ?? contact.message}</p>
+                    <p className="truncate font-medium text-gray-800">{contact.subject ?? "—"}</p>
+                  </TableCell>
+
+                  <TableCell className="max-w-xs">
+                    <p className="truncate text-gray-600 italic">{contact.message}</p>
                   </TableCell>
 
                   <TableCell className="text-sm">

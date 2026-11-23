@@ -5,7 +5,7 @@ import { useState } from "react";
 import { sendContactMessage } from "@/app/services/admin/contacts.service";
 import { getErrorMessage } from "@/app/config/api.config";
 
-const EMPTY_FORM = { name: "", email: "", message: "", website: "" };
+const EMPTY_FORM = { name: "", email: "", subject: "", message: "", website: "" };
 
 const inputClass =
   "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-600 focus:border-transparent outline-none";
@@ -69,6 +69,11 @@ export function ContactForm() {
         <div>
           <label htmlFor="email" className="block text-gray-700 mb-2">Email</label>
           <input id="email" name="email" type="email" required maxLength={200} value={formData.email} onChange={handleChange} className={inputClass} placeholder="votre@email.com" />
+        </div>
+
+        <div>
+          <label htmlFor="subject" className="block text-gray-700 mb-2">Sujet</label>
+          <input id="subject" name="subject" type="text" required maxLength={200} value={formData.subject} onChange={handleChange} className={inputClass} placeholder="Ex : Proposition de mission" />
         </div>
 
         <div>

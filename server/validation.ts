@@ -19,7 +19,8 @@ const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date attendue au format
 
 const tagIds = z.array(z.number().int().positive()).max(50);
 const position = z.number().int().min(0).max(10_000);
-const shortText = (max: number) => z.string().trim().min(1, 'Champ requis').max(max);
+const shortText = (max: number) =>
+  z.string({ error: 'Champ requis' }).trim().min(1, 'Champ requis').max(max, `${max} caractères maximum`);
 
 /* ---------- Auth ---------- */
 
@@ -82,7 +83,7 @@ export const createTagSchema = z.object({ name: shortText(50) });
 export const createContactSchema = z.object({
   name: shortText(100),
   email: z.email('Email invalide').max(200),
-  subject: z.string().trim().max(200).optional(),
+  subject: shortText(200),
   message: shortText(5000),
   // Honeypot: hidden field that humans leave empty
   website: z.string().optional(),
