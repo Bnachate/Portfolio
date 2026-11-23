@@ -5,6 +5,11 @@ export interface Tag {
   name: string;
 }
 
+export interface TagWithUsage extends Tag {
+  experienceCount: number;
+  projectCount: number;
+}
+
 export interface Project {
   id: number;
   title: string;

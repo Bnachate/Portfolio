@@ -1,5 +1,5 @@
 import apiClient, { unwrap } from '@/app/config/api.config';
-import type { Experience, Tag, WithTagIds } from '@/app/types/api';
+import type { Experience, WithTagIds } from '@/app/types/api';
 
 export type ExperiencePayload = WithTagIds<Experience>;
 
@@ -13,6 +13,5 @@ export const updateExperience = (id: number, payload: Partial<ExperiencePayload>
 
 export const deleteExperience = (id: number) => apiClient.delete(`/experiences/${id}`);
 
-export const getTags = () => unwrap<Tag[]>(apiClient.get('/tags'));
-
-export const createTag = (name: string) => unwrap<Tag>(apiClient.post('/tags', { name }));
+// Kept here for the existing imports; tag calls live in tags.service
+export { getTags, createTag } from './tags.service';
