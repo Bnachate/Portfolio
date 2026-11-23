@@ -2,21 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SESSION_COOKIE, verifySessionToken } from './server/auth/session';
 
 /**
- * Runs before /admin and /auth pages.
- * - /admin without a valid session -> redirect to the login page
- * - /auth/login with a valid session -> redirect to /admin
- * This is only a UX guard: every API route also checks the session itself.
+ * Runs before /auth pages: /auth/login with a valid session -> redirect to /admin.
+ * /admin itself is public (read-only for visitors), and every API route checks the session itself.
  */
 export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
   const session = await verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value);
 
-  if (pathname.startsWith('/admin') && !session) {
-    const loginUrl = new URL('/auth/login', request.url);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  if (pathname.startsWith('/auth/login') && session) {
+  if (request.nextUrl.pathname.startsWith('/auth/login') && session) {
     return NextResponse.redirect(new URL('/admin', request.url));
   }
 
@@ -24,5 +16,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/auth/:path*'],
+  matcher: ['/auth/:path*'],
 };

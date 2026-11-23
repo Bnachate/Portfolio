@@ -3,7 +3,7 @@ import type { Tag, TagWithUsage } from '@/app/types/api';
 
 export const getTags = () => unwrap<Tag[]>(apiClient.get('/tags'));
 
-/** Admin only: tags with the number of experiences and projects using them. */
+/** Tags with the number of experiences and projects using them. */
 export const getTagsWithUsage = () => unwrap<TagWithUsage[]>(apiClient.get('/tags', { params: { usage: 1 } }));
 
 export const createTag = (name: string) => unwrap<Tag>(apiClient.post('/tags', { name }));

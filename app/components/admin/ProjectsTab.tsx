@@ -13,6 +13,7 @@ import { getErrorMessage } from "@/app/config/api.config";
 import { DeleteProjectDialog } from "./projects-tab/modal/DeleteProjectDialog";
 import { ProjectDialog, type ProjectFormData } from "./projects-tab/modal/ProjectDialog";
 import type { Project, Tag } from "@/app/types/api";
+import { useReadOnly } from "@/app/admin/ReadOnlyContext";
 
 const EMPTY_FORM: ProjectFormData = {
   title: "",
@@ -32,6 +33,7 @@ const toPayload = (form: ProjectFormData): ProjectPayload => ({
 });
 
 export function ProjectsTab() {
+  const readOnly = useReadOnly();
   const [projects, setProjects] = useState<Project[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -117,31 +119,35 @@ export function ProjectsTab() {
             {projects.length} projet{projects.length > 1 ? "s" : ""} au total
           </p>
         </div>
-        <Button
-          onClick={() => {
-            resetForm();
-            setIsDialogOpen(true);
-          }}
-          className="w-auto px-5"
-        >
-          <Plus size={20} className="mr-2" />
-          Nouveau projet
-        </Button>
+        {!readOnly && (
+          <Button
+            onClick={() => {
+              resetForm();
+              setIsDialogOpen(true);
+            }}
+            className="w-auto px-5"
+          >
+            <Plus size={20} className="mr-2" />
+            Nouveau projet
+          </Button>
+        )}
       </div>
       <ErrorBanner message={error} onClose={() => setError("")} />
-      <ProjectDialog
-        isOpen={isDialogOpen}
-        onOpenChange={(open) => (open ? setIsDialogOpen(true) : resetForm())}
-        isEditing={Boolean(editingProject)}
-        isSaving={isSaving}
-        error={formError}
-        formData={formData}
-        tags={tags}
-        onFormChange={setFormData}
-        onCreateTag={handleCreateTag}
-        onSubmit={handleSubmit}
-        onReset={resetForm}
-      />
+      {!readOnly && (
+        <ProjectDialog
+          isOpen={isDialogOpen}
+          onOpenChange={(open) => (open ? setIsDialogOpen(true) : resetForm())}
+          isEditing={Boolean(editingProject)}
+          isSaving={isSaving}
+          error={formError}
+          formData={formData}
+          tags={tags}
+          onFormChange={setFormData}
+          onCreateTag={handleCreateTag}
+          onSubmit={handleSubmit}
+          onReset={resetForm}
+        />
+      )}
       <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
         <Table className="w-full">
           <TableHeader className="bg-gray-50/50">
@@ -211,16 +217,20 @@ export function ProjectsTab() {
                         <ExternalLink size={18} />
                       </a>
                     )}
-                    <Button variant="ghost" className="w-auto" aria-label="Modifier" onClick={() => handleEdit(project)}>
-                      <Pencil size={18} />
-                    </Button>
-                    <DeleteProjectDialog
-                      isOpen={deleteTargetId === project.id}
-                      onOpenChange={(open) => setDeleteTargetId(open ? project.id : null)}
-                      projectId={project.id}
-                      onSubmit={() => handleDelete(project.id)}
-                      onReset={() => setDeleteTargetId(null)}
-                    />
+                    {!readOnly && (
+                      <>
+                        <Button variant="ghost" className="w-auto" aria-label="Modifier" onClick={() => handleEdit(project)}>
+                          <Pencil size={18} />
+                        </Button>
+                        <DeleteProjectDialog
+                          isOpen={deleteTargetId === project.id}
+                          onOpenChange={(open) => setDeleteTargetId(open ? project.id : null)}
+                          projectId={project.id}
+                          onSubmit={() => handleDelete(project.id)}
+                          onReset={() => setDeleteTargetId(null)}
+                        />
+                      </>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
