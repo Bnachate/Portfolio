@@ -82,14 +82,14 @@ export default function SignUpPage() {
             <div className="mb-3">
               <Label htmlFor="name" className="mb-1">Nom complet</Label>
               <div className="relative">
-                <User className="absolute left-1 top-2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <User className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <Input
                   id="name"
                   type="text"
                   placeholder="Jean Dupont"
                   value={formData.firstName}
                   onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                  className="px-7 py-2"
+                  className="h-11 pl-10 pr-10"
                   required
                 />
               </div>
@@ -99,14 +99,14 @@ export default function SignUpPage() {
             <div className="mb-3">
               <Label htmlFor="email" className="mb-1">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-1 top-2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <Input
                   id="email"
                   type="email"
                   placeholder="votre@email.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="px-7 py-2"
+                  className="h-11 pl-10 pr-10"
                   required
                 />
               </div>
@@ -116,20 +116,20 @@ export default function SignUpPage() {
             <div className="mb-3">
               <Label htmlFor="password" className="mb-1">Mot de passe</Label>
               <div className="relative">
-                <Lock className="absolute left-1 top-2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="px-7 py-2"
+                  className="h-11 pl-10 pr-10"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-0 top-2 mr-1 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -140,20 +140,20 @@ export default function SignUpPage() {
             <div>
               <Label htmlFor="confirmPassword" className="mb-1">Confirmer le mot de passe</Label>
               <div className="relative">
-                <Lock className="absolute left-1 top-2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className="px-7 py-2"
+                  className="h-11 pl-10 pr-10"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-0 top-2 mr-1 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
