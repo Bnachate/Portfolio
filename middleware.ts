@@ -1,25 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * Middleware pour protéger les routes authentifiées
- * Vérifie les cookies de token et redirige vers /login si nécessaire
+ * Middleware protecting authenticated routes
+ * Checks the token cookies and redirects to /login if needed
  */
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Routes protégées
+  // Protected routes
   const protectedRoutes = ['/admin'];
 
-  // Vérifier si la route demandée est protégée
+  // Check whether the requested route is protected
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
 
   if (isProtectedRoute) {
-    // Vérifier si les tokens existent dans les cookies
+    // Check that the tokens exist in the cookies
     const accessToken = request.cookies.get('accessToken')?.value;
     const refreshToken = request.cookies.get('refreshToken')?.value;
 
     if (!accessToken || !refreshToken) {
-      // Rediriger vers login si pas de token
+      // Redirect to login if there is no token
       return NextResponse.redirect(new URL('/auth/login', request.url));
     }
   }
@@ -28,8 +28,8 @@ export function middleware(request: NextRequest) {
 }
 
 /**
- * Configuration du matcher pour appliquer le middleware
- * à certaines routes uniquement
+ * Matcher configuration so the middleware only
+ * runs on specific routes
  */
 export const config = {
   matcher: ['/admin/:path*'],

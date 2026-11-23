@@ -1,6 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 import { Button } from './common/Button';
 import { ExperienceCard } from "./experience/ExperienceCard";
+import { withBasePath } from "../config/basePath";
 
 const experiences = [
   {
@@ -45,7 +46,7 @@ export function Experience() {
 
         <div className="max-w-4xl mx-auto">
           <div className="relative">
-            {/* Ligne verticale de la timeline */}
+            {/* Timeline vertical line */}
             <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-cyan-200"></div>
 
             {experiences.map((exp) => (
@@ -54,7 +55,7 @@ export function Experience() {
           </div>
           <div className="flex mt-5">
             <Button variant="ghost">
-              <a href="/CV_Brahim_Nachate_Developpeur_Front-End.pdf" target="_blank">
+              <a href={withBasePath("/CV_Brahim_Nachate_Developpeur_Front-End.pdf")} target="_blank" rel="noopener noreferrer">
                 View all CV
               </a>
               <ArrowUpRight size={16} />

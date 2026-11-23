@@ -1,13 +1,13 @@
 /**
- * Gestion des cookies pour les tokens d'authentification
+ * Cookie management for authentication tokens
  *
- * Stocke les accessToken et refreshToken dans les cookies du navigateur
+ * Stores the accessToken and refreshToken in browser cookies
  */
 
 /**
- * Stocke les tokens dans les cookies
- * @param accessToken - Token d'accès JWT court terme
- * @param refreshToken - Token de rafraîchissement long terme
+ * Stores the tokens in cookies
+ * @param accessToken - Short-lived JWT access token
+ * @param refreshToken - Long-lived refresh token
  */
 export const setCookies = (accessToken: string, refreshToken: string) => {
   const oneDay = 24 * 60 * 60 * 1000;
@@ -17,17 +17,17 @@ export const setCookies = (accessToken: string, refreshToken: string) => {
   const expireAccessToken = new Date(now.getTime() + oneDay);
   const expireRefreshToken = new Date(now.getTime() + sevenDays);
 
-  // Stocker l'accessToken (va expirer après 1 jour)
+  // Store the accessToken (expires after 1 day)
   document.cookie = `accessToken=${accessToken}; expires=${expireAccessToken.toUTCString()}; path=/; SameSite=Strict`;
 
-  // Stocker le refreshToken (va expirer après 7 jours)
+  // Store the refreshToken (expires after 7 days)
   document.cookie = `refreshToken=${refreshToken}; expires=${expireRefreshToken.toUTCString()}; path=/; SameSite=Strict`;
 };
 
 /**
- * Récupère un cookie par nom
- * @param name - Nom du cookie
- * @returns La valeur du cookie ou null
+ * Gets a cookie by name
+ * @param name - Cookie name
+ * @returns The cookie value, or null
  */
 export const getCookie = (name: string): string | null => {
   if (typeof document === 'undefined') return null;
@@ -46,7 +46,7 @@ export const getCookie = (name: string): string | null => {
 };
 
 /**
- * Supprime les cookies d'authentification
+ * Deletes the authentication cookies
  */
 export const deleteCookies = () => {
   try {
@@ -62,8 +62,8 @@ export const deleteCookies = () => {
 };
 
 /**
- * Vérifie si l'utilisateur est authentifié (accessToken présent)
- * @returns true si authentifié, false sinon
+ * Checks whether the user is authenticated (accessToken present)
+ * @returns true if authenticated, false otherwise
  */
 export const isAuthenticated = (): boolean => {
   return getCookie('accessToken') !== null;

@@ -269,7 +269,7 @@ export function ProjectsTab() {
                     {project.position}
                   </p>
                 </TableCell>
-                {/* TITRE DU PROJET */}
+                {/* PROJECT TITLE */}
                 <TableCell className="py-5 px-6">
                   <div className="flex flex-col">
                     <span className="font-bold text-gray-800 text-base group-hover:text-cyan-700 transition-colors">
