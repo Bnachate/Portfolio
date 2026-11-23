@@ -1,25 +1,36 @@
-import './assets/css/globals.css'
 import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
 import { Projects } from "./components/Projects";
-// import { Skills } from "./components/Skills";
 import { Experience } from "./components/Experience";
 import { Contact } from "./components/Contact";
+import { getCurrentUser } from "@/server/auth";
+import { getHero } from "@/server/services/hero";
+import { listProjects } from "@/server/services/projects";
+import { listExperiences } from "@/server/services/experiences";
 
-export default function Home() {
+// Content is edited from the admin: always render with fresh data
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const [user, hero, projects, experiences] = await Promise.all([
+    getCurrentUser(),
+    getHero(),
+    listProjects(),
+    listExperiences(),
+  ]);
+
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      <Header isAuthenticated={Boolean(user)} />
       <main>
-        <Hero />
-        <Projects />
-        {/* <Skills /> */}
-        <Experience />
-        <Contact />
+        <Hero hero={hero} />
+        <Projects projects={projects} />
+        <Experience experiences={experiences} />
+        <Contact email={hero.email} />
       </main>
       <footer className="bg-gray-900 text-white py-8">
         <div className="container mx-auto px-6 text-center">
-          <p>&copy; 2026 Portfolio. Tous droits réservés.</p>
+          <p>&copy; {new Date().getFullYear()} Portfolio. Tous droits réservés.</p>
         </div>
       </footer>
     </div>

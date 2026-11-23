@@ -1,52 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Save, RotateCcw } from "lucide-react";
 import { Button } from "../common/Button";
 import { Input } from "../common/input";
 import { Label } from "../common/label";
 import { Textarea } from "../common/textarea";
-
-interface HeroData {
-  title: string;
-  subtitle: string;
-  description: string;
-  primaryButtonText: string;
-  primaryButtonUrl: string;
-  secondaryButtonText: string;
-  secondaryButtonUrl: string;
-  githubUrl: string;
-  linkedinUrl: string;
-  emailUrl: string;
-}
+import { ErrorBanner } from "./common/ErrorBanner";
+import { getHero, saveHero } from "@/app/services/admin/hero.service";
+import { getErrorMessage } from "@/app/config/api.config";
+import type { Hero } from "@/app/types/api";
 
 export function HeroTab() {
-  const initialData: HeroData = {
-    title: "Développeur Front-End",
-    subtitle: "Création d'expériences web modernes et performantes",
-    description:
-      "Passionné par le développement web, je transforme des idées en applications élégantes et intuitives. Spécialisé en React, TypeScript et design moderne.",
-    primaryButtonText: "Me contacter",
-    primaryButtonUrl: "#contact",
-    secondaryButtonText: "Voir mes projets",
-    secondaryButtonUrl: "#projets",
-    githubUrl: "https://github.com",
-    linkedinUrl: "https://linkedin.com",
-    emailUrl: "mailto:contact@portfolio.com",
-  };
-
-  const [formData, setFormData] = useState<HeroData>(initialData);
+  // Last saved version, used by "Reset"
+  const [savedData, setSavedData] = useState<Hero | null>(null);
+  const [formData, setFormData] = useState<Hero | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    getHero()
+      .then((hero) => {
+        setSavedData(hero);
+        setFormData(hero);
+      })
+      .catch((err) => setError(getErrorMessage(err, "Impossible de charger la section Hero")));
+  }, []);
+
+  if (!formData) {
+    return (
+      <div className="bg-white rounded-lg shadow w-full p-6">
+        {error ? <ErrorBanner message={error} /> : <p className="text-gray-500">Chargement...</p>}
+      </div>
+    );
+  }
+
+  const update = (field: keyof Hero) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setFormData({ ...formData, [field]: e.target.value });
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 3000);
+    setIsSaving(true);
+    setError("");
+    try {
+      const saved = await saveHero(formData);
+      setSavedData(saved);
+      setFormData(saved);
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 3000);
+    } catch (err) {
+      setError(getErrorMessage(err, "Impossible d'enregistrer la section Hero"));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleReset = () => {
-    if (confirm("Êtes-vous sûr de vouloir réinitialiser tous les champs ?")) {
-      setFormData(initialData);
+    if (savedData && confirm("Annuler les modifications non enregistrées ?")) {
+      setFormData(savedData);
     }
   };
 
@@ -58,6 +70,7 @@ export function HeroTab() {
           Personnalisez les informations affichées dans la section principale de votre portfolio
         </p>
       </div>
+      <ErrorBanner message={error} onClose={() => setError("")} />
       <div className="w-full flex justify-center">
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Main Content Section */}
@@ -66,36 +79,17 @@ export function HeroTab() {
 
             <div className="space-y-2">
               <Label htmlFor="title">Titre principal</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Ex: Développeur Front-End"
-                required
-              />
+              <Input id="title" value={formData.title} onChange={update("title")} placeholder="Ex: Développeur Front-End" maxLength={200} required />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="subtitle">Sous-titre</Label>
-              <Input
-                id="subtitle"
-                value={formData.subtitle}
-                onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-                placeholder="Ex: Création d'expériences web modernes"
-                required
-              />
+              <Input id="subtitle" value={formData.subtitle} onChange={update("subtitle")} placeholder="Ex: Création d'expériences web modernes" maxLength={300} required />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                rows={4}
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Décrivez votre parcours et vos compétences..."
-                required
-              />
+              <Textarea id="description" rows={4} value={formData.description} onChange={update("description")} placeholder="Décrivez votre parcours et vos compétences..." maxLength={2000} required />
             </div>
           </div>
 
@@ -106,44 +100,22 @@ export function HeroTab() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="primaryButtonText">Texte bouton principal</Label>
-                <Input
-                  id="primaryButtonText"
-                  value={formData.primaryButtonText}
-                  onChange={(e) => setFormData({ ...formData, primaryButtonText: e.target.value })}
-                  required
-                />
+                <Input id="primaryButtonText" value={formData.primaryButtonText} onChange={update("primaryButtonText")} maxLength={50} required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="primaryButtonUrl">URL bouton principal</Label>
-                <Input
-                  id="primaryButtonUrl"
-                  value={formData.primaryButtonUrl}
-                  onChange={(e) => setFormData({ ...formData, primaryButtonUrl: e.target.value })}
-                  placeholder="#contact"
-                  required
-                />
+                <Label htmlFor="primaryButtonUrl">Lien bouton principal</Label>
+                <Input id="primaryButtonUrl" value={formData.primaryButtonUrl} onChange={update("primaryButtonUrl")} placeholder="#contact" required />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="secondaryButtonText">Texte bouton secondaire</Label>
-                <Input
-                  id="secondaryButtonText"
-                  value={formData.secondaryButtonText}
-                  onChange={(e) => setFormData({ ...formData, secondaryButtonText: e.target.value })}
-                  required
-                />
+                <Input id="secondaryButtonText" value={formData.secondaryButtonText} onChange={update("secondaryButtonText")} maxLength={50} required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="secondaryButtonUrl">URL bouton secondaire</Label>
-                <Input
-                  id="secondaryButtonUrl"
-                  value={formData.secondaryButtonUrl}
-                  onChange={(e) => setFormData({ ...formData, secondaryButtonUrl: e.target.value })}
-                  placeholder="#projets"
-                  required
-                />
+                <Label htmlFor="secondaryButtonUrl">Lien bouton secondaire</Label>
+                <Input id="secondaryButtonUrl" value={formData.secondaryButtonUrl} onChange={update("secondaryButtonUrl")} placeholder="#projets" required />
               </div>
             </div>
           </div>
@@ -155,34 +127,15 @@ export function HeroTab() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="githubUrl">GitHub URL</Label>
-                <Input
-                  id="githubUrl"
-                  value={formData.githubUrl}
-                  onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
-                  placeholder="https://github.com/username"
-                  required
-                />
+                <Input id="githubUrl" type="url" value={formData.githubUrl} onChange={update("githubUrl")} placeholder="https://github.com/username" required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="linkedinUrl">LinkedIn URL</Label>
-                <Input
-                  id="linkedinUrl"
-                  value={formData.linkedinUrl}
-                  onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
-                  placeholder="https://linkedin.com/in/username"
-                  required
-                />
+                <Input id="linkedinUrl" type="url" value={formData.linkedinUrl} onChange={update("linkedinUrl")} placeholder="https://linkedin.com/in/username" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="emailUrl">Email</Label>
-                <Input
-                  id="emailUrl"
-                  type="email"
-                  value={formData.emailUrl.replace("mailto:", "")}
-                  onChange={(e) => setFormData({ ...formData, emailUrl: `mailto:${e.target.value}` })}
-                  placeholder="contact@email.com"
-                  required
-                />
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" value={formData.email} onChange={update("email")} placeholder="contact@email.com" required />
               </div>
             </div>
           </div>
@@ -193,7 +146,7 @@ export function HeroTab() {
             <div className="bg-linear-to-br from-cyan-50 to-teal-50 rounded-lg p-8 text-center">
               <h1 className="text-4xl font-bold text-gray-900 mb-4">{formData.title}</h1>
               <p className="text-xl text-gray-700 mb-6">{formData.subtitle}</p>
-              <p className="text-gray-600 max-w-2xl mx-auto mb-8">{formData.description}</p>
+              <p className="text-gray-600 max-w-2xl mx-auto mb-8 whitespace-pre-line">{formData.description}</p>
               <div className="flex gap-4 justify-center">
                 <Button type="button" className="bg-cyan-600 hover:bg-cyan-700">
                   {formData.primaryButtonText}
@@ -207,17 +160,13 @@ export function HeroTab() {
 
           {/* Action Buttons */}
           <div className="flex items-center justify-between pt-6 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleReset}
-            >
+            <Button type="button" variant="outline" onClick={handleReset}>
               <RotateCcw size={18} className="mr-2" />
-              Réinitialiser
+              Annuler
             </Button>
-            <Button type="submit" variant="plain" color="primary" className="w-64">
+            <Button type="submit" variant="plain" color="primary" className="w-64" disabled={isSaving}>
               <Save size={18} className="mr-2" />
-              {isSaved ? "✓ Sauvegardé" : "Sauvegarder les modifications"}
+              {isSaving ? "Enregistrement..." : isSaved ? "✓ Sauvegardé" : "Sauvegarder les modifications"}
             </Button>
           </div>
 
