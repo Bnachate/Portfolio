@@ -1,104 +1,76 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Trash2, Mail, Clock, CheckCircle, Eye } from "lucide-react";
 import { Button } from "../common/Button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../common/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../common/dialog";
 import { Badge } from "../common/badge";
 import { cn } from "../common/utils";
+import { ErrorBanner } from "./common/ErrorBanner";
+import { getContacts, updateContactStatus, deleteContact } from "@/app/services/admin/contacts.service";
+import { getErrorMessage } from "@/app/config/api.config";
+import type { ContactMessage, ContactStatus } from "@/app/types/api";
 
-interface Contact {
-  id: number;
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-  date: string;
-  status: "nouveau" | "lu" | "traité";
-}
+type Contact = ContactMessage;
 
 export function ContactsTab() {
-  const [contacts, setContacts] = useState<Contact[]>([
-    {
-      id: 1,
-      name: "Marie Dubois",
-      email: "marie.dubois@email.com",
-      subject: "Opportunité de collaboration",
-      message: "Bonjour, j'aimerais discuter d'une opportunité de collaboration pour un projet web innovant. Notre équipe recherche un développeur front-end expérimenté en React.",
-      date: "2026-01-22",
-      status: "nouveau",
-    },
-    {
-      id: 2,
-      name: "Pierre Martin",
-      email: "pierre.martin@company.fr",
-      subject: "Demande de devis",
-      message: "Nous souhaitons obtenir un devis pour le développement d'une application e-commerce complète avec système de paiement intégré.",
-      date: "2026-01-21",
-      status: "lu",
-    },
-    {
-      id: 3,
-      name: "Sophie Laurent",
-      email: "sophie.laurent@startup.io",
-      subject: "Question technique",
-      message: "J'ai vu votre portfolio et j'ai quelques questions sur les technologies que vous utilisez, notamment concernant l'optimisation des performances.",
-      date: "2026-01-20",
-      status: "traité",
-    },
-    {
-      id: 4,
-      name: "Thomas Bernard",
-      email: "thomas.b@email.com",
-      subject: "Proposition de mission freelance",
-      message: "Nous cherchons un développeur freelance pour une mission de 3 mois. Le projet concerne le développement d'un dashboard analytique.",
-      date: "2026-01-19",
-      status: "lu",
-    },
-  ]);
-
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    getContacts()
+      .then(setContacts)
+      .catch((err) => setError(getErrorMessage(err, "Impossible de charger les messages")));
+  }, []);
+
+  const replaceContact = (updated: Contact) =>
+    setContacts((current) => current.map((c) => (c.id === updated.id ? updated : c)));
+
+  const handleStatusChange = async (id: number, status: ContactStatus) => {
+    try {
+      replaceContact(await updateContactStatus(id, status));
+    } catch (err) {
+      setError(getErrorMessage(err, "Impossible de modifier le statut"));
+    }
+  };
 
   const handleView = (contact: Contact) => {
     setSelectedContact(contact);
     setIsDialogOpen(true);
     // Mark as read when viewing
-    if (contact.status === "nouveau") {
-      setContacts(
-        contacts.map((c) => (c.id === contact.id ? { ...c, status: "lu" as const } : c))
-      );
+    if (contact.status === "new") handleStatusChange(contact.id, "read");
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer ce message ?")) return;
+    try {
+      await deleteContact(id);
+      setContacts((current) => current.filter((c) => c.id !== id));
+    } catch (err) {
+      setError(getErrorMessage(err, "Impossible de supprimer le message"));
     }
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer ce message ?")) {
-      setContacts(contacts.filter((c) => c.id !== id));
-    }
-  };
-
-  const handleStatusChange = (id: number, status: Contact["status"]) => {
-    setContacts(contacts.map((c) => (c.id === id ? { ...c, status } : c)));
-  };
-
-  const getStatusBadge = (status: Contact["status"]) => {
+  const getStatusBadge = (status: ContactStatus) => {
     switch (status) {
-      case "nouveau":
+      case "new":
         return (
           <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
             <Clock size={12} className="mr-1" />
             Nouveau
           </Badge>
         );
-      case "lu":
+      case "read":
         return (
           <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
             <Eye size={12} className="mr-1" />
             Lu
           </Badge>
         );
-      case "traité":
+      case "done":
         return (
           <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
             <CheckCircle size={12} className="mr-1" />
@@ -108,7 +80,7 @@ export function ContactsTab() {
     }
   };
 
-  const newCount = contacts.filter((c) => c.status === "nouveau").length;
+  const newCount = contacts.filter((c) => c.status === "new").length;
 
   return (
     <div className="bg-white rounded-lg shadow">
@@ -128,6 +100,7 @@ export function ContactsTab() {
         </div>
       </div>
 
+      <ErrorBanner message={error} onClose={() => setError("")} />
       <div className="overflow-x-auto">
         <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
           <Table>
@@ -146,13 +119,13 @@ export function ContactsTab() {
                   key={contact.id}
                   className={cn(
                     "group transition-colors border-b border-gray-50 last:border-0",
-                    contact.status === "nouveau" ? "bg-cyan-50/30 hover:bg-cyan-50/50" : "hover:bg-gray-50/50"
+                    contact.status === "new" ? "bg-cyan-50/30 hover:bg-cyan-50/50" : "hover:bg-gray-50/50"
                   )}
                 >
                   <TableCell className="">
                     <div className="flex items-center gap-3">
                       {/* Small visual indicator for new messages */}
-                      {(
+                      {contact.status === "new" && (
                         <span className="relative flex h-2 w-2">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
@@ -173,16 +146,16 @@ export function ContactsTab() {
                   </TableCell>
 
                   <TableCell className="max-w-xs">
-                    <p className="truncate text-gray-600 italic">{contact.subject}</p>
+                    <p className="truncate text-gray-600 italic">{contact.subject ?? contact.message}</p>
                   </TableCell>
 
                   <TableCell className="text-sm">
                     <div className="flex flex-col">
                       <span className="text-gray-700 font-medium">
-                        {new Date(contact.date).toLocaleDateString("fr-FR", { day: 'numeric', month: 'short' })}
+                        {new Date(contact.createdAt).toLocaleDateString("fr-FR", { day: 'numeric', month: 'short' })}
                       </span>
                       <span className="text-xs text-gray-400">
-                        {new Date(contact.date).getFullYear()}
+                        {new Date(contact.createdAt).getFullYear()}
                       </span>
                     </div>
                   </TableCell>
@@ -237,12 +210,12 @@ export function ContactsTab() {
               </div>
               <div>
                 <Label className="text-sm text-gray-500">Sujet</Label>
-                <p className="font-medium">{selectedContact.subject}</p>
+                <p className="font-medium">{selectedContact.subject ?? "—"}</p>
               </div>
               <div>
                 <Label className="text-sm text-gray-500">Date</Label>
                 <p className="text-gray-700">
-                  {new Date(selectedContact.date).toLocaleDateString("fr-FR", {
+                  {new Date(selectedContact.createdAt).toLocaleDateString("fr-FR", {
                     weekday: "long",
                     year: "numeric",
                     month: "long",
@@ -259,7 +232,7 @@ export function ContactsTab() {
               <div className="flex gap-3 pt-4">
                 <Button
                   onClick={() => {
-                    handleStatusChange(selectedContact.id, "traité");
+                    handleStatusChange(selectedContact.id, "done");
                     setIsDialogOpen(false);
                   }}
                   className="bg-green-600 hover:bg-green-700"
