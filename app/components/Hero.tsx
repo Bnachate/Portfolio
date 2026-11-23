@@ -2,6 +2,7 @@
 import { Github, Linkedin, Mail } from "lucide-react";
 import { ImageWithFallback } from "./common/ImageWithFallback";
 import { Button } from './common/Button'
+import { withBasePath } from '../config/basePath'
 
 export function Hero() {
   return (
@@ -49,7 +50,7 @@ export function Hero() {
           </div>
           <div className="flex-1 max-w-md relative h-96 w-full">
             <ImageWithFallback
-              src="/my_photo.jpeg"
+              src={withBasePath("/my_photo.jpeg")}
               alt="Developer front-end"
               className="rounded-2xl shadow-2xl object-cover"
             />
