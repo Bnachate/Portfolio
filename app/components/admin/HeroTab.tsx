@@ -10,8 +10,10 @@ import { ErrorBanner } from "./common/ErrorBanner";
 import { getHero, saveHero } from "@/app/services/admin/hero.service";
 import { getErrorMessage } from "@/app/config/api.config";
 import type { Hero } from "@/app/types/api";
+import { useReadOnly } from "@/app/admin/ReadOnlyContext";
 
 export function HeroTab() {
+  const readOnly = useReadOnly();
   // Last saved version, used by "Reset"
   const [savedData, setSavedData] = useState<Hero | null>(null);
   const [formData, setFormData] = useState<Hero | null>(null);
@@ -41,6 +43,7 @@ export function HeroTab() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (readOnly) return;
     setIsSaving(true);
     setError("");
     try {
@@ -73,72 +76,75 @@ export function HeroTab() {
       <ErrorBanner message={error} onClose={() => setError("")} />
       <div className="w-full flex justify-center">
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Main Content Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 pb-2 border-b">Contenu Principal</h3>
+          {/* A disabled fieldset makes every field read-only for visitors */}
+          <fieldset disabled={readOnly} className="space-y-6 min-w-0">
+            {/* Main Content Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 pb-2 border-b">Contenu Principal</h3>
 
-            <div className="space-y-2">
-              <Label htmlFor="title">Titre principal</Label>
-              <Input id="title" value={formData.title} onChange={update("title")} placeholder="Ex: Développeur Front-End" maxLength={200} required />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="subtitle">Sous-titre</Label>
-              <Input id="subtitle" value={formData.subtitle} onChange={update("subtitle")} placeholder="Ex: Création d'expériences web modernes" maxLength={300} required />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea id="description" rows={4} value={formData.description} onChange={update("description")} placeholder="Décrivez votre parcours et vos compétences..." maxLength={2000} required />
-            </div>
-          </div>
-
-          {/* Buttons Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 pb-2 border-b">Boutons d&apos;Action</h3>
-
-            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="primaryButtonText">Texte bouton principal</Label>
-                <Input id="primaryButtonText" value={formData.primaryButtonText} onChange={update("primaryButtonText")} maxLength={50} required />
+                <Label htmlFor="title">Titre principal</Label>
+                <Input id="title" value={formData.title} onChange={update("title")} placeholder="Ex: Développeur Front-End" maxLength={200} required />
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="primaryButtonUrl">Lien bouton principal</Label>
-                <Input id="primaryButtonUrl" value={formData.primaryButtonUrl} onChange={update("primaryButtonUrl")} placeholder="#contact" required />
+                <Label htmlFor="subtitle">Sous-titre</Label>
+                <Input id="subtitle" value={formData.subtitle} onChange={update("subtitle")} placeholder="Ex: Création d'expériences web modernes" maxLength={300} required />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea id="description" rows={4} value={formData.description} onChange={update("description")} placeholder="Décrivez votre parcours et vos compétences..." maxLength={2000} required />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="secondaryButtonText">Texte bouton secondaire</Label>
-                <Input id="secondaryButtonText" value={formData.secondaryButtonText} onChange={update("secondaryButtonText")} maxLength={50} required />
+            {/* Buttons Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 pb-2 border-b">Boutons d&apos;Action</h3>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="primaryButtonText">Texte bouton principal</Label>
+                  <Input id="primaryButtonText" value={formData.primaryButtonText} onChange={update("primaryButtonText")} maxLength={50} required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="primaryButtonUrl">Lien bouton principal</Label>
+                  <Input id="primaryButtonUrl" value={formData.primaryButtonUrl} onChange={update("primaryButtonUrl")} placeholder="#contact" required />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="secondaryButtonUrl">Lien bouton secondaire</Label>
-                <Input id="secondaryButtonUrl" value={formData.secondaryButtonUrl} onChange={update("secondaryButtonUrl")} placeholder="#projets" required />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="secondaryButtonText">Texte bouton secondaire</Label>
+                  <Input id="secondaryButtonText" value={formData.secondaryButtonText} onChange={update("secondaryButtonText")} maxLength={50} required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="secondaryButtonUrl">Lien bouton secondaire</Label>
+                  <Input id="secondaryButtonUrl" value={formData.secondaryButtonUrl} onChange={update("secondaryButtonUrl")} placeholder="#projets" required />
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Social Links Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 pb-2 border-b">Liens Sociaux</h3>
+            {/* Social Links Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 pb-2 border-b">Liens Sociaux</h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="githubUrl">GitHub URL</Label>
-                <Input id="githubUrl" type="url" value={formData.githubUrl} onChange={update("githubUrl")} placeholder="https://github.com/username" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="linkedinUrl">LinkedIn URL</Label>
-                <Input id="linkedinUrl" type="url" value={formData.linkedinUrl} onChange={update("linkedinUrl")} placeholder="https://linkedin.com/in/username" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={formData.email} onChange={update("email")} placeholder="contact@email.com" required />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="githubUrl">GitHub URL</Label>
+                  <Input id="githubUrl" type="url" value={formData.githubUrl} onChange={update("githubUrl")} placeholder="https://github.com/username" required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="linkedinUrl">LinkedIn URL</Label>
+                  <Input id="linkedinUrl" type="url" value={formData.linkedinUrl} onChange={update("linkedinUrl")} placeholder="https://linkedin.com/in/username" required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" value={formData.email} onChange={update("email")} placeholder="contact@email.com" required />
+                </div>
               </div>
             </div>
-          </div>
+          </fieldset>
 
           {/* Preview Section */}
           <div className="space-y-4">
@@ -159,7 +165,7 @@ export function HeroTab() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-between pt-6 border-t">
+          {!readOnly && <div className="flex items-center justify-between pt-6 border-t">
             <Button type="button" variant="outline" onClick={handleReset}>
               <RotateCcw size={18} className="mr-2" />
               Annuler
@@ -168,7 +174,7 @@ export function HeroTab() {
               <Save size={18} className="mr-2" />
               {isSaving ? "Enregistrement..." : isSaved ? "✓ Sauvegardé" : "Sauvegarder les modifications"}
             </Button>
-          </div>
+          </div>}
 
           {isSaved && (
             <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-center">

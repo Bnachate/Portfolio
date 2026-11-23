@@ -10,6 +10,7 @@ import { ErrorBanner } from "./common/ErrorBanner";
 import { createTag, deleteTag, getTagsWithUsage, updateTag } from "@/app/services/admin/tags.service";
 import { getErrorMessage } from "@/app/config/api.config";
 import type { TagWithUsage } from "@/app/types/api";
+import { useReadOnly } from "@/app/admin/ReadOnlyContext";
 
 const MAX_LENGTH = 50;
 
@@ -26,6 +27,7 @@ function formatUsage(tag: TagWithUsage) {
 }
 
 export function TagsTab() {
+  const readOnly = useReadOnly();
   const [tags, setTags] = useState<TagWithUsage[]>([]);
   const [search, setSearch] = useState("");
   const [newName, setNewName] = useState("");
@@ -126,7 +128,7 @@ export function TagsTab() {
         </div>
 
         {/* Create */}
-        <form onSubmit={handleCreate} className="flex items-center gap-2 w-full sm:w-auto">
+        {!readOnly && <form onSubmit={handleCreate} className="flex items-center gap-2 w-full sm:w-auto">
           <Input
             aria-label="Nom du nouveau tag"
             placeholder="Nouveau tag (ex : Svelte)"
@@ -139,7 +141,7 @@ export function TagsTab() {
             <Plus size={18} />
             {isCreating ? "Ajout..." : "Ajouter"}
           </Button>
-        </form>
+        </form>}
       </div>
 
       <ErrorBanner message={error} onClose={() => setError("")} />
@@ -165,7 +167,7 @@ export function TagsTab() {
               <TableRow className="hover:bg-transparent border-b border-gray-100">
                 <TableHead className="py-5 px-6 font-semibold text-gray-900">Nom</TableHead>
                 <TableHead className="py-5 font-semibold text-gray-900">Utilisation</TableHead>
-                <TableHead className="py-5 text-right px-6 font-semibold text-gray-900">Actions</TableHead>
+                {!readOnly && <TableHead className="py-5 text-right px-6 font-semibold text-gray-900">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -200,7 +202,7 @@ export function TagsTab() {
                       {formatUsage(tag)}
                     </TableCell>
 
-                    <TableCell className="px-6">
+                    {!readOnly && <TableCell className="px-6">
                       <div className="flex justify-end gap-2">
                         {isEditing ? (
                           <>
@@ -222,13 +224,13 @@ export function TagsTab() {
                           </>
                         )}
                       </div>
-                    </TableCell>
+                    </TableCell>}
                   </TableRow>
                 );
               })}
               {visibleTags.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={3} className="py-10 text-center text-gray-500">
+                  <TableCell colSpan={readOnly ? 2 : 3} className="py-10 text-center text-gray-500">
                     {search ? `Aucun tag ne correspond à « ${search} »` : "Aucun tag pour le moment"}
                   </TableCell>
                 </TableRow>

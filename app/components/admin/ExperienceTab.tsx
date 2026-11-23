@@ -22,6 +22,7 @@ import {
 } from "@/app/services/admin/experiences.service";
 import { getErrorMessage } from "@/app/config/api.config";
 import type { Experience, Tag } from "@/app/types/api";
+import { useReadOnly } from "@/app/admin/ReadOnlyContext";
 
 const EMPTY_FORM: ExperienceFormData = {
   job: "",
@@ -42,6 +43,7 @@ const toPayload = (form: ExperienceFormData): ExperiencePayload => ({
 const formatDate = (value: string | null) => (value ? dayjs(value).format("DD-MM-YYYY") : "Aujourd'hui");
 
 export function ExperienceTab() {
+  const readOnly = useReadOnly();
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -142,20 +144,22 @@ export function ExperienceTab() {
             {experiences.length} expérience{experiences.length > 1 ? "s" : ""} au total
           </p>
         </div>
-        <ExperienceDialog
-          isOpen={isDialogOpen}
-          onOpenChange={(open) => (open ? setIsDialogOpen(true) : resetForm())}
-          isEditing={Boolean(editingExperience)}
-          submitDisabled={isSaving || !isFormValid || !hasEditChanges}
-          isSaving={isSaving}
-          error={formError}
-          formData={formData}
-          tags={tags}
-          onFormChange={setFormData}
-          onCreateTag={handleCreateTag}
-          onSubmit={handleSubmit}
-          onReset={resetForm}
-        />
+        {!readOnly && (
+          <ExperienceDialog
+            isOpen={isDialogOpen}
+            onOpenChange={(open) => (open ? setIsDialogOpen(true) : resetForm())}
+            isEditing={Boolean(editingExperience)}
+            submitDisabled={isSaving || !isFormValid || !hasEditChanges}
+            isSaving={isSaving}
+            error={formError}
+            formData={formData}
+            tags={tags}
+            onFormChange={setFormData}
+            onCreateTag={handleCreateTag}
+            onSubmit={handleSubmit}
+            onReset={resetForm}
+          />
+        )}
       </div>
       <ErrorBanner message={error} onClose={() => setError("")} />
       <div className="flex justify-center w-full">
@@ -169,7 +173,7 @@ export function ExperienceTab() {
                 <TableHead className="py-5 font-semibold text-gray-900">Période</TableHead>
                 <TableHead className="py-5 font-semibold text-gray-900">Description</TableHead>
                 <TableHead className="py-5 font-semibold text-gray-900">Tags</TableHead>
-                <TableHead className="py-5 text-right px-6 font-semibold text-gray-900">Actions</TableHead>
+                {!readOnly && <TableHead className="py-5 text-right px-6 font-semibold text-gray-900">Actions</TableHead>}
               </TableRow>
             </TableHeader>
 
@@ -227,20 +231,22 @@ export function ExperienceTab() {
                   </TableCell>
 
                   {/* ACTIONS */}
-                  <TableCell className="text-right px-6">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" className="w-auto" aria-label="Modifier" onClick={() => handleEdit(experience)}>
-                        <Pencil size={18} />
-                      </Button>
-                      <DeleteExperienceDialog
-                        isOpen={deleteTargetId === experience.id}
-                        onOpenChange={(open) => setDeleteTargetId(open ? experience.id : null)}
-                        experienceId={experience.id}
-                        onSubmit={() => handleDelete(experience.id)}
-                        onReset={() => setDeleteTargetId(null)}
-                      />
-                    </div>
-                  </TableCell>
+                  {!readOnly && (
+                    <TableCell className="text-right px-6">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" className="w-auto" aria-label="Modifier" onClick={() => handleEdit(experience)}>
+                          <Pencil size={18} />
+                        </Button>
+                        <DeleteExperienceDialog
+                          isOpen={deleteTargetId === experience.id}
+                          onOpenChange={(open) => setDeleteTargetId(open ? experience.id : null)}
+                          experienceId={experience.id}
+                          onSubmit={() => handleDelete(experience.id)}
+                          onReset={() => setDeleteTargetId(null)}
+                        />
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>

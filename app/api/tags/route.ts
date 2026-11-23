@@ -2,13 +2,10 @@ import { handler, ok, parseBody, requireAdmin } from '@/server/http';
 import { tagSchema } from '@/server/validation';
 import { createTag, listTags, listTagsWithUsage } from '@/server/services/tags';
 
-// `?usage=1` (admin only) adds how many experiences and projects use each tag
+// `?usage=1` adds how many experiences and projects use each tag (public, like the content itself)
 export const GET = handler(async (request) => {
-  if (new URL(request.url).searchParams.get('usage') === '1') {
-    await requireAdmin();
-    return ok(await listTagsWithUsage());
-  }
-  return ok(await listTags());
+  const withUsage = new URL(request.url).searchParams.get('usage') === '1';
+  return ok(withUsage ? await listTagsWithUsage() : await listTags());
 });
 
 export const POST = handler(async (request) => {
