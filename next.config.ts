@@ -1,18 +1,18 @@
 import type { NextConfig } from 'next';
 
-// Le site est servi sous https://bnachate.github.io/Portfolio en production.
-// En dev, on garde la racine pour que http://localhost:3000 fonctionne.
+// The site is served under https://bnachate.github.io/Portfolio in production.
+// In dev, keep the root so that http://localhost:3000 keeps working.
 const basePath = process.env.NODE_ENV === 'production' ? '/Portfolio' : '';
 
 const nextConfig: NextConfig = {
   output: 'export',
   basePath,
-  trailingSlash: true, // GitHub Pages sert /admin/index.html pour /admin/
+  trailingSlash: true, // GitHub Pages serves /admin/index.html for /admin/
   images: {
-    unoptimized: true, // Obligatoire pour le déploiement statique sur GitHub Pages
+    unoptimized: true, // Required for static export on GitHub Pages
   },
   env: {
-    // Exposé au code client pour préfixer les chemins hors <Link>/router (img, a, window.location)
+    // Exposed to client code to prefix paths outside <Link>/router (img, a, window.location)
     NEXT_PUBLIC_BASE_PATH: basePath,
   },
 };
