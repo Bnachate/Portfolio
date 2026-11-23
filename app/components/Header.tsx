@@ -60,12 +60,22 @@ export function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
                 </Button>
               </div>
             ) : (
-              <Link
-                href="/auth/login"
-                className="border border-cyan-600 text-cyan-600 px-6 py-2 rounded-lg hover:bg-cyan-50 transition-colors"
-              >
-                Connexion
-              </Link>
+              <div className="flex items-center gap-4">
+                {/* Visitors can browse the admin panel in read-only mode */}
+                <Link
+                  href="/admin"
+                  className="inline-flex items-center gap-2 text-gray-700 hover:text-cyan-600 transition-colors"
+                >
+                  Admin
+                  <ExternalLink size={18} className="opacity-70" />
+                </Link>
+                <Link
+                  href="/auth/login"
+                  className="border border-cyan-600 text-cyan-600 px-6 py-2 rounded-lg hover:bg-cyan-50 transition-colors"
+                >
+                  Connexion
+                </Link>
+              </div>
             )}
           </div>
 
@@ -105,12 +115,17 @@ export function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
                 </Button>
               </>
             ) : (
-              <Link
-                href="/auth/login"
-                className="border border-cyan-600 text-cyan-600 px-6 py-2 rounded-lg hover:bg-cyan-50 transition-colors text-center"
-              >
-                Connexion
-              </Link>
+              <>
+                <Link href="/admin" className="text-gray-700 hover:text-cyan-600 transition-colors">
+                  Admin
+                </Link>
+                <Link
+                  href="/auth/login"
+                  className="border border-cyan-600 text-cyan-600 px-6 py-2 rounded-lg hover:bg-cyan-50 transition-colors text-center"
+                >
+                  Connexion
+                </Link>
+              </>
             )}
           </div>
         )}
