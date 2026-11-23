@@ -26,8 +26,11 @@ export function ContactsTab() {
       .catch((err) => setError(getErrorMessage(err, "Impossible de charger les messages")));
   }, []);
 
-  const replaceContact = (updated: Contact) =>
+  const replaceContact = (updated: Contact) => {
     setContacts((current) => current.map((c) => (c.id === updated.id ? updated : c)));
+    // Keep the open dialog in sync (e.g. status switching to "read")
+    setSelectedContact((current) => (current?.id === updated.id ? updated : current));
+  };
 
   const handleStatusChange = async (id: number, status: ContactStatus) => {
     try {
@@ -212,41 +215,49 @@ export function ContactsTab() {
                 <Label className="text-sm text-gray-500">Sujet</Label>
                 <p className="font-medium">{selectedContact.subject ?? "—"}</p>
               </div>
-              <div>
-                <Label className="text-sm text-gray-500">Date</Label>
-                <p className="text-gray-700">
-                  {new Date(selectedContact.createdAt).toLocaleDateString("fr-FR", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm text-gray-500">Date</Label>
+                  <p className="text-gray-700">
+                    {new Date(selectedContact.createdAt).toLocaleDateString("fr-FR", {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm text-gray-500">Statut</Label>
+                  <div className="mt-1">{getStatusBadge(selectedContact.status)}</div>
+                </div>
               </div>
               <div>
                 <Label className="text-sm text-gray-500">Message</Label>
-                <div className="mt-2 p-4 bg-gray-50 rounded-lg">
+                <div className="mt-2 p-4 bg-gray-50 rounded-lg border border-gray-100">
                   <p className="text-gray-700 whitespace-pre-wrap">{selectedContact.message}</p>
                 </div>
               </div>
-              <div className="flex gap-3 pt-4">
-                <Button
-                  onClick={() => {
-                    handleStatusChange(selectedContact.id, "done");
-                    setIsDialogOpen(false);
-                  }}
-                  className="bg-green-600 hover:bg-green-700"
+              <div className="flex flex-wrap gap-3 pt-4">
+                {selectedContact.status !== "done" && (
+                  <Button
+                    onClick={() => {
+                      handleStatusChange(selectedContact.id, "done");
+                      setIsDialogOpen(false);
+                    }}
+                    className="w-auto px-5 bg-green-600 hover:bg-green-700"
+                  >
+                    <CheckCircle size={18} />
+                    Marquer comme traité
+                  </Button>
+                )}
+                <a
+                  href={`mailto:${selectedContact.email}`}
+                  className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-xl border-2 border-cyan-600 text-cyan-600 font-medium hover:bg-cyan-50 transition-colors"
                 >
-                  <CheckCircle size={18} className="mr-2" />
-                  Marquer comme traité
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => (window.location.href = `mailto:${selectedContact.email}`)}
-                >
-                  <Mail size={18} className="mr-2" />
+                  <Mail size={18} />
                   Répondre par email
-                </Button>
+                </a>
               </div>
             </div>
           )}
