@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, FolderKanban, Briefcase, Mail, Home } from "lucide-react";
+import { LogOut, FolderKanban, Briefcase, Mail, Home, Tags } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/common/tabs";
 import { ProjectsTab } from "../components/admin/ProjectsTab";
 import { ExperienceTab } from "../components/admin/ExperienceTab";
 import { ContactsTab } from "../components/admin/ContactsTab";
 import { HeroTab } from "../components/admin/HeroTab";
+import { TagsTab } from "../components/admin/TagsTab";
 import { logout } from "../services/auth.service";
 import { useState } from "react";
 
@@ -66,7 +67,7 @@ export function AdminDashboard() {
       {/* Admin Content */}
       <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="experiences" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-4 h-auto gap-2 bg-transparent">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-auto gap-2 bg-transparent">
             <TabsTrigger
               value="experiences"
               className="flex items-center gap-2 py-3"
@@ -89,6 +90,13 @@ export function AdminDashboard() {
               Projets
             </TabsTrigger>
             <TabsTrigger
+              value="tags"
+              className="flex items-center gap-2 py-3"
+            >
+              <Tags size={18} />
+              Tags
+            </TabsTrigger>
+            <TabsTrigger
               value="hero"
               className="flex items-center gap-2 py-3"
             >
@@ -107,6 +115,10 @@ export function AdminDashboard() {
 
           <TabsContent value="contacts" className="space-y-4">
             <ContactsTab />
+          </TabsContent>
+
+          <TabsContent value="tags" className="space-y-4">
+            <TagsTab />
           </TabsContent>
 
           <TabsContent value="hero" className="space-y-4">
