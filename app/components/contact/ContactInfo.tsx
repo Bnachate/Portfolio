@@ -1,8 +1,7 @@
-"use client";
 
 import { Mail, MapPin, Phone } from "lucide-react";
 
-export function ContactInfo() {
+export function ContactInfo({ email }: { email: string }) {
 
   return (
     <div className="space-y-8">
@@ -21,7 +20,7 @@ export function ContactInfo() {
           </div>
           <div>
             <p className="text-gray-600">Email</p>
-            <p className="text-gray-900">nachate.brahim@gmail.com</p>
+            <a href={`mailto:${email}`} className="text-gray-900 hover:text-cyan-600">{email}</a>
           </div>
         </div>
 

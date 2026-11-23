@@ -2,25 +2,18 @@
 
 import { useState } from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, Plus } from "lucide-react";
 import { TagChip } from "./TagChip";
-
-interface MultiSelectTagOption {
-  id: number;
-  name: string;
-  createDate: string;
-  deletedDate: string | null;
-  description: string | null;
-  featuredImageUrl: string | null;
-  schema: string | null;
-  updateDate: string | null;
-}
+import { getErrorMessage } from "@/app/config/api.config";
+import type { Tag } from "@/app/types/api";
 
 interface MultiSelectTagsProps {
   id: string;
-  options: MultiSelectTagOption[];
-  selectedValues: Partial<MultiSelectTagOption>[];
-  onChange: (nextValues: Partial<MultiSelectTagOption>[]) => void;
+  options: Tag[];
+  selectedValues: Tag[];
+  onChange: (nextValues: Tag[]) => void;
+  /** When provided, shows a field to create a tag that does not exist yet. */
+  onCreate?: (name: string) => Promise<Tag>;
   placeholder?: string;
 }
 
@@ -29,26 +22,47 @@ export function MultiSelectTags({
   options,
   selectedValues,
   onChange,
+  onCreate,
   placeholder = "Sélectionner des tags",
 }: MultiSelectTagsProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [newTagName, setNewTagName] = useState("");
+  const [createError, setCreateError] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
-  const isTagMatched = (option: MultiSelectTagOption) => {
-    return selectedValues.some(value => value.name?.includes(option.name));
-  };
+  const selectedIds = new Set(selectedValues.map((value) => value.id));
 
-  const toggleTag = (tag: Partial<MultiSelectTagOption>) => {
-    const selectedValuesIds = selectedValues.map((value) => value.id);
-    const nextValues = selectedValuesIds.includes(tag.id)
+  const toggleTag = (tag: Tag) => {
+    onChange(selectedIds.has(tag.id)
       ? selectedValues.filter((value) => value.id !== tag.id)
-      : [...selectedValues, tag];
-    onChange(nextValues);
+      : [...selectedValues, tag]);
   };
 
-  const removeTag = (tag: Partial<MultiSelectTagOption>) => {
-    if (!tag || !tag.id) return;
-    if (!selectedValues || selectedValues.length === 0) return;
-    onChange(selectedValues.filter((value) => value.id !== tag.id));
+  const removeTag = (tag: Tag) => onChange(selectedValues.filter((value) => value.id !== tag.id));
+
+  const handleCreate = async () => {
+    const name = newTagName.trim();
+    if (!name || !onCreate) return;
+
+    // Reuse an existing tag with the same name instead of failing
+    const existing = options.find((option) => option.name.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      if (!selectedIds.has(existing.id)) onChange([...selectedValues, existing]);
+      setNewTagName("");
+      return;
+    }
+
+    setIsCreating(true);
+    setCreateError("");
+    try {
+      const tag = await onCreate(name);
+      onChange([...selectedValues, tag]);
+      setNewTagName("");
+    } catch (err) {
+      setCreateError(getErrorMessage(err, "Impossible de créer le tag"));
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -61,33 +75,57 @@ export function MultiSelectTags({
         >
           <span className="flex flex-1 flex-wrap gap-1.5 text-left pr-2">
             {selectedValues.length > 0 ? (
-              selectedValues.map((value, index) => (
-                <TagChip
-                  key={index}
-                  label={value.name ?? ''}
-                  onRemove={() => removeTag(value)}
-                />
+              selectedValues.map((value) => (
+                <TagChip key={value.id} label={value.name} onRemove={() => removeTag(value)} />
               ))
             ) : (
               <span className="text-gray-500 px-1 py-1">{placeholder}</span>
             )}
           </span>
-          <ChevronDown
-            size={16}
-            className={`text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
-          />
+          <ChevronDown size={16} className={`text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`} />
         </button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content
           sideOffset={8}
           align="start"
-          className="z-50 max-h-60 w-(--radix-dropdown-menu-trigger-width) overflow-y-auto rounded-md border border-gray-200 bg-white p-1 shadow-md"
+          className="z-50 max-h-72 w-(--radix-dropdown-menu-trigger-width) overflow-y-auto rounded-md border border-gray-200 bg-white p-1 shadow-md"
         >
+          {onCreate && (
+            <div className="p-2 border-b border-gray-100 mb-1">
+              <div className="flex gap-2">
+                <input
+                  value={newTagName}
+                  onChange={(e) => setNewTagName(e.target.value)}
+                  // Keep Radix typeahead/navigation from stealing keystrokes
+                  onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleCreate();
+                    }
+                  }}
+                  placeholder="Nouveau tag"
+                  maxLength={50}
+                  className="flex-1 rounded-md border border-gray-300 px-2 py-1 text-sm outline-none focus:ring-2 focus:ring-cyan-600"
+                />
+                <button
+                  type="button"
+                  onClick={handleCreate}
+                  disabled={isCreating || !newTagName.trim()}
+                  aria-label="Créer le tag"
+                  className="inline-flex items-center rounded-md bg-cyan-600 px-2 text-white disabled:opacity-50"
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+              {createError && <p className="mt-1 text-xs text-red-600">{createError}</p>}
+            </div>
+          )}
           {options.map((option) => (
             <DropdownMenu.CheckboxItem
               key={option.id}
-              checked={isTagMatched(option)}
+              checked={selectedIds.has(option.id)}
               onSelect={(e) => e.preventDefault()}
               onCheckedChange={() => toggleTag(option)}
               className="relative flex cursor-pointer select-none items-center rounded-sm py-2 pr-8 pl-3 text-sm font-semibold text-blue-500 outline-none data-highlighted:bg-gray-100"

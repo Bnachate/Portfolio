@@ -1,140 +1,61 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Plus, Pencil, ExternalLink } from "lucide-react";
 import { Button } from "../common/Button";
 import { TagChip } from "./common/TagChip";
+import { TruncateWithTooltip } from "./common/TruncateWithTooltip";
+import { ErrorBanner } from "./common/ErrorBanner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../common/table";
-import { getProjects, createProject, updateProject, deleteProject } from "@/app/services/admin/projects.service";
+import { getProjects, createProject, updateProject, deleteProject, type ProjectPayload } from "@/app/services/admin/projects.service";
+import { createTag, getTags } from "@/app/services/admin/experiences.service";
+import { getErrorMessage } from "@/app/config/api.config";
 import { DeleteProjectDialog } from "./projects-tab/modal/DeleteProjectDialog";
-import { getTags } from "@/app/services/admin/tags.service";
-import { useAuth } from "@/app/config/useAuth.config";
-import { ProjectDialog } from "./projects-tab/modal/ProjectDialog";
-import isEqual from 'lodash/isEqual';
-import pickBy from 'lodash/pickBy';
+import { ProjectDialog, type ProjectFormData } from "./projects-tab/modal/ProjectDialog";
+import type { Project, Tag } from "@/app/types/api";
 
-interface User {
-  id: number;
-  firstName: string;
-  lastName: string;
-  githubUrl: string;
-  job: string;
-  linkedinUrl: string;
-  password: string;
-  email: string;
-  admin: number;
-  title: string;
-  description: string;
-}
-interface Project {
-  id: number;
-  title: string;
-  description: string;
-  projectImageUrl: string;
-  githubUrl: string;
-  owner: User;
-  tags: Partial<Tag>[];
-  position: number;
+const EMPTY_FORM: ProjectFormData = {
+  title: "",
+  description: "",
+  projectImageUrl: "",
+  githubUrl: "",
+  demoUrl: "",
+  tags: [],
+  position: 0,
+};
 
-}
-
-interface ProjectFormData {
-  title: string;
-  description: string;
-  projectImageUrl: string;
-  githubUrl: string;
-  tags: Partial<Tag>[];
-  position: number;
-}
-
-interface Tag {
-  id: number;
-  name: string;
-  createDate: string;
-  deletedDate: string | null;
-  description: string | null;
-  featuredImageUrl: string | null;
-  schema: string | null;
-  updateDate: string | null;
-}
-
-function TruncateWithTooltip({
-  text,
-  className,
-}: {
-  text: string;
-  className: string;
-}) {
-  const textRef = useRef<HTMLSpanElement>(null);
-  const [isTruncated, setIsTruncated] = useState(false);
-
-  useEffect(() => {
-    const element = textRef.current;
-    if (!element) return;
-
-    const checkTruncate = () => {
-      setIsTruncated(element.scrollWidth > element.clientWidth);
-    };
-
-    checkTruncate();
-
-    const observer = new ResizeObserver(checkTruncate);
-    observer.observe(element);
-
-    return () => observer.disconnect();
-  }, [text]);
-
-  return (
-    <span ref={textRef} className={className} title={isTruncated ? text : undefined}>
-      {text}
-    </span>
-  );
-}
+const toPayload = (form: ProjectFormData): ProjectPayload => ({
+  ...form,
+  githubUrl: form.githubUrl || null,
+  demoUrl: form.demoUrl || null,
+  tags: form.tags.map((tag) => tag.id),
+});
 
 export function ProjectsTab() {
-  const { isLoading, isAuthenticated } = useAuth();
-
   const [projects, setProjects] = useState<Project[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
-  const [formData, setFormData] = useState<Partial<ProjectFormData>>({
-    title: '',
-    description: '',
-    projectImageUrl: '',
-    githubUrl: '',
-    tags: [],
-    position: 0,
-  });
-  const [tags, setTags] = useState<Tag[]>([]);
+  const [formData, setFormData] = useState<ProjectFormData>(EMPTY_FORM);
+  const [error, setError] = useState("");
+  const [formError, setFormError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
-  const normalizeTagNames = (tagValues?: Partial<Tag>[] | undefined) => {
-    if (!tagValues) return [];
-    return tagValues.map((tag) => ({ id: tag.id, name: tag.name }));
-  };
-
-  const fetchProjects = async () => {
-    const res = await getProjects();
-    setProjects(res.data.data);
-  };
-
-  const fetchTags = async () => {
-    const res = await getTags();
-    setTags(res.data);
-  };
+  const fetchProjects = useCallback(async () => setProjects(await getProjects()), []);
 
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      const fetchData = async () => {
-        try {
-          await Promise.all([fetchProjects(), fetchTags()]);
-        } catch (error) {
-          console.error('❌ Erreur lors du chargement des données:', error);
-        }
-      };
-      fetchData();
-    }
-  }, [isAuthenticated, isLoading]);
+    Promise.all([fetchProjects(), getTags().then(setTags)]).catch((err) =>
+      setError(getErrorMessage(err, "Impossible de charger les projets")),
+    );
+  }, [fetchProjects]);
+
+  const resetForm = () => {
+    setFormData(EMPTY_FORM);
+    setEditingProject(null);
+    setFormError("");
+    setIsDialogOpen(false);
+  };
 
   const handleEdit = (project: Project) => {
     setEditingProject(project);
@@ -142,75 +63,50 @@ export function ProjectsTab() {
       title: project.title,
       description: project.description,
       projectImageUrl: project.projectImageUrl,
-      githubUrl: project.githubUrl,
+      githubUrl: project.githubUrl ?? "",
+      demoUrl: project.demoUrl ?? "",
       tags: project.tags,
       position: project.position,
     });
+    setFormError("");
     setIsDialogOpen(true);
   };
 
   const handleDelete = async (id: number) => {
     try {
-      await deleteProject({ id });
+      await deleteProject(id);
       await fetchProjects();
       setDeleteTargetId(null);
-    } catch (error) {
-      console.error("❌ Erreur lors de la suppression du projet:", error);
+    } catch (err) {
+      setError(getErrorMessage(err, "Impossible de supprimer le projet"));
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
+    setFormError("");
     try {
-      if (editingProject && editingProject.id) {
-        const onlyEditedValues = pickBy(
-          { ...formData },
-          (value, key) => !isEqual(value, editingProject?.[key as keyof Project])
-        );
-
-        if (Array.isArray(onlyEditedValues.tags)) {
-          onlyEditedValues.tags = onlyEditedValues.tags.map((tag) => tag.id) as Partial<Tag>[];
-        }
-
-        await updateProject({ id: editingProject.id, ...onlyEditedValues });
+      const payload = toPayload(formData);
+      if (editingProject) {
+        await updateProject(editingProject.id, payload);
       } else {
-        const normalizedTags = formData.tags?.map((tag) => tag.id);
-        await createProject({
-          ...formData,
-          tags: normalizedTags,
-        } as Partial<Project>);
+        await createProject(payload);
       }
-
       await fetchProjects();
-      setIsDialogOpen(false);
       resetForm();
-    } catch (error) {
-      console.error("❌ Erreur lors de la soumission du projet:", error);
+    } catch (err) {
+      setFormError(getErrorMessage(err, "Impossible d'enregistrer le projet"));
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      title: "",
-      description: "",
-      projectImageUrl: "",
-      githubUrl: "",
-      tags: [],
-      position: 0,
-    });
-    setEditingProject(null);
-    setIsDialogOpen(false);
+  const handleCreateTag = async (name: string) => {
+    const tag = await createTag(name);
+    setTags((current) => [...current, tag].sort((a, b) => a.name.localeCompare(b.name)));
+    return tag;
   };
-
-  const handleTagsChange = (nextTags: Partial<Tag>[]) => {
-    setFormData({ ...formData, tags: nextTags });
-  };
-
-  const handleFormChange = (nextFormData: Partial<ProjectFormData>) => {
-    setFormData(nextFormData);
-  };
-
-  const selectedTags = formData.tags ? normalizeTagNames(formData.tags) : [];
 
   return (
     <div className="bg-white rounded-lg shadow">
@@ -232,15 +128,17 @@ export function ProjectsTab() {
           Nouveau projet
         </Button>
       </div>
+      <ErrorBanner message={error} onClose={() => setError("")} />
       <ProjectDialog
         isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
+        onOpenChange={(open) => (open ? setIsDialogOpen(true) : resetForm())}
         isEditing={Boolean(editingProject)}
+        isSaving={isSaving}
+        error={formError}
         formData={formData}
         tags={tags}
-        selectedTags={selectedTags}
-        onFormChange={handleFormChange}
-        onTagsChange={handleTagsChange}
+        onFormChange={setFormData}
+        onCreateTag={handleCreateTag}
         onSubmit={handleSubmit}
         onReset={resetForm}
       />
@@ -265,53 +163,36 @@ export function ProjectsTab() {
                 className="group transition-all hover:bg-cyan-50/20 border-b border-gray-50 last:border-0"
               >
                 <TableCell className="max-w-10">
-                  <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
-                    {project.position}
-                  </p>
+                  <p className="text-sm text-gray-600">{project.position}</p>
                 </TableCell>
+
                 {/* PROJECT TITLE */}
                 <TableCell className="py-5 px-6">
-                  <div className="flex flex-col">
-                    <span className="font-bold text-gray-800 text-base group-hover:text-cyan-700 transition-colors">
-                      {project.title}
-                    </span>
-                    {project.githubUrl && (
-                      <span className="text-[10px] uppercase tracking-wider text-cyan-600 font-bold">
-                        GitHub Available
-                      </span>
-                    )}
-                  </div>
+                  <span className="font-bold text-gray-800 text-base group-hover:text-cyan-700 transition-colors">
+                    {project.title}
+                  </span>
                 </TableCell>
 
                 {/* DESCRIPTION */}
                 <TableCell className="max-w-md">
-                  <TruncateWithTooltip
-                    text={project.description}
-                    className="block max-w-70 truncate text-sm text-gray-600"
-                  />
+                  <TruncateWithTooltip text={project.description} className="block max-w-70 truncate text-sm text-gray-600" />
                 </TableCell>
 
                 {/* GITHUB */}
                 <TableCell className="max-w-md">
-                  <TruncateWithTooltip
-                    text={project.githubUrl}
-                    className="block max-w-55 truncate text-sm text-gray-600"
-                  />
+                  <TruncateWithTooltip text={project.githubUrl ?? "—"} className="block max-w-55 truncate text-sm text-gray-600" />
                 </TableCell>
 
                 {/* IMAGE */}
                 <TableCell className="max-w-md">
-                  <TruncateWithTooltip
-                    text={project.projectImageUrl}
-                    className="block max-w-55 truncate text-sm text-gray-600"
-                  />
+                  <TruncateWithTooltip text={project.projectImageUrl} className="block max-w-55 truncate text-sm text-gray-600" />
                 </TableCell>
 
                 {/* TAGS */}
                 <TableCell className="w-auto max-w-55">
                   <div className="inline-flex flex-wrap gap-2 overflow-x-auto max-h-24">
-                    {normalizeTagNames(project.tags).map((tag, index) => (
-                      <TagChip key={`${project.id}-${tag.id}-${index}`} label={tag.name ?? ''} />
+                    {project.tags.map((tag) => (
+                      <TagChip key={tag.id} label={tag.name} />
                     ))}
                   </div>
                 </TableCell>
@@ -320,20 +201,17 @@ export function ProjectsTab() {
                 <TableCell className="text-right px-5">
                   <div className="flex justify-end gap-2">
                     {project.githubUrl && (
-                      <Button
-                        variant="ghost"
-                        className="w-auto"
+                      <a
+                        href={project.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Ouvrir sur GitHub"
+                        className="inline-flex items-center justify-center h-12 px-3 text-gray-700 hover:text-cyan-600"
                       >
-                        <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink size={18} />
-                        </a>
-                      </Button>
+                        <ExternalLink size={18} />
+                      </a>
                     )}
-                    <Button
-                      variant="ghost"
-                      className="w-auto"
-                      onClick={() => handleEdit(project)}
-                    >
+                    <Button variant="ghost" className="w-auto" aria-label="Modifier" onClick={() => handleEdit(project)}>
                       <Pencil size={18} />
                     </Button>
                     <DeleteProjectDialog
