@@ -2,6 +2,7 @@ import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
 import { Projects } from "./components/Projects";
 import { Experience } from "./components/Experience";
+import { Education } from "./components/Education";
 import { Contact } from "./components/Contact";
 import { getCurrentUser } from "@/server/auth";
 import { getHero } from "@/server/services/hero";
@@ -26,6 +27,7 @@ export default async function Home() {
         <Hero hero={hero} />
         <Projects projects={projects} />
         <Experience experiences={experiences} />
+        <Education />
         <Contact email={hero.email} />
       </main>
       <footer className="bg-gray-900 text-white py-8">

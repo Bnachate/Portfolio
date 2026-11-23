@@ -9,7 +9,7 @@ export function Experience({ experiences }: { experiences: ExperienceData[] }) {
         <div className="text-center mb-16">
           <h2 className="text-4xl mb-4 text-gray-900">Expérience</h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Mon parcours professionnel en développement front-end
+            Mon parcours professionnel en développement full-stack
           </p>
         </div>
 
@@ -24,7 +24,7 @@ export function Experience({ experiences }: { experiences: ExperienceData[] }) {
           </div>
           <div className="flex mt-5">
             <a
-              href="/CV_Brahim_Nachate_Developpeur_Front-End.pdf"
+              href="/CV_Brahim_Nachate_Developpeur_Full-Stack.pdf"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 h-12 px-4 font-medium text-gray-700 hover:text-cyan-600 transition-colors"
