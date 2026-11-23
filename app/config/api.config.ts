@@ -1,128 +1,41 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
-import { getCookie, deleteCookies } from './cookies.config';
-import { withBasePath } from './basePath';
+import axios, { AxiosError } from 'axios';
 
-// API base URL configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portfolioback-end-production.up.railway.app';
-
-// Create an axios instance with withCredentials for cookies
-const apiClient: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
+/**
+ * Axios client for our own Next.js API (same origin, so the HttpOnly
+ * session cookie is sent automatically).
+ * Every route answers `{ data }` on success and `{ message }` on error.
+ */
+const apiClient = axios.create({
+  baseURL: '/api',
   timeout: 10000,
-  withCredentials: true, // Important: sends cookies with every request
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// State used to handle token refresh
-let isRefreshing = false;
-let failedQueue: Array<{
-  onSuccess: () => void;
-  onFailed: (error: Error) => void;
-}> = [];
-
-const processQueue = (error: Error | null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.onFailed(error);
-    } else {
-      prom.onSuccess();
-    }
-  });
-
-  failedQueue = [];
-};
-
-// Refreshes the access token
-// Reads the refreshToken cookie and uses it to get a new accessToken
-const refreshAccessToken = async () => {
-  try {
-    const refreshToken = getCookie('refreshToken');
-
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
-    }
-
-    // Call the refresh endpoint with the refreshToken
-    const response = await axios.post(
-      `${API_BASE_URL}/auth/refresh-tokens`,
-      { refreshToken },
-      { withCredentials: true }
-    );
-
-    // Store the new token in the cookie
-    if (response.data?.data?.accessToken) {
-      const oneDay = 24 * 60 * 60 * 1000;
-      const expireAccessToken = new Date(new Date().getTime() + oneDay);
-      document.cookie = `accessToken=${response.data.data.accessToken}; expires=${expireAccessToken.toUTCString()}; path=/; SameSite=Strict`;
-    }
-
-    return true;
-  } catch (error) {
-    // Token refresh failed, redirect to login
-    deleteCookies();
-    if (typeof window !== 'undefined') {
-      window.location.href = withBasePath('/auth/login/');
-    }
-    throw error;
-  }
-};
-
-// Request interceptor
-// Adds the Bearer token to the Authorization header
-apiClient.interceptors.request.use(
-  (config) => {
-    const accessToken = getCookie('accessToken');
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Response interceptor handling errors and token refresh
+// Session expired while using the admin: send the user back to the login page.
+// Auth routes are excluded so a wrong password shows its error instead of reloading the page.
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError) => {
-    const originalRequest = error.config as any;
-
-    // On 401, if a refresh has not been attempted yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        // A refresh is already in progress, queue the request
-        return new Promise((resolve, reject) => {
-          failedQueue.push({
-            onSuccess: () => {
-              resolve(apiClient(originalRequest));
-            },
-            onFailed: (error: Error) => {
-              reject(error);
-            },
-          });
-        });
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        await refreshAccessToken();
-        processQueue(null);
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError as Error);
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
+  (error: AxiosError) => {
+    const isAuthRoute = error.config?.url?.startsWith('/auth/');
+    if (error.response?.status === 401 && !isAuthRoute && typeof window !== 'undefined') {
+      window.location.href = '/auth/login';
     }
-
     return Promise.reject(error);
-  }
+  },
 );
+
+/** Extracts the API error message, with a fallback. */
+export function getErrorMessage(error: unknown, fallback = 'Une erreur est survenue') {
+  if (axios.isAxiosError<{ message?: string }>(error)) {
+    return error.response?.data?.message ?? fallback;
+  }
+  return fallback;
+}
+
+/** Unwraps the `{ data }` envelope. */
+export async function unwrap<T>(request: Promise<{ data: { data: T } }>): Promise<T> {
+  const response = await request;
+  return response.data.data;
+}
 
 export default apiClient;

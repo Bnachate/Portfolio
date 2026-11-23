@@ -8,6 +8,7 @@ import { Button } from "@/app/components/common/Button";
 import { Input } from "@/app/components/common/input";
 import { Label } from "@/app/components/common/label";
 import { login } from "@/app/services/auth.service";
+import { getErrorMessage } from "@/app/config/api.config";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -23,16 +24,12 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Call the API to sign in
+      // The API sets an HttpOnly session cookie on success
       await login(email, password);
-
-      // Success: redirect to the admin page
-      // Tokens are automatically stored in cookies
       router.push("/admin");
-    } catch (err: any) {
-      // Error handling
-      const errorMessage = err.response?.data?.message || "Email ou mot de passe incorrect";
-      setError(errorMessage);
+      router.refresh();
+    } catch (err) {
+      setError(getErrorMessage(err, "Email ou mot de passe incorrect"));
     } finally {
       setIsLoading(false);
     }
@@ -101,13 +98,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Forgot Password Link */}
-            <div className="flex items-center justify-between text-sm">
-              <Link href="/auth/forgot-password" className="text-cyan-600 hover:text-cyan-700">
-                Mot de passe oublié ?
-              </Link>
-            </div>
-
             {/* Submit Button */}
             <Button
               type="submit"
@@ -117,26 +107,6 @@ export default function LoginPage() {
               {isLoading ? "Connexion en cours..." : "Se connecter"}
             </Button>
           </form>
-
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">Ou</span>
-            </div>
-          </div>
-
-          {/* Sign Up Link */}
-          <div className="text-center">
-            <p className="text-gray-600">
-              Pas encore de compte ?{" "}
-              <Link href="/auth/signup" className="text-cyan-600 hover:text-cyan-700 font-medium">
-                Créer un compte
-              </Link>
-            </p>
-          </div>
         </div>
 
         {/* Back to Home */}

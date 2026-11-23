@@ -7,27 +7,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/app/components/common/input";
 import { Label } from "@/app/components/common/label";
 import { MultiSelectTags } from "@/app/components/admin/common/MultiSelectTags";
+import { ErrorBanner } from "@/app/components/admin/common/ErrorBanner";
 import { Textarea } from "@/app/components/common/textarea";
+import type { Tag } from "@/app/types/api";
 
-interface TagOption {
-  id: number;
-  name: string;
-  createDate: string;
-  deletedDate: string | null;
-  description: string | null;
-  featuredImageUrl: string | null;
-  schema: string | null;
-  updateDate: string | null;
-}
+const DESCRIPTION_MAX_LENGTH = 2000;
 
-interface ExperienceDialogFormData {
-  job?: string;
-  company?: string;
-  position?: number;
-  startDate?: string;
-  endDate?: string | null;
-  description?: string;
-  tags: Partial<TagOption>[];
+export interface ExperienceFormData {
+  job: string;
+  company: string;
+  position: number;
+  startDate: string;
+  endDate: string | null;
+  description: string;
+  tags: Tag[];
 }
 
 interface ExperienceDialogProps {
@@ -35,11 +28,12 @@ interface ExperienceDialogProps {
   onOpenChange: (open: boolean) => void;
   isEditing: boolean;
   submitDisabled: boolean;
-  formData: Partial<ExperienceDialogFormData>;
-  tags: TagOption[];
-  selectedTags: Partial<TagOption>[];
-  onFormChange: (nextFormData: Partial<ExperienceDialogFormData>) => void;
-  onTagsChange: (nextTags: Partial<TagOption>[]) => void;
+  isSaving: boolean;
+  error: string;
+  formData: ExperienceFormData;
+  tags: Tag[];
+  onFormChange: (nextFormData: ExperienceFormData) => void;
+  onCreateTag: (name: string) => Promise<Tag>;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   onReset: () => void;
 }
@@ -49,16 +43,15 @@ export function ExperienceDialog({
   onOpenChange,
   isEditing,
   submitDisabled,
+  isSaving,
+  error,
   formData,
   tags,
-  selectedTags,
   onFormChange,
-  onTagsChange,
+  onCreateTag,
   onSubmit,
   onReset,
 }: ExperienceDialogProps) {
-  const descriptionLength = (formData.description ?? "").length;
-
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
@@ -73,7 +66,7 @@ export function ExperienceDialog({
           Nouvelle expérience
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl bg-white max-h-[90vh] roounded-lg">
+      <DialogContent className="max-w-2xl bg-white max-h-[90vh] overflow-y-auto rounded-lg">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? "Modifier l'expérience" : "Nouvelle expérience"}
@@ -81,13 +74,14 @@ export function ExperienceDialog({
         </DialogHeader>
 
         <form onSubmit={onSubmit} className="space-y-4">
+          <ErrorBanner message={error} />
           <div className="space-y-2">
             <Label htmlFor="job">Titre du poste</Label>
             <Input
               id="job"
-              value={formData.job ?? ""}
+              value={formData.job}
               onChange={(e) => onFormChange({ ...formData, job: e.target.value })}
-              maxLength={100}
+              maxLength={200}
               required
             />
           </div>
@@ -97,9 +91,9 @@ export function ExperienceDialog({
               <Label htmlFor="company">Entreprise</Label>
               <Input
                 id="company"
-                value={formData.company ?? ""}
+                value={formData.company}
                 onChange={(e) => onFormChange({ ...formData, company: e.target.value })}
-                maxLength={50}
+                maxLength={200}
                 required
               />
             </div>
@@ -110,7 +104,7 @@ export function ExperienceDialog({
                 id="position"
                 type="number"
                 min={0}
-                value={formData.position ?? 0}
+                value={formData.position}
                 onChange={(e) => onFormChange({ ...formData, position: Number(e.target.value) })}
                 placeholder="0"
                 required
@@ -121,7 +115,7 @@ export function ExperienceDialog({
               <Label htmlFor="startDate">Date de début</Label>
               <DatePicker
                 id="startDate"
-                value={formData.startDate ?? ""}
+                value={formData.startDate}
                 onChange={(value) => onFormChange({ ...formData, startDate: value })}
                 required
               />
@@ -132,7 +126,7 @@ export function ExperienceDialog({
               <DatePicker
                 id="endDate"
                 value={formData.endDate ?? ""}
-                min={formData.startDate ?? undefined}
+                min={formData.startDate || undefined}
                 onChange={(value) => onFormChange({ ...formData, endDate: value || null })}
               />
             </div>
@@ -143,9 +137,9 @@ export function ExperienceDialog({
             <MultiSelectTags
               id="tags"
               options={tags}
-              selectedValues={selectedTags}
-              onChange={onTagsChange}
-              placeholder="Sélectionner des tags"
+              selectedValues={formData.tags}
+              onChange={(nextTags) => onFormChange({ ...formData, tags: nextTags })}
+              onCreate={onCreateTag}
             />
           </div>
 
@@ -154,25 +148,23 @@ export function ExperienceDialog({
             <Textarea
               id="description"
               rows={4}
-              className="field-sizing-fixed resize-y whitespace-pre-wrap break-words"
-              value={formData.description ?? ""}
+              className="field-sizing-fixed resize-y whitespace-pre-wrap wrap-break-word"
+              value={formData.description}
               onChange={(e) => onFormChange({ ...formData, description: e.target.value })}
-              maxLength={512}
+              maxLength={DESCRIPTION_MAX_LENGTH}
               required
             />
-            <p className="text-right text-xs text-gray-500">{descriptionLength}/512</p>
+            <p className="text-right text-xs text-gray-500">
+              {formData.description.length}/{DESCRIPTION_MAX_LENGTH}
+            </p>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onReset}>
               Annuler
             </Button>
-            <Button
-              type="submit"
-              className="bg-cyan-600 hover:bg-cyan-700"
-              disabled={submitDisabled}
-            >
-              {isEditing ? "Mettre à jour" : "Créer"}
+            <Button type="submit" className="bg-cyan-600 hover:bg-cyan-700" disabled={submitDisabled}>
+              {isSaving ? "Enregistrement..." : isEditing ? "Mettre à jour" : "Créer"}
             </Button>
           </div>
         </form>
