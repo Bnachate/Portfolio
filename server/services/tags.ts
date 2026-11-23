@@ -1,19 +1,50 @@
-import { asc, eq, inArray } from 'drizzle-orm';
+import { and, asc, eq, inArray, ne, sql } from 'drizzle-orm';
 import { db, type Executor } from '../db';
-import { tags } from '../db/schema';
+import { experienceTags, projectTags, tags } from '../db/schema';
 import { HttpError } from '../http';
 
 export type TagDTO = { id: number; name: string };
+export type TagWithUsageDTO = TagDTO & { experienceCount: number; projectCount: number };
+
+const tagColumns = { id: tags.id, name: tags.name };
 
 export async function listTags(): Promise<TagDTO[]> {
-  return db.select({ id: tags.id, name: tags.name }).from(tags).orderBy(asc(tags.name));
+  return db.select(tagColumns).from(tags).orderBy(asc(tags.name));
+}
+
+/** Tags with the number of experiences and projects using them (admin view). */
+export async function listTagsWithUsage(): Promise<TagWithUsageDTO[]> {
+  return db
+    .select({
+      ...tagColumns,
+      experienceCount: sql<number>`(select count(*) from ${experienceTags} where ${experienceTags.tagId} = ${tags.id})`.mapWith(Number),
+      projectCount: sql<number>`(select count(*) from ${projectTags} where ${projectTags.tagId} = ${tags.id})`.mapWith(Number),
+    })
+    .from(tags)
+    .orderBy(asc(tags.name));
+}
+
+/** Throws a 409 if another tag already has this name (case-insensitive). */
+async function assertNameAvailable(name: string, exceptId?: number) {
+  const sameName = sql`lower(${tags.name}) = lower(${name})`;
+  const [existing] = await db
+    .select({ id: tags.id })
+    .from(tags)
+    .where(exceptId ? and(sameName, ne(tags.id, exceptId)) : sameName)
+    .limit(1);
+  if (existing) throw new HttpError(409, 'Ce tag existe déjà');
 }
 
 export async function createTag(name: string): Promise<TagDTO> {
-  const [existing] = await db.select({ id: tags.id }).from(tags).where(eq(tags.name, name)).limit(1);
-  if (existing) throw new HttpError(409, 'Ce tag existe déjà');
+  await assertNameAvailable(name);
+  const [tag] = await db.insert(tags).values({ name }).returning(tagColumns);
+  return tag;
+}
 
-  const [tag] = await db.insert(tags).values({ name }).returning({ id: tags.id, name: tags.name });
+export async function updateTag(id: number, name: string): Promise<TagDTO> {
+  await assertNameAvailable(name, id);
+  const [tag] = await db.update(tags).set({ name }).where(eq(tags.id, id)).returning(tagColumns);
+  if (!tag) throw new HttpError(404, 'Tag introuvable');
   return tag;
 }
 

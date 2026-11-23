@@ -76,7 +76,8 @@ export const updateExperienceSchema = z.object(experienceFields).partial();
 
 /* ---------- Tags ---------- */
 
-export const createTagSchema = z.object({ name: shortText(50) });
+// Used to create and to rename a tag
+export const tagSchema = z.object({ name: shortText(50) });
 
 /* ---------- Contact messages ---------- */
 
