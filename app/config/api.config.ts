@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { getCookie, deleteCookies } from './cookies.config';
+import { withBasePath } from './basePath';
 
 // Configuration de l'URL de base de l'API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portfolioback-end-production.up.railway.app';
@@ -62,7 +63,7 @@ const refreshAccessToken = async () => {
     // Token refresh échoué, rediriger vers login
     deleteCookies();
     if (typeof window !== 'undefined') {
-      window.location.href = '/auth/login';
+      window.location.href = withBasePath('/auth/login/');
     }
     throw error;
   }
