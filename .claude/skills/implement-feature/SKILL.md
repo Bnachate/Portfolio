@@ -7,7 +7,7 @@ description: End-to-end workflow to implement a feature in this portfolio (Next.
 
 Orchestrates the whole delivery of a feature. Each phase either runs or is explicitly skipped with a one-line reason. Talk to the user in French; code, comments and commit messages in English; UI strings in French.
 
-The phases below call other project skills (in `.claude/skills/`). Invoke them with the Skill tool, or read their `SKILL.md` and follow it.
+Phase order: plan, `db-change`, `api-resource`, UI, `test-usecases`, `ship`, `prod-db`, `smoke-check`. The phases below call other project skills (in `.claude/skills/`). Invoke them with the Skill tool, or read their `SKILL.md` and follow it.
 
 ## Phase 0 - Understand and plan
 
@@ -33,24 +33,11 @@ Run the `api-resource` skill. For changes to an existing resource, follow the sa
 - Load data in effects with `.then(setState)` (the `react-hooks/set-state-in-effect` lint rule rejects calling a state-setting function synchronously in an effect).
 - Tailwind 4: only use theme colors that exist (an undefined class like `bg-background` silently renders nothing).
 
-## Phase 4 - Unit tests (API and UI)
+## Phases 4 and 5 - Tests (unit, API, UI and Playwright E2E)
 
-**API / server** (Vitest, `tests/*.test.ts`, see "Tests" in `CLAUDE.md`):
-- Use `setupDatabase()` in `beforeAll`, `actAs('visitor' | 'admin')`, and `call(handler, method, path, { body, params, ip })`.
-- Minimum per route: visitor read access (or 401), visitor write -> 401, admin happy path, validation error -> 400, unknown id -> 404. Add the feature's business rules.
-- Rate-limited routes: give each test its own `ip` so counters do not leak between tests.
+Run the `test-usecases` skill scoped to this feature: it adds the feature's use cases to `.claude/skills/test-usecases/usecases.md`, picks the right level for each (API, unit, UI, E2E), sets up Testing Library or Playwright the first time, writes the tests and proves they catch bugs.
 
-**UI** (React components):
-- First time only, set it up: `npm i -D @testing-library/react @testing-library/user-event @testing-library/jest-dom jsdom`, put UI tests in `tests/ui/*.test.tsx` with a `// @vitest-environment jsdom` first line, and import `@testing-library/jest-dom/vitest` in those files. Commit the setup with the feature.
-- Test behaviour the user sees: rendering from props, read-only mode hides controls (wrap in `ReadOnlyProvider`), form validation and submit calls (mock the `app/services/admin/*` module with `vi.mock`). No snapshot tests.
-
-Run `npm test`. All tests must pass. For a bug fix, write the failing test first.
-
-## Phase 5 - End-to-end tests (Playwright)
-
-- First time only, set it up: `npm i -D @playwright/test`, `npx playwright install chromium`, `playwright.config.ts` with `testDir: 'e2e'` and a `webServer` that runs `npm run build && npx next start -p 3100` with `PGLITE_DATA_DIR=./.pglite-e2e` (add it to `.gitignore`) and a `globalSetup` that runs migrations, seeds and creates a test admin; add `"test:e2e": "playwright test"` and a CI step (`npx playwright install --with-deps chromium` then `npm run test:e2e`). Never use port 3000 (the user's dev server) or `./.pglite`.
-- Cover the main user journey of the feature in a real browser: visitor view, read-only admin view, admin edit flow. Prefer role/label locators (`getByRole`, `getByLabel`).
-- Run `npm run test:e2e`; all must pass.
+Minimum for the feature: API tests for every new or changed route (visitor access, admin-only writes, validation, not found), UI tests for new components (including read-only mode in the admin), and one E2E journey covering the main user flow. For a bug fix, write the failing test first. `npm test` (and `npm run test:e2e` once set up) must pass.
 
 ## Phase 6 - Ship
 
