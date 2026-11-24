@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { ADMIN_STATE } from './fixtures';
+import { ADMIN_STATE, confirmDeletion } from './fixtures';
 
 test.use({ storageState: ADMIN_STATE });
 
@@ -42,7 +42,7 @@ test.describe('Admin - experiences', () => {
 
     // Delete
     await row.getByRole('button', { name: "Supprimer l'expérience" }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'Supprimer' }).click();
+    await confirmDeletion(page);
     await expect(row).toHaveCount(0);
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'Ingénieur E2E' })).toHaveCount(0);
@@ -70,8 +70,12 @@ test.describe('Admin - projects', () => {
 
     await openTab(page, 'Projets');
     await row.getByRole('button', { name: 'Supprimer le projet' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'Supprimer' }).click();
+    await confirmDeletion(page);
     await expect(row).toHaveCount(0);
+
+    // Gone from the public site too
+    await page.goto('/');
+    await expect(page.getByRole('heading', { name: 'Projet E2E' })).toHaveCount(0);
   });
 });
 
@@ -93,7 +97,7 @@ test.describe('Admin - tags', () => {
 
     await page.getByRole('button', { name: 'Supprimer Puppeteer' }).click();
     await expect(page.getByRole('dialog')).toContainText("n'est utilisé nulle part");
-    await page.getByRole('dialog').getByRole('button', { name: 'Supprimer' }).click();
+    await confirmDeletion(page);
     await expect(page.getByRole('cell', { name: 'Puppeteer', exact: true })).toHaveCount(0);
   });
 

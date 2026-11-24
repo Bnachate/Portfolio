@@ -57,7 +57,7 @@ Check `package.json` first; skip what exists. Commit the setup with the tests.
 
 **UI**: test behaviour, not implementation. Query by role and label (`getByRole('button', { name: 'Ajouter' })`, `getByLabelText('Email')`), interact with `userEvent`, assert what the user sees and which service was called with what. No snapshots, no testing of internal state or CSS classes (except visibility).
 
-**E2E**: one spec per journey in `e2e/*.spec.ts`. Role / label / text locators only (no CSS selectors tied to Tailwind classes). Each spec creates the data it needs and does not depend on another spec's order. Assert the outcome the user sees (toast, row in the table, redirect, text on the public page).
+**E2E**: one spec per journey in `e2e/*.spec.ts`. Role / label / text locators only (no CSS selectors tied to Tailwind classes); use `exact: true` when a label is a prefix of another ("Créer" / "Créer le tag"). Each spec creates the data it needs and does not depend on another spec's order: never assert global state such as "no projects yet". Assert the outcome the user sees (toast, row in the table, redirect, text on the public page). While a modal is open the page behind it is `aria-hidden`: wait for the dialog to close (`confirmDeletion(page)` in `e2e/fixtures.ts`) before asserting on the page, otherwise "row is gone" passes before the request finished.
 
 French UI strings are part of the contract: assert on the real labels.
 

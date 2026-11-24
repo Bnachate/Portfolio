@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { ADMIN_STATE } from './fixtures';
+import { ADMIN_STATE, confirmDeletion } from './fixtures';
 
 // Sets window.__xss if any of it ever runs; alert() would open a dialog, which fails the test too
 const XSS = `<img src=x onerror="window.__xss=1;alert('xss')"><script>window.__xss=1</script>`;
@@ -90,7 +90,7 @@ test.describe('Input safety (admin)', () => {
     expect(await xssRan(page)).toBe(false);
 
     await page.getByRole('button', { name: `Supprimer ${name}` }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'Supprimer' }).click();
+    await confirmDeletion(page);
     await expect(page.getByRole('cell', { name, exact: true })).toHaveCount(0);
   });
 
