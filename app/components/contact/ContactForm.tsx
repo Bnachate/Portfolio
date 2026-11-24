@@ -18,6 +18,12 @@ export function ContactForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // `required` lets whitespace-only values through: check them before calling the API
+    const { name, email, subject, message } = formData;
+    if ([name, email, subject, message].some((value) => !value.trim())) {
+      setError("Merci de remplir tous les champs.");
+      return;
+    }
     setIsSubmitting(true);
     setError("");
 

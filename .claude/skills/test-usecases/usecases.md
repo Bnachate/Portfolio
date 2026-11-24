@@ -97,6 +97,20 @@ Levels: API (Vitest + route handlers), Unit, UI (Testing Library, `tests/ui/`), 
 | M3 | Mark as done, delete after confirmation | API, UI, E2E | `tests/api-crud.test.ts`, `tests/ui/hero-and-messages-tabs.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
 | M4 | Invalid status refused; unknown message 404 | API | `tests/api-crud.test.ts` | ✅ |
 
+## Input safety
+
+| ID | Use case | Level | Test | Status |
+|---|---|---|---|---|
+| I1 | No form calls the API while a required field is empty or whitespace-only (contact, login, hero, project, experience, tags, inline tag creation) | UI, E2E | `tests/ui/input-safety.test.tsx`, `e2e/input-safety.spec.ts` | ✅ |
+| I2 | Every route refuses empty and whitespace-only required fields | API | `tests/injection.test.ts` | ✅ |
+| I3 | HTML / script payloads are stored verbatim and displayed as text (admin messages, tags, public sections), never executed | API, UI, E2E | `tests/injection.test.ts`, `tests/ui/input-safety.test.tsx`, `e2e/input-safety.spec.ts` | ✅ |
+| I4 | SQL-looking input is stored as text and does not alter the database | API | `tests/injection.test.ts` | ✅ |
+| I5 | Dangerous links refused: `javascript:` (any case, leading space, tab), `data:`, `vbscript:`, `file:`, and off-site hero links (`//`, `/\`, `/<tab>/`, `/<newline>/`) | API, E2E | `tests/injection.test.ts`, `e2e/input-safety.spec.ts` | ✅ |
+| I6 | Null bytes and control characters refused with a 400 (not a database error); line breaks kept in long texts | API | `tests/injection.test.ts` | ✅ |
+| I7 | Email header injection refused (contact email with line breaks; notification subject stripped) | API, Unit | `tests/injection.test.ts`, `tests/notifications.test.ts` | ✅ |
+| I8 | Unknown fields ignored, no prototype pollution, non-object bodies refused, over-long text refused | API | `tests/injection.test.ts` | ✅ |
+| I9 | Inline JSON-LD cannot close its script tag (`</script>`, `<!--`, `&`, line separators escaped) | Unit | `tests/structured-data.test.ts` | ✅ |
+
 ## Platform
 
 | ID | Use case | Level | Test | Status |

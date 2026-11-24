@@ -20,6 +20,11 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Whitespace-only values pass `required`: never send them (each attempt counts towards the rate limit)
+    if (!email.trim() || !password.trim()) {
+      setError("Veuillez saisir votre email et votre mot de passe");
+      return;
+    }
     setError("");
     setIsLoading(true);
 

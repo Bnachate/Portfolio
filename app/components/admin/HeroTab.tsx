@@ -12,6 +12,20 @@ import { getErrorMessage } from "@/app/config/api.config";
 import type { Hero } from "@/app/types/api";
 import { useReadOnly } from "@/app/admin/ReadOnlyContext";
 
+// Every hero field is required (same labels as the form)
+const REQUIRED_FIELDS: { field: keyof Hero; label: string }[] = [
+  { field: "title", label: "Titre principal" },
+  { field: "subtitle", label: "Sous-titre" },
+  { field: "description", label: "Description" },
+  { field: "primaryButtonText", label: "Texte bouton principal" },
+  { field: "primaryButtonUrl", label: "Lien bouton principal" },
+  { field: "secondaryButtonText", label: "Texte bouton secondaire" },
+  { field: "secondaryButtonUrl", label: "Lien bouton secondaire" },
+  { field: "githubUrl", label: "GitHub URL" },
+  { field: "linkedinUrl", label: "LinkedIn URL" },
+  { field: "email", label: "Email de contact" },
+];
+
 export function HeroTab() {
   const readOnly = useReadOnly();
   // Last saved version, used by "Reset"
@@ -44,6 +58,12 @@ export function HeroTab() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (readOnly) return;
+    // `required` lets whitespace-only values through: check them before calling the API
+    const blank = REQUIRED_FIELDS.find(({ field }) => !formData[field]?.trim());
+    if (blank) {
+      setError(`Champ requis : ${blank.label}`);
+      return;
+    }
     setIsSaving(true);
     setError("");
     try {

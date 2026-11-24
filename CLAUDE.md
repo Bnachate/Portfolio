@@ -47,7 +47,9 @@ Single Next.js 16 App Router project (React 19, Tailwind 4): public site, admin 
 - Every state-changing route except `POST /api/contacts` (public form) and the auth routes calls `requireAdmin()`.
 - Contact details are private: no email/phone in public pages; `/api/hero` returns the email only to the admin. The hero email receives contact notifications (`server/services/notifications.ts`, Resend, optional via `RESEND_API_KEY`).
 - `rateLimit(request, action, { limit, windowMs })` (`server/rate-limit.ts`): login 5 / 15 min, contact 5 / hour. Stores a salted hash of the IP in `rate_limit_hits`, and fails open if the DB check errors.
-- Stored URLs only accept `http(s)` (and `#anchor` / `/path` for hero buttons) to block `javascript:` links.
+- Stored URLs only accept `http(s)` (and `#anchor` / `/path` for hero buttons) to block `javascript:` links. Relative links may not start with `//` or `/\` (browsers read both as another site), and control characters are refused in links (browsers strip tabs / line breaks, turning `/<tab>/evil` into `//evil`) and in all text except line breaks (Postgres rejects null bytes).
+- Forms check required fields with `.trim()` before calling the API: the HTML `required` attribute accepts whitespace-only values.
+- Never render user or admin content as HTML: no `dangerouslySetInnerHTML` except JSON-LD, serialized with `toInlineJson()` (`app/config/structured-data.ts`).
 - Security headers and CSP are in `next.config.ts` (PDFs are excluded from the CSP so the CV opens in the browser viewer).
 
 ## Tests

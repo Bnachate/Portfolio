@@ -25,6 +25,7 @@ interface ProjectDialogProps {
   onOpenChange: (open: boolean) => void;
   isEditing: boolean;
   isSaving: boolean;
+  submitDisabled: boolean;
   error: string;
   formData: ProjectFormData;
   tags: Tag[];
@@ -39,6 +40,7 @@ export function ProjectDialog({
   onOpenChange,
   isEditing,
   isSaving,
+  submitDisabled,
   error,
   formData,
   tags,
@@ -137,7 +139,7 @@ export function ProjectDialog({
             <Button type="button" variant="outline" onClick={onReset}>
               Annuler
             </Button>
-            <Button type="submit" className="bg-cyan-600 hover:bg-cyan-700" disabled={isSaving}>
+            <Button type="submit" className="bg-cyan-600 hover:bg-cyan-700" disabled={submitDisabled}>
               {isSaving ? "Enregistrement..." : isEditing ? "Mettre à jour" : "Créer"}
             </Button>
           </DialogFooter>
