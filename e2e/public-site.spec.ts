@@ -12,7 +12,9 @@ test.describe('Public site (visitor)', () => {
     for (const heading of ['Mes Projets', 'Expérience', 'Formation & langues', 'Contactez-moi']) {
       await expect(page.getByRole('heading', { level: 2, name: heading })).toBeVisible();
     }
-    await expect(page.getByText('Les projets arrivent bientôt.')).toBeVisible();
+    // The projects list depends on what other specs created: only the section itself is checked here
+    // (the empty state is covered by tests/ui/public-site.test.tsx, deletion by admin-content.spec.ts)
+    await expect(page.locator('section#projets')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Développeur Full-Stack Vue.js / Java' })).toBeVisible();
     await expect(page.getByText('Coding Academy by Epitech Paris')).toBeVisible();
     // Styles and scripts load under the production CSP (no violation in the console)

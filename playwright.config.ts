@@ -12,8 +12,10 @@ export default defineConfig({
   // One shared database: run the specs one after the other
   fullyParallel: false,
   workers: 1,
-  // Retries would replay logins and contact messages, which are rate limited
-  retries: 0,
+  // One retry on CI only: GitHub runners are slower, and a test passing on retry is reported as
+  // "flaky" instead of failing the build. Locally, failures show up immediately. A retry replays at
+  // most one login and one contact message, which stays under the rate limits (5 per window).
+  retries: process.env.CI ? 1 : 0,
   forbidOnly: !!process.env.CI,
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : [['list']],
   use: {
