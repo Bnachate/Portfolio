@@ -31,6 +31,15 @@ export async function getHero(): Promise<HeroDTO> {
   return row ?? DEFAULT_HERO;
 }
 
+/** Hero without the contact email: what visitors may see (the email stays admin-only). */
+export type PublicHero = Omit<HeroDTO, 'email'>;
+
+export async function getPublicHero(): Promise<PublicHero> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { email, ...publicHero } = await getHero();
+  return publicHero;
+}
+
 export async function saveHero(data: HeroDTO): Promise<HeroDTO> {
   await db
     .insert(hero)

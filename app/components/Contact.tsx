@@ -1,7 +1,7 @@
 import { ContactForm } from './contact/ContactForm';
 import { ContactInfo } from './contact/ContactInfo';
 
-export function Contact({ email }: { email: string }) {
+export function Contact() {
   return (
     <section id="contact" className="py-20 bg-gray-50">
       <div className="container mx-auto px-6">
@@ -13,7 +13,7 @@ export function Contact({ email }: { email: string }) {
         </div>
 
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
-          <ContactInfo email={email} />
+          <ContactInfo />
           <ContactForm />
         </div>
       </div>

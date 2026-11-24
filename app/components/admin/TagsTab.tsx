@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { Button } from "../common/Button";
 import { Input } from "../common/input";
@@ -39,11 +39,11 @@ export function TagsTab() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState("");
 
-  const fetchTags = useCallback(async () => setTags(await getTagsWithUsage()), []);
-
   useEffect(() => {
-    fetchTags().catch((err) => setError(getErrorMessage(err, "Impossible de charger les tags")));
-  }, [fetchTags]);
+    getTagsWithUsage()
+      .then(setTags)
+      .catch((err) => setError(getErrorMessage(err, "Impossible de charger les tags")));
+  }, []);
 
   const visibleTags = useMemo(() => {
     const query = search.trim().toLocaleLowerCase("fr");

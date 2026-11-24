@@ -1,8 +1,10 @@
 import { handler, ok, parseBody, requireAdmin } from '@/server/http';
 import { heroSchema } from '@/server/validation';
-import { getHero, saveHero } from '@/server/services/hero';
+import { getCurrentUser } from '@/server/auth';
+import { getHero, getPublicHero, saveHero } from '@/server/services/hero';
 
-export const GET = handler(async () => ok(await getHero()));
+// The contact email is only returned to the admin
+export const GET = handler(async () => ok((await getCurrentUser()) ? await getHero() : await getPublicHero()));
 
 export const PUT = handler(async (request) => {
   await requireAdmin();

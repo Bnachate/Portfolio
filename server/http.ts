@@ -24,7 +24,8 @@ function assertSameOrigin(request: Request) {
   const origin = request.headers.get('origin');
   if (!origin) return; // Non-browser clients (curl, scripts)
   const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host');
-  if (new URL(origin).host !== host) {
+  // URL.parse returns null for opaque origins such as "null" (sandboxed iframes): rejected too
+  if (URL.parse(origin)?.host !== host) {
     throw new HttpError(403, 'Origine non autorisée');
   }
 }

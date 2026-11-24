@@ -139,8 +139,17 @@ export function HeroTab() {
                   <Input id="linkedinUrl" type="url" value={formData.linkedinUrl} onChange={update("linkedinUrl")} placeholder="https://linkedin.com/in/username" required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" value={formData.email} onChange={update("email")} placeholder="contact@email.com" required />
+                  <Label htmlFor="email">Email de contact</Label>
+                  {/* Never published: it receives the contact form notifications. Visitors don't get it from the API. */}
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email ?? ""}
+                    onChange={update("email")}
+                    placeholder={readOnly ? "Masqué en lecture seule" : "contact@email.com"}
+                    required
+                  />
+                  {!readOnly && <p className="text-xs text-gray-500">Jamais affiché sur le site : reçoit les notifications de messages.</p>}
                 </div>
               </div>
             </div>

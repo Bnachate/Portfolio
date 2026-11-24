@@ -56,11 +56,15 @@ export function ExperienceTab() {
 
   const fetchExperiences = useCallback(async () => setExperiences(await getExperiences()), []);
 
+  // Initial load: state is only set once the requests resolve
   useEffect(() => {
-    Promise.all([fetchExperiences(), getTags().then(setTags)]).catch((err) =>
-      setError(getErrorMessage(err, "Impossible de charger les expériences")),
-    );
-  }, [fetchExperiences]);
+    Promise.all([getExperiences(), getTags()])
+      .then(([loadedExperiences, loadedTags]) => {
+        setExperiences(loadedExperiences);
+        setTags(loadedTags);
+      })
+      .catch((err) => setError(getErrorMessage(err, "Impossible de charger les expériences")));
+  }, []);
 
   const resetForm = () => {
     setFormData(EMPTY_FORM);
