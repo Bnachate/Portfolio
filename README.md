@@ -57,12 +57,23 @@ npm run dev
 |---|---|
 | `npm run dev` / `build` / `start` | Next.js |
 | `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript check |
+| `npm test` | Vitest suite (see [Tests](#tests)) |
 | `npm run db:generate` | Generate a SQL migration after changing `server/db/schema.ts` |
 | `npm run db:migrate` | Apply pending migrations |
 | `npm run db:seed` | Fill an empty database with the CV content (`scripts/content.ts`) |
 | `npm run content:sync` | Overwrite the experiences and the hero with the CV content (projects, messages and users are kept) |
 | `npm run admin:create -- <email> [name]` | Create the admin, or reset its password (`ADMIN_PASSWORD` env var, 12+ characters) |
 | `npm run vercel-build` | Used by Vercel: applies migrations on production deployments, then builds |
+
+## Tests
+
+`npm test` runs [Vitest](https://vitest.dev) against a throwaway in-memory PGlite database, so it never touches `./.pglite` and can run while `npm run dev` is up.
+
+- `tests/validation.test.ts`: input rules (no `javascript:` URLs, required contact subject, date order...)
+- `tests/api.test.ts`: route handlers called like Next.js does — read-only access for visitors, admin-only writes, CSRF origin check, tag CRUD, contact honeypot, contact and login rate limits
+
+GitHub Actions (`.github/workflows/ci.yml`) runs lint, type check, tests and the production build on every pull request and every push to `main`.
 
 ## Environment variables
 

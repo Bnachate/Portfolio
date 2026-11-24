@@ -46,7 +46,8 @@ function connect(): Connection {
     throw new Error('DATABASE_URL must be set on Vercel (Project Settings > Environment Variables)');
   }
 
-  const client = new PGlite(PGLITE_DIR);
+  // PGLITE_DATA_DIR lets the tests use a throwaway in-memory database ("memory://")
+  const client = new PGlite(process.env.PGLITE_DATA_DIR || PGLITE_DIR);
   return {
     kind: 'pglite',
     // Both drivers expose the same query builder API

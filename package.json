@@ -8,6 +8,8 @@
     "vercel-build": "tsx scripts/vercel-migrate.ts && next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file-if-exists=.env.local scripts/db-migrate.ts",
     "db:seed": "tsx --env-file-if-exists=.env.local scripts/seed.ts",
@@ -49,6 +51,7 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
     "tsx": "^4.23.15",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   }
 }
