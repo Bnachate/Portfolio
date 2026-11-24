@@ -14,5 +14,12 @@ export default defineConfig({
     // PGlite boots a WASM Postgres: first queries can take a few seconds
     testTimeout: 30_000,
     hookTimeout: 60_000,
+    // `npm run test:coverage`: server code, API routes and the pure helpers they rely on.
+    // React components are not unit tested (end-to-end tests will cover the UI).
+    coverage: {
+      provider: 'v8',
+      include: ['server/**', 'app/api/**', 'proxy.ts', 'app/components/experience/format.ts'],
+      reporter: ['text', 'html'],
+    },
   },
 });
