@@ -34,7 +34,7 @@ export function ContactInfo() {
       <ol className="space-y-6">
         {STEPS.map(({ icon: Icon, title, text }) => (
           <li key={title} className="flex items-start gap-4">
-            <div className="bg-cyan-600 text-white p-3 rounded-lg shrink-0">
+            <div className="bg-cyan-700 text-white p-3 rounded-lg shrink-0">
               <Icon size={24} />
             </div>
             <div>

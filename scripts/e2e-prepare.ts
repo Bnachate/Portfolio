@@ -2,6 +2,7 @@ import { rm } from 'node:fs/promises';
 import path from 'node:path';
 import { closeDb, db, PGLITE_DIR, runMigrations } from '../server/db';
 import { upsertAdmin } from '../server/services/users';
+import { createContact } from '../server/services/contacts';
 import { insertExperiences, saveCvHero } from './content';
 
 /**
@@ -25,6 +26,13 @@ async function main() {
     await saveCvHero(tx, { overwrite: true });
   });
   await upsertAdmin(email, 'E2E Admin', password);
+  // One message in the inbox from the start (stored directly: the contact form is rate limited)
+  await createContact({
+    name: 'Seed Visitor',
+    email: 'seed@example.com',
+    subject: 'Message de démonstration',
+    message: 'Bonjour, ceci est un message créé pour les tests.',
+  });
   console.log(`E2E database ready in ${dataDir}`);
 }
 

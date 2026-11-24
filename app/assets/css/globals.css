@@ -6,3 +6,10 @@
     --input: transparent;
 }
 
+@layer base {
+  /* Tailwind 4 no longer gives buttons a pointer cursor: restore it for every enabled button */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+}

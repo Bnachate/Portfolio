@@ -163,7 +163,7 @@ export function ExperienceDialog({
             <Button type="button" variant="outline" onClick={onReset}>
               Annuler
             </Button>
-            <Button type="submit" className="bg-cyan-600 hover:bg-cyan-700" disabled={submitDisabled}>
+            <Button type="submit" className="bg-cyan-700 hover:bg-cyan-800" disabled={submitDisabled}>
               {isSaving ? "Enregistrement..." : isEditing ? "Mettre à jour" : "Créer"}
             </Button>
           </div>

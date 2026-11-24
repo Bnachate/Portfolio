@@ -37,7 +37,7 @@ test.describe('Authentication', () => {
   test('wrong credentials show an error and stay on the login page (A2)', async ({ page }) => {
     await page.goto('/auth/login');
     await page.getByLabel('Email').fill(E2E_ADMIN.email);
-    await page.getByLabel('Mot de passe').fill('definitely-not-the-password');
+    await page.getByLabel('Mot de passe', { exact: true }).fill('definitely-not-the-password');
     await page.getByRole('button', { name: 'Se connecter' }).click();
 
     await expect(page.getByText('Email ou mot de passe incorrect')).toBeVisible();

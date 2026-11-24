@@ -22,7 +22,7 @@ test.describe('Admin - experiences', () => {
     await dialog.getByLabel('Tags').click();
     await page.getByRole('menuitemcheckbox', { name: 'TypeScript' }).click();
     await page.keyboard.press('Escape');
-    await dialog.getByRole('button', { name: 'Créer' }).click();
+    await dialog.getByRole('button', { name: 'Créer', exact: true }).click();
 
     const row = page.getByRole('row').filter({ hasText: 'Ingénieur E2E' });
     await expect(row).toContainText('Playwright Corp');
@@ -58,7 +58,7 @@ test.describe('Admin - projects', () => {
     await dialog.getByLabel("URL de l'image").fill('https://example.com/e2e.png');
     await dialog.getByLabel('URL GitHub').fill('https://github.com/example/e2e');
     await dialog.getByLabel('Description').fill('Créé par Playwright');
-    await dialog.getByRole('button', { name: 'Créer' }).click();
+    await dialog.getByRole('button', { name: 'Créer', exact: true }).click();
 
     const row = page.getByRole('row').filter({ hasText: 'Projet E2E' });
     await expect(row).toBeVisible();
@@ -102,7 +102,7 @@ test.describe('Admin - tags', () => {
     const row = page.getByRole('row').filter({ has: page.getByRole('cell', { name: 'Java', exact: true }) });
     await expect(row).toContainText('expérience');
 
-    await row.getByRole('button', { name: 'Supprimer Java' }).click();
+    await row.getByRole('button', { name: 'Supprimer Java', exact: true }).click();
     await expect(page.getByRole('dialog')).toContainText('Il sera aussi retiré de');
     await page.getByRole('dialog').getByRole('button', { name: 'Annuler' }).click();
     await expect(row).toBeVisible();
@@ -150,20 +150,24 @@ test.describe('Admin - contact messages', () => {
     await expect(row).toContainText('E2E - question');
     await expect(page.getByText(/nouveau/)).toBeVisible();
 
-    // Opening marks it as read (row actions: view first, delete second)
-    await row.getByRole('button').first().click();
+    // Opening marks it as read
+    await row.getByRole('button', { name: /^Voir le message de / }).click();
     const dialog = page.getByRole('dialog');
     await expect(dialog).toContainText('Un message pour la boîte de réception.');
     await expect(dialog.getByText('Lu', { exact: true })).toBeVisible();
     await expect(dialog.getByRole('link', { name: /Répondre par email/ })).toHaveAttribute('href', 'mailto:grace@example.com');
 
     await dialog.getByRole('button', { name: /Marquer comme traité/ }).click();
-    await row.getByRole('button').first().click();
+    await row.getByRole('button', { name: /^Voir le message de / }).click();
     await expect(page.getByRole('dialog').getByText('Traité', { exact: true })).toBeVisible();
     await page.keyboard.press('Escape');
 
+    // Names line up whether or not the row shows the "new" dot (the seeded message is still new)
+    const nameX = async (name: string) => (await page.getByText(name, { exact: true }).boundingBox())!.x;
+    expect(await nameX('Grace Hopper')).toBeCloseTo(await nameX('Seed Visitor'), 0);
+
     page.once('dialog', (confirm) => confirm.accept());
-    await row.getByRole('button').nth(1).click();
+    await row.getByRole('button', { name: /^Supprimer le message de / }).click();
     await expect(row).toHaveCount(0);
   });
 });

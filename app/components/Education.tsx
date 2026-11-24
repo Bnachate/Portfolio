@@ -41,7 +41,7 @@ export function Education() {
           {/* Education */}
           <div className="lg:col-span-2 space-y-4">
             <h3 className="flex items-center gap-2 text-xl text-gray-900 mb-2">
-              <GraduationCap className="text-cyan-600" size={24} />
+              <GraduationCap className="text-cyan-700" size={24} />
               Formation
             </h3>
             {EDUCATION.map((item) => (
@@ -49,7 +49,7 @@ export function Education() {
                 <div className="flex items-start justify-between flex-wrap gap-2">
                   <div>
                     <h4 className="text-lg text-gray-900">{item.title}</h4>
-                    <p className="text-cyan-600">{item.school}</p>
+                    <p className="text-cyan-700">{item.school}</p>
                   </div>
                   <span className="text-sm text-gray-600 bg-white px-3 py-1 rounded-full border border-gray-200">
                     {item.period}
@@ -63,7 +63,7 @@ export function Education() {
           {/* Languages */}
           <div>
             <h3 className="flex items-center gap-2 text-xl text-gray-900 mb-6">
-              <Languages className="text-cyan-600" size={24} />
+              <Languages className="text-cyan-700" size={24} />
               Langues
             </h3>
             <div className="bg-gray-50 rounded-xl p-6 border border-gray-100 space-y-5">
@@ -81,7 +81,7 @@ export function Education() {
                     aria-valuemin={0}
                     aria-valuemax={100}
                   >
-                    <div className="h-2 rounded-full bg-cyan-600" style={{ width: `${language.percent}%` }} />
+                    <div className="h-2 rounded-full bg-cyan-700" style={{ width: `${language.percent}%` }} />
                   </div>
                 </div>
               ))}

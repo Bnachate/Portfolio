@@ -85,7 +85,7 @@ npm run dev
 | `tests/injection.test.ts`, `tests/structured-data.test.ts` | Injection payloads (HTML, script, SQL, dangerous and off-site links, control characters, hostile bodies) refused or stored as plain text; JSON-LD escaping |
 | `tests/ui/*.test.tsx` | React components with Testing Library: public sections, contact form, login page, every admin tab in admin and read-only modes |
 
-**End-to-end** (`e2e/`, Playwright): the production build runs on port 3100 with a throwaway database (`./.pglite-e2e`, recreated on each run with the CV content and a test admin). Journeys: public site (sections, navigation, CV, no personal data, security headers, SEO files), contact form, login / logout, read-only admin, admin CRUD of experiences, projects, tags, hero and messages (each checked on the public site), and input safety (blank forms never sent, hostile content shown as text, off-site links refused).
+**End-to-end** (`e2e/`, Playwright): the production build runs on port 3100 with a throwaway database (`./.pglite-e2e`, recreated on each run with the CV content and a test admin). Journeys: public site (sections, navigation, CV, no personal data, security headers, SEO files), contact form, login / logout, read-only admin, admin CRUD of experiences, projects, tags, hero and messages (each checked on the public site), input safety (blank forms never sent, hostile content shown as text, off-site links refused), and accessibility: axe-core checks every page, admin tab and dialog against WCAG 2.1 AA.
 
 Coverage is about 96 % of the code measured by Vitest. Every use case and the tests covering it are listed in `.claude/skills/test-usecases/usecases.md`.
 

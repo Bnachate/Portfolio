@@ -183,10 +183,10 @@ export function HeroTab() {
               <p className="text-xl text-gray-700 mb-6">{formData.subtitle}</p>
               <p className="text-gray-600 max-w-2xl mx-auto mb-8 whitespace-pre-line">{formData.description}</p>
               <div className="flex gap-4 justify-center">
-                <Button type="button" className="bg-cyan-600 hover:bg-cyan-700">
+                <Button type="button" className="bg-cyan-700 hover:bg-cyan-800">
                   {formData.primaryButtonText}
                 </Button>
-                <Button type="button" variant="outline" className="border-cyan-600 text-cyan-600">
+                <Button type="button" variant="outline" className="border-cyan-700 text-cyan-700">
                   {formData.secondaryButtonText}
                 </Button>
               </div>

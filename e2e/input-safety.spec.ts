@@ -37,7 +37,7 @@ test.describe('Input safety (visitor)', () => {
     });
     await page.goto('/auth/login');
     await page.getByLabel('Email').fill('admin@example.com');
-    await page.getByLabel('Mot de passe').fill('   ');
+    await page.getByLabel('Mot de passe', { exact: true }).fill('   ');
     await page.getByRole('button', { name: 'Se connecter' }).click();
 
     await expect(page.getByText('Veuillez saisir votre email et votre mot de passe')).toBeVisible();
@@ -66,7 +66,7 @@ test.describe('Input safety (admin)', () => {
     const row = page.getByRole('row').filter({ hasText: 'Mallory' });
     await expect(row).toContainText(XSS);
 
-    await row.getByRole('button').first().click();
+    await row.getByRole('button', { name: /^Voir le message de / }).click();
     await expect(page.getByRole('dialog')).toContainText(XSS);
     expect(await xssRan(page)).toBe(false);
     await page.keyboard.press('Escape');
@@ -74,7 +74,7 @@ test.describe('Input safety (admin)', () => {
     // Clean up
     page.removeAllListeners('dialog');
     page.once('dialog', (confirm) => confirm.accept());
-    await row.getByRole('button').nth(1).click();
+    await row.getByRole('button', { name: /^Supprimer le message de / }).click();
     await expect(row).toHaveCount(0);
   });
 

@@ -37,7 +37,7 @@ export function AdminDashboard({ readOnly }: { readOnly: boolean }) {
           <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center gap-3">
-                <div className="bg-cyan-600 text-white p-2 rounded-lg">
+                <div className="bg-cyan-700 text-white p-2 rounded-lg">
                   <FolderKanban size={24} />
                 </div>
                 <div>
@@ -48,7 +48,7 @@ export function AdminDashboard({ readOnly }: { readOnly: boolean }) {
               <div className="flex items-center gap-4">
                 <Link
                   href="/"
-                  className="text-gray-600 hover:text-cyan-600 flex items-center gap-2 transition-colors"
+                  className="text-gray-600 hover:text-cyan-700 flex items-center gap-2 transition-colors"
                 >
                   <Home size={20} />
                   <span className="hidden sm:inline">Voir le site</span>
@@ -56,7 +56,7 @@ export function AdminDashboard({ readOnly }: { readOnly: boolean }) {
                 {readOnly ? (
                   <Link
                     href="/auth/login"
-                    className="border border-cyan-600 text-cyan-600 px-4 py-2 rounded-lg hover:bg-cyan-50 transition-colors flex items-center gap-2 font-medium"
+                    className="border border-cyan-700 text-cyan-700 px-4 py-2 rounded-lg hover:bg-cyan-50 transition-colors flex items-center gap-2 font-medium"
                   >
                     <LogIn size={20} />
                     <span className="hidden sm:inline">Connexion</span>

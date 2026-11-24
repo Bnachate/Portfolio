@@ -66,7 +66,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <Label htmlFor="email" className="mb-1">Email</Label>
               <div className="relative">
-                <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
                 <Input
                   id="email"
                   type="email"
@@ -83,7 +83,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <Label htmlFor="password" className="mb-1">Mot de passe</Label>
               <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
@@ -96,9 +96,11 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                  aria-pressed={showPassword}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showPassword ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
                 </button>
               </div>
             </div>
@@ -106,7 +108,7 @@ export default function LoginPage() {
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-cyan-700 hover:bg-cyan-800 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isLoading}
             >
               {isLoading ? "Connexion en cours..." : "Se connecter"}
@@ -116,7 +118,7 @@ export default function LoginPage() {
 
         {/* Back to Home */}
         <div className="text-center mt-6">
-          <Link href="/" className="text-gray-600 hover:text-cyan-600 text-sm">
+          <Link href="/" className="text-gray-600 hover:text-cyan-700 text-sm">
             ← Retour à l&apos;accueil
           </Link>
         </div>
