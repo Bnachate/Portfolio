@@ -114,13 +114,17 @@ describe('ExperienceTab (admin)', () => {
 
     await user.click(screen.getByRole('button', { name: /nouvelle expérience/i }));
     const dialog = await screen.findByRole('dialog');
-    await user.click(within(dialog).getByLabelText('Tags'));
-    await user.type(await screen.findByPlaceholderText('Nouveau tag'), 'Go');
-    await user.click(screen.getByRole('button', { name: 'Créer le tag' }));
+    await user.type(within(dialog).getByLabelText('Nom du nouveau tag'), 'Go');
+    await user.click(within(dialog).getByRole('button', { name: 'Créer le tag' }));
 
     expect(exp.createTag).toHaveBeenCalledWith('Go');
-    await user.keyboard('{Escape}');
-    expect(within(within(dialog).getByLabelText('Tags')).getByText('Go')).toBeInTheDocument();
+    const selected = within(dialog).getByRole('list', { name: 'Tags sélectionnés' });
+    expect(within(selected).getByText('Go')).toBeInTheDocument();
+    expect(within(dialog).getByLabelText('Tags')).toHaveTextContent('1 tag sélectionné');
+
+    // The chip's remove button deselects it
+    await user.click(within(selected).getByRole('button', { name: 'Retirer Go' }));
+    expect(within(dialog).queryByRole('list', { name: 'Tags sélectionnés' })).not.toBeInTheDocument();
   });
 
   it('only enables "Mettre à jour" once something changed, then saves', async () => {

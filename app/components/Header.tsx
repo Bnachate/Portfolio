@@ -64,14 +64,14 @@ export function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
                 {/* Visitors can browse the admin panel in read-only mode */}
                 <Link
                   href="/admin"
-                  className="inline-flex items-center gap-2 text-gray-700 hover:text-cyan-600 transition-colors"
+                  className="inline-flex items-center gap-2 text-gray-700 hover:text-cyan-700 transition-colors"
                 >
                   Admin
                   <ExternalLink size={18} className="opacity-70" />
                 </Link>
                 <Link
                   href="/auth/login"
-                  className="border border-cyan-600 text-cyan-600 px-6 py-2 rounded-lg hover:bg-cyan-50 transition-colors"
+                  className="border border-cyan-700 text-cyan-700 px-6 py-2 rounded-lg hover:bg-cyan-50 transition-colors"
                 >
                   Connexion
                 </Link>
@@ -96,7 +96,7 @@ export function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
               <button
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
-                className="text-gray-700 hover:text-cyan-600 transition-colors text-left"
+                className="text-gray-700 hover:text-cyan-700 transition-colors text-left"
               >
                 {section.label}
               </button>
@@ -105,7 +105,7 @@ export function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
               <>
                 <Link
                   href="/admin"
-                  className="border border-cyan-600 text-cyan-600 px-6 py-2 rounded-lg hover:bg-cyan-50 transition-colors text-center"
+                  className="border border-cyan-700 text-cyan-700 px-6 py-2 rounded-lg hover:bg-cyan-50 transition-colors text-center"
                 >
                   Admin
                 </Link>
@@ -116,12 +116,12 @@ export function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
               </>
             ) : (
               <>
-                <Link href="/admin" className="text-gray-700 hover:text-cyan-600 transition-colors">
+                <Link href="/admin" className="text-gray-700 hover:text-cyan-700 transition-colors">
                   Admin
                 </Link>
                 <Link
                   href="/auth/login"
-                  className="border border-cyan-600 text-cyan-600 px-6 py-2 rounded-lg hover:bg-cyan-50 transition-colors text-center"
+                  className="border border-cyan-700 text-cyan-700 px-6 py-2 rounded-lg hover:bg-cyan-50 transition-colors text-center"
                 >
                   Connexion
                 </Link>

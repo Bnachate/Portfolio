@@ -111,6 +111,16 @@ Levels: API (Vitest + route handlers), Unit, UI (Testing Library, `tests/ui/`), 
 | I8 | Unknown fields ignored, no prototype pollution, non-object bodies refused, over-long text refused | API | `tests/injection.test.ts` | ✅ |
 | I9 | Inline JSON-LD cannot close its script tag (`</script>`, `<!--`, `&`, line separators escaped) | Unit | `tests/structured-data.test.ts` | ✅ |
 
+## Accessibility (WCAG 2.1 AA, axe-core)
+
+| ID | Use case | Level | Test | Status |
+|---|---|---|---|---|
+| X1 | Home page (desktop and mobile menu open) has no WCAG A/AA violation: text contrast, names, structure | E2E | `e2e/accessibility.spec.ts` | ✅ |
+| X2 | Login page, including its error state; the password toggle is named and exposes its state (`aria-pressed`) | UI, E2E | `tests/ui/login-page.test.tsx`, `e2e/accessibility.spec.ts` | ✅ |
+| X3 | Read-only admin: every tab | E2E | `e2e/accessibility.spec.ts` | ✅ |
+| X4 | Admin: every tab, experience / project / message dialogs, tags menu with selected tags, tag deletion dialog; icon buttons named after their target ("Voir le message de …") | UI, E2E | `tests/ui/hero-and-messages-tabs.test.tsx`, `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/accessibility.spec.ts` | ✅ |
+| X5 | Selected tags are removable with a visible, named button outside the menu trigger; the tag creation field is labelled and outside the menu | UI, E2E | `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/accessibility.spec.ts` | ✅ |
+
 ## Platform
 
 | ID | Use case | Level | Test | Status |

@@ -150,9 +150,9 @@ describe('blank or whitespace-only input never reaches the API', () => {
     const user = userEvent.setup();
     render(admin(<ExperienceTab />));
     await user.click(await screen.findByRole('button', { name: /nouvelle expérience/i }));
-    await user.click(within(await screen.findByRole('dialog')).getByLabelText('Tags'));
-    await user.type(await screen.findByPlaceholderText('Nouveau tag'), BLANK);
-    expect(screen.getByRole('button', { name: 'Créer le tag' })).toBeDisabled();
+    const dialog = await screen.findByRole('dialog');
+    await user.type(within(dialog).getByLabelText('Nom du nouveau tag'), BLANK);
+    expect(within(dialog).getByRole('button', { name: 'Créer le tag' })).toBeDisabled();
   });
 
   it('tags tab: blank creation is disabled and a blank rename is cancelled', async () => {
@@ -181,7 +181,7 @@ describe('injection payloads are displayed as plain text, never run', () => {
     const { container } = render(<ContactsTab />);
 
     expect(await screen.findAllByText(XSS)).not.toHaveLength(0);
-    await user.click(within(screen.getAllByText(XSS)[0].closest('tr')!).getAllByRole('button')[0]);
+    await user.click(screen.getByRole('button', { name: `Voir le message de ${XSS}` }));
     const dialog = await screen.findByRole('dialog');
 
     expect(within(dialog).getAllByText(XSS).length).toBeGreaterThanOrEqual(2);

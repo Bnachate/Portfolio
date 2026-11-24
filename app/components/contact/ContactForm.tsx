@@ -50,7 +50,7 @@ export function ContactForm() {
         </div>
         <h3 className="text-2xl mb-2 text-gray-900">Message envoyé !</h3>
         <p className="text-gray-600 mb-6">Je vous répondrai dans les plus brefs délais.</p>
-        <button type="button" onClick={() => setSubmitted(false)} className="text-cyan-600 hover:text-cyan-700 text-sm">
+        <button type="button" onClick={() => setSubmitted(false)} className="text-cyan-700 hover:text-cyan-800 text-sm">
           Envoyer un autre message
         </button>
       </div>
@@ -96,7 +96,7 @@ export function ContactForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-cyan-600 text-white px-8 py-3 rounded-lg hover:bg-cyan-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full cursor-pointer bg-cyan-700 text-white px-8 py-3 rounded-lg hover:bg-cyan-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           <Send size={20} />
           <span>{isSubmitting ? "Envoi en cours..." : "Envoyer le message"}</span>

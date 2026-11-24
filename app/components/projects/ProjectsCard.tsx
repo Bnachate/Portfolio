@@ -2,7 +2,7 @@ import { ExternalLink, Github } from "lucide-react";
 import { ImageWithFallback } from "../common/ImageWithFallback";
 import type { Project } from "@/app/types/api";
 
-const linkClass = "flex items-center gap-2 text-gray-700 hover:text-cyan-600 transition-colors";
+const linkClass = "flex items-center gap-2 text-gray-700 hover:text-cyan-700 transition-colors";
 
 export function ProjectsCard({ project }: { project: Project }) {
   return (

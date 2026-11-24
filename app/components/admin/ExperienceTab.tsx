@@ -200,7 +200,7 @@ export function ExperienceTab() {
                   <TableCell className="py-5 px-6 max-w-45">
                     <TruncateWithTooltip
                       text={experience.job}
-                      className="font-bold text-gray-800 text-base block truncate group-hover:text-cyan-700 transition-colors"
+                      className="font-bold text-gray-800 text-base block truncate group-hover:text-cyan-800 transition-colors"
                     />
                   </TableCell>
 
@@ -229,7 +229,13 @@ export function ExperienceTab() {
 
                   {/* TAGS */}
                   <TableCell className="w-auto">
-                    <div className="inline-flex flex-wrap gap-2 overflow-x-auto max-h-24">
+                    {/* Scrollable: focusable so keyboard users can scroll it */}
+                    <div
+                      tabIndex={0}
+                      role="group"
+                      aria-label={`Tags de ${experience.job}`}
+                      className="inline-flex flex-wrap gap-2 overflow-x-auto max-h-24 rounded-md focus-visible:outline-2 focus-visible:outline-cyan-700"
+                    >
                       {experience.tags.map((tag) => (
                         <TagChip key={tag.id} label={tag.name} />
                       ))}

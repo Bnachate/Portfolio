@@ -123,7 +123,7 @@ export function TagsTab() {
           <h2 className="text-xl font-bold text-gray-900">Gestion des Tags</h2>
           <p className="text-sm text-gray-500 mt-1">
             {plural(tags.length, "tag")} au total
-            {unusedCount > 0 && <span className="ml-2 text-gray-400">• {unusedCount} non utilisé{unusedCount > 1 ? "s" : ""}</span>}
+            {unusedCount > 0 && <span className="ml-2 text-gray-500">• {unusedCount} non utilisé{unusedCount > 1 ? "s" : ""}</span>}
           </p>
         </div>
 
@@ -149,7 +149,7 @@ export function TagsTab() {
       {/* Search */}
       <div className="px-6 pt-4">
         <div className="relative max-w-sm">
-          <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <Input
             aria-label="Rechercher un tag"
             placeholder="Rechercher un tag..."
@@ -198,7 +198,7 @@ export function TagsTab() {
                       )}
                     </TableCell>
 
-                    <TableCell className={isUnused ? "text-sm text-gray-400 italic" : "text-sm text-gray-600"}>
+                    <TableCell className={isUnused ? "text-sm text-gray-500 italic" : "text-sm text-gray-600"}>
                       {formatUsage(tag)}
                     </TableCell>
 

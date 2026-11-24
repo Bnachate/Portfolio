@@ -36,6 +36,17 @@ test.describe('Public site (visitor)', () => {
     await expect(page.getByRole('button', { name: 'Ouvrir le menu' })).toBeVisible();
   });
 
+  test('buttons show a pointer cursor (V10)', async ({ page }) => {
+    await page.goto('/');
+    const cursor = (name: RegExp) =>
+      page.getByRole('button', { name }).first().evaluate((element) => getComputedStyle(element).cursor);
+    expect(await cursor(/Envoyer le message/)).toBe('pointer');
+    expect(await cursor(/^Projets$/)).toBe('pointer');
+
+    await page.setViewportSize({ width: 390, height: 800 });
+    expect(await cursor(/Ouvrir le menu/)).toBe('pointer');
+  });
+
   test('the full CV can be opened (V4)', async ({ page, request }) => {
     await page.goto('/');
     const link = page.getByRole('link', { name: /Voir le CV complet/ });

@@ -53,9 +53,11 @@ describe('Login page', () => {
     const password = screen.getByLabelText('Mot de passe');
     expect(password).toHaveAttribute('type', 'password');
 
-    // The toggle is the only button besides the submit button
-    const toggle = screen.getAllByRole('button').find((button) => button.getAttribute('type') === 'button')!;
+    const toggle = screen.getByRole('button', { name: 'Afficher le mot de passe' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
     await user.click(toggle);
     expect(password).toHaveAttribute('type', 'text');
+    // The button now offers the opposite action
+    expect(screen.getByRole('button', { name: 'Masquer le mot de passe' })).toHaveAttribute('aria-pressed', 'true');
   });
 });

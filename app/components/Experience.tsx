@@ -27,7 +27,7 @@ export function Experience({ experiences }: { experiences: ExperienceData[] }) {
               href="/CV_Brahim_Nachate_Developpeur_Full-Stack.pdf"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 h-12 px-4 font-medium text-gray-700 hover:text-cyan-600 transition-colors"
+              className="inline-flex items-center gap-2 h-12 px-4 font-medium text-gray-700 hover:text-cyan-700 transition-colors"
             >
               Voir le CV complet
               <ArrowUpRight size={16} />

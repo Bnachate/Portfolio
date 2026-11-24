@@ -126,15 +126,18 @@ export function ContactsTab() {
                     contact.status === "new" ? "bg-cyan-50/30 hover:bg-cyan-50/50" : "hover:bg-gray-50/50"
                   )}
                 >
-                  <TableCell className="">
+                  <TableCell className="px-5">
                     <div className="flex items-center gap-3">
-                      {/* Small visual indicator for new messages */}
-                      {contact.status === "new" && (
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
-                        </span>
-                      )}
+                      {/* Indicator slot kept on every row so all names line up, dot shown for new messages only */}
+                      <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
+                        {contact.status === "new" && (
+                          <>
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                          </>
+                        )}
+                      </span>
+                      {contact.status === "new" && <span className="sr-only">Nouveau message :</span>}
                       <span className="font-semibold text-gray-800">{contact.name}</span>
                     </div>
                   </TableCell>
@@ -142,7 +145,7 @@ export function ContactsTab() {
                   <TableCell>
                     <a
                       href={`mailto:${contact.email}`}
-                      className="text-gray-600 hover:text-cyan-600 transition-colors flex items-center gap-2 w-fit decoration-cyan-200 underline-offset-4 hover:underline"
+                      className="text-gray-600 hover:text-cyan-700 transition-colors flex items-center gap-2 w-fit decoration-cyan-200 underline-offset-4 hover:underline"
                     >
                       <Mail size={14} className="opacity-70" />
                       {contact.email}
@@ -162,7 +165,7 @@ export function ContactsTab() {
                       <span className="text-gray-700 font-medium">
                         {new Date(contact.createdAt).toLocaleDateString("fr-FR", { day: 'numeric', month: 'short' })}
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-500">
                         {new Date(contact.createdAt).getFullYear()}
                       </span>
                     </div>
@@ -172,17 +175,20 @@ export function ContactsTab() {
                     <div className="flex justify-end gap-2">
                       <Button
                         variant="ghost"
-                        className=" w-auto"
+                        className="w-auto"
+                        aria-label={`Voir le message de ${contact.name}`}
                         onClick={() => handleView(contact)}
                       >
-                        <Eye size={18} />
+                        <Eye size={18} aria-hidden="true" />
                       </Button>
                       <Button
                         variant="ghost"
+                        color="secondary"
                         className="w-auto"
+                        aria-label={`Supprimer le message de ${contact.name}`}
                         onClick={() => handleDelete(contact.id)}
                       >
-                        <Trash2 size={18} />
+                        <Trash2 size={18} aria-hidden="true" />
                       </Button>
                     </div>
                   </TableCell>
@@ -210,7 +216,7 @@ export function ContactsTab() {
                   <Label className="text-sm text-gray-500">Email</Label>
                   <a
                     href={`mailto:${selectedContact.email}`}
-                    className="text-cyan-600 hover:text-cyan-700"
+                    className="text-cyan-700 hover:text-cyan-800"
                   >
                     {selectedContact.email}
                   </a>
@@ -250,7 +256,7 @@ export function ContactsTab() {
                       handleStatusChange(selectedContact.id, "done");
                       setIsDialogOpen(false);
                     }}
-                    className="w-auto px-5 bg-green-600 hover:bg-green-700"
+                    className="w-auto px-5 bg-green-700 hover:bg-green-800"
                   >
                     <CheckCircle size={18} />
                     Marquer comme traité
@@ -258,7 +264,7 @@ export function ContactsTab() {
                 )}
                 <a
                   href={`mailto:${selectedContact.email}`}
-                  className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-xl border-2 border-cyan-600 text-cyan-600 font-medium hover:bg-cyan-50 transition-colors"
+                  className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-xl border-2 border-cyan-700 text-cyan-700 font-medium hover:bg-cyan-50 transition-colors"
                 >
                   <Mail size={18} />
                   Répondre par email

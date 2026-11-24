@@ -100,8 +100,9 @@ describe('ContactsTab', () => {
   });
 
   const row = (name: string) => screen.getByText(name).closest('tr')!;
-  // Row actions are icon buttons: view first, delete second
-  const rowButtons = (name: string) => within(row(name)).getAllByRole('button');
+  // Row actions are icon buttons named after the sender
+  const viewButton = (name: string) => screen.getByRole('button', { name: `Voir le message de ${name}` });
+  const deleteButton = (name: string) => screen.getByRole('button', { name: `Supprimer le message de ${name}` });
 
   it('lists the messages with subject and counts the new ones', async () => {
     render(<ContactsTab />);
@@ -112,13 +113,27 @@ describe('ContactsTab', () => {
     expect(within(row('Ada')).getByRole('link', { name: /ada@example.com/ })).toHaveAttribute('href', 'mailto:ada@example.com');
   });
 
+  it('announces new messages to screen readers, and keeps the indicator slot on every row', async () => {
+    render(<ContactsTab />);
+    await screen.findByText('Ada');
+    // The blue dot is visual only: its meaning is also given as text
+    expect(within(row('Ada')).getByText('Nouveau message :')).toHaveClass('sr-only');
+    expect(within(row('Alan')).queryByText('Nouveau message :')).not.toBeInTheDocument();
+    // Same leading slot before the name on read and new rows, so names line up
+    for (const name of ['Ada', 'Alan']) {
+      const slot = screen.getByText(name).parentElement!.firstElementChild!;
+      expect(slot).toHaveAttribute('aria-hidden', 'true');
+      expect(slot).toHaveClass('w-2');
+    }
+  });
+
   it('opening a new message shows it and marks it as read', async () => {
     contacts.updateContactStatus.mockImplementation(async (id, status) => ({ ...message(id, status, 'Ada') }));
     const user = userEvent.setup();
     render(<ContactsTab />);
     await screen.findByText('Ada');
 
-    await user.click(rowButtons('Ada')[0]);
+    await user.click(viewButton('Ada'));
 
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByText('Message de Ada')).toBeInTheDocument();
@@ -132,7 +147,7 @@ describe('ContactsTab', () => {
     render(<ContactsTab />);
     await screen.findByText('Alan');
 
-    await user.click(rowButtons('Alan')[0]);
+    await user.click(viewButton('Alan'));
     await screen.findByRole('dialog');
     expect(contacts.updateContactStatus).not.toHaveBeenCalled();
   });
@@ -143,7 +158,7 @@ describe('ContactsTab', () => {
     render(<ContactsTab />);
     await screen.findByText('Alan');
 
-    await user.click(rowButtons('Alan')[0]);
+    await user.click(viewButton('Alan'));
     await user.click(await screen.findByRole('button', { name: /marquer comme traité/i }));
     expect(contacts.updateContactStatus).toHaveBeenCalledWith(2, 'done');
   });
@@ -155,10 +170,10 @@ describe('ContactsTab', () => {
     render(<ContactsTab />);
     await screen.findByText('Grace');
 
-    await user.click(rowButtons('Grace')[1]);
+    await user.click(deleteButton('Grace'));
     expect(contacts.deleteContact).not.toHaveBeenCalled();
 
-    await user.click(rowButtons('Grace')[1]);
+    await user.click(deleteButton('Grace'));
     expect(contacts.deleteContact).toHaveBeenCalledWith(3);
     expect(screen.queryByText('Grace')).not.toBeInTheDocument();
     expect(confirm).toHaveBeenCalledTimes(2);

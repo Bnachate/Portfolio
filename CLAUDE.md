@@ -79,6 +79,15 @@ Workflows live in `.claude/skills/`: `implement-feature` (full feature delivery,
 | A change affects visitors, security, headers, SEO or routes; or after the user merges such a change | `/smoke-check` (local before shipping, production after merge) |
 | Production misbehaves after a deploy | `/smoke-check` on production first, then investigate |
 
+## Accessibility
+
+`e2e/accessibility.spec.ts` runs axe-core (WCAG 2.1 A/AA) on every page, admin tab and dialog; keep it at zero violations.
+
+- Colors: `cyan-600` and `gray-400` fail contrast for text on white / gray-50. Use `cyan-700` (hover `cyan-800`) for text, buttons and borders, and `gray-500` or darker for text; `cyan-600` is fine for focus rings only.
+- Icon-only buttons need an `aria-label` naming the action and its target (`Supprimer le message de ${name}`), with the icon `aria-hidden`. Toggles also expose `aria-pressed`.
+- Never nest interactive elements (no button inside a button or menu trigger), and a Radix menu may only contain menu items: put inputs and extra buttons outside it (see `MultiSelectTags`).
+- Scrollable regions need `tabIndex={0}` and a name so keyboard users can scroll them.
+
 ## Conventions
 
 - Code comments in **English**; UI strings and API error messages in **French**.

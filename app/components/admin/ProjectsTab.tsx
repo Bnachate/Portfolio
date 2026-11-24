@@ -183,7 +183,7 @@ export function ProjectsTab() {
 
                 {/* PROJECT TITLE */}
                 <TableCell className="py-5 px-6">
-                  <span className="font-bold text-gray-800 text-base group-hover:text-cyan-700 transition-colors">
+                  <span className="font-bold text-gray-800 text-base group-hover:text-cyan-800 transition-colors">
                     {project.title}
                   </span>
                 </TableCell>
@@ -205,7 +205,13 @@ export function ProjectsTab() {
 
                 {/* TAGS */}
                 <TableCell className="w-auto max-w-55">
-                  <div className="inline-flex flex-wrap gap-2 overflow-x-auto max-h-24">
+                  {/* Scrollable: focusable so keyboard users can scroll it */}
+                  <div
+                    tabIndex={0}
+                    role="group"
+                    aria-label={`Tags de ${project.title}`}
+                    className="inline-flex flex-wrap gap-2 overflow-x-auto max-h-24 rounded-md focus-visible:outline-2 focus-visible:outline-cyan-700"
+                  >
                     {project.tags.map((tag) => (
                       <TagChip key={tag.id} label={tag.name} />
                     ))}
@@ -221,7 +227,7 @@ export function ProjectsTab() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="Ouvrir sur GitHub"
-                        className="inline-flex items-center justify-center h-12 px-3 text-gray-700 hover:text-cyan-600"
+                        className="inline-flex items-center justify-center h-12 px-3 text-gray-700 hover:text-cyan-700"
                       >
                         <ExternalLink size={18} />
                       </a>

@@ -3,7 +3,7 @@ import { ImageWithFallback } from "./common/ImageWithFallback";
 import type { PublicHero } from "@/server/services/hero";
 
 const linkButton =
-  "inline-flex items-center justify-center h-12 px-5 rounded-xl border-2 border-cyan-600 text-cyan-600 font-medium hover:bg-cyan-50 transition-colors";
+  "inline-flex items-center justify-center h-12 px-5 rounded-xl border-2 border-cyan-700 text-cyan-700 font-medium hover:bg-cyan-50 transition-colors";
 
 export function Hero({ hero }: { hero: PublicHero }) {
   return (
@@ -23,14 +23,14 @@ export function Hero({ hero }: { hero: PublicHero }) {
               </a>
             </div>
             <div className="flex gap-6 justify-center md:justify-start">
-              <a href={hero.githubUrl} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="text-gray-700 hover:text-cyan-600 transition-colors">
+              <a href={hero.githubUrl} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="text-gray-700 hover:text-cyan-700 transition-colors">
                 <Github size={28} />
               </a>
-              <a href={hero.linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-gray-700 hover:text-cyan-600 transition-colors">
+              <a href={hero.linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-gray-700 hover:text-cyan-700 transition-colors">
                 <Linkedin size={28} />
               </a>
               {/* Points to the contact form: the email address is never published */}
-              <a href="#contact" aria-label="Me contacter via le formulaire" className="text-gray-700 hover:text-cyan-600 transition-colors">
+              <a href="#contact" aria-label="Me contacter via le formulaire" className="text-gray-700 hover:text-cyan-700 transition-colors">
                 <Mail size={28} />
               </a>
             </div>

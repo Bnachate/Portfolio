@@ -21,13 +21,13 @@ export function Button({
 
   const variants = {
     plain: color === "primary"
-      ? "bg-cyan-600 text-white hover:bg-cyan-700 hover:shadow-lg"
+      ? "bg-cyan-700 text-white hover:bg-cyan-800 hover:shadow-lg"
       : "bg-red-600 text-white hover:bg-red-700 hover:shadow-lg",
     outline: color === "primary"
-      ? "border-2 border-cyan-600 text-cyan-600 hover:bg-cyan-50 focus:ring-2"
+      ? "border-2 border-cyan-700 text-cyan-700 hover:bg-cyan-50 focus:ring-2"
       : "border-2 border-red-600 text-red-600 hover:bg-red-50 focus:ring-2",
     ghost: color === "primary"
-      ? "text-gray-700 hover:text-cyan-600 hover:bg-transparent"
+      ? "text-gray-700 hover:text-cyan-700 hover:bg-transparent"
       : "text-gray-700 hover:text-red-600 hover:bg-transparent",
   };
 
