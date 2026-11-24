@@ -54,7 +54,7 @@ export interface Hero {
   secondaryButtonUrl: string;
   githubUrl: string;
   linkedinUrl: string;
-  email: string;
+  email?: string; // Only returned to the admin
 }
 
 /** Payload for create/update: tags are sent as ids. */

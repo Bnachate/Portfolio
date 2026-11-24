@@ -1,11 +1,11 @@
 import { Github, Linkedin, Mail } from "lucide-react";
 import { ImageWithFallback } from "./common/ImageWithFallback";
-import type { Hero as HeroData } from "@/app/types/api";
+import type { PublicHero } from "@/server/services/hero";
 
 const linkButton =
   "inline-flex items-center justify-center h-12 px-5 rounded-xl border-2 border-cyan-600 text-cyan-600 font-medium hover:bg-cyan-50 transition-colors";
 
-export function Hero({ hero }: { hero: HeroData }) {
+export function Hero({ hero }: { hero: PublicHero }) {
   return (
     <section id="accueil" className="pt-24 pb-16 md:pt-32 md:pb-24 bg-linear-to-b from-cyan-50 to-white">
       <div className="container mx-auto px-6">
@@ -29,7 +29,8 @@ export function Hero({ hero }: { hero: HeroData }) {
               <a href={hero.linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-gray-700 hover:text-cyan-600 transition-colors">
                 <Linkedin size={28} />
               </a>
-              <a href={`mailto:${hero.email}`} aria-label="Email" className="text-gray-700 hover:text-cyan-600 transition-colors">
+              {/* Points to the contact form: the email address is never published */}
+              <a href="#contact" aria-label="Me contacter via le formulaire" className="text-gray-700 hover:text-cyan-600 transition-colors">
                 <Mail size={28} />
               </a>
             </div>

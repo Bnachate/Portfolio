@@ -46,11 +46,15 @@ export function ProjectsTab() {
 
   const fetchProjects = useCallback(async () => setProjects(await getProjects()), []);
 
+  // Initial load: state is only set once the requests resolve
   useEffect(() => {
-    Promise.all([fetchProjects(), getTags().then(setTags)]).catch((err) =>
-      setError(getErrorMessage(err, "Impossible de charger les projets")),
-    );
-  }, [fetchProjects]);
+    Promise.all([getProjects(), getTags()])
+      .then(([loadedProjects, loadedTags]) => {
+        setProjects(loadedProjects);
+        setTags(loadedTags);
+      })
+      .catch((err) => setError(getErrorMessage(err, "Impossible de charger les projets")));
+  }, []);
 
   const resetForm = () => {
     setFormData(EMPTY_FORM);

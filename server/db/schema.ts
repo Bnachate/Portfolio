@@ -1,5 +1,6 @@
 import {
   date,
+  index,
   integer,
   pgTable,
   primaryKey,
@@ -84,6 +85,18 @@ export const contactMessages = pgTable('contact_messages', {
   status: text('status', { enum: CONTACT_STATUSES }).notNull().default('new'),
   ...timestamps,
 });
+
+// One row per rate-limited action (e.g. a contact form submission).
+// `key` is "<action>:<hashed client IP>": raw IP addresses are never stored.
+export const rateLimitHits = pgTable(
+  'rate_limit_hits',
+  {
+    id: serial('id').primaryKey(),
+    key: text('key').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('rate_limit_hits_key_created_at_idx').on(table.key, table.createdAt)],
+);
 
 // Single-row table holding the editable hero section (id is always 1)
 export const hero = pgTable('hero', {
