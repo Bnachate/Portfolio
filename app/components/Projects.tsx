@@ -8,7 +8,7 @@ export function Projects({ projects }: { projects: Project[] }) {
         <div className="text-center mb-16">
           <h2 className="text-4xl mb-4 text-gray-900">Mes Projets</h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Découvrez quelques-uns de mes projets récents qui démontrent mes compétences en développement front-end
+            Découvrez quelques-uns de mes projets récents qui démontrent mes compétences en développement full-stack
           </p>
         </div>
 

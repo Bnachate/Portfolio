@@ -25,16 +25,15 @@ export function DeleteProjectDialog({
         <Button
           variant="ghost"
           className="w-auto"
+          aria-label="Supprimer le projet"
           onClick={() => onOpenChange(true)}
         >
           <Trash2 size={18} />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl bg-white max-h-[90vh] roounded-lg">
+      <DialogContent className="max-w-2xl bg-white max-h-[90vh] rounded-lg">
         <DialogHeader>
-          <DialogTitle>
-            {"Delete Project"}
-          </DialogTitle>
+          <DialogTitle>Supprimer le projet</DialogTitle>
         </DialogHeader>
         <div className="p-6">
           <p className="text-sm text-gray-500">

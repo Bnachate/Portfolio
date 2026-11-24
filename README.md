@@ -1,8 +1,16 @@
 # Portfolio
 
-Personal portfolio website showcasing my projects, skills and experiences.
+Personal portfolio website showcasing my projects, experience and education.
 
 Full-stack Next.js app: the public site, the admin panel and the API (`app/api/*`) live in the same project.
+
+## Features
+
+- **Public site**: hero, projects, experience timeline, education and languages, contact form
+- **Admin panel** (`/admin`): manage experiences, projects, tags, the hero section and contact messages
+- **Read-only admin for visitors**: anyone can browse `/admin` (linked from the menu) without being able to change anything; the Messages tab stays admin-only because it holds visitors' personal data
+- **Private contact details**: no email or phone number is published; visitors use the contact form
+- **SEO**: page metadata, link preview image (Open Graph), `robots.txt`, `sitemap.xml`, structured data
 
 ## Stack
 
@@ -10,14 +18,23 @@ Full-stack Next.js app: the public site, the admin panel and the API (`app/api/*
 - **PostgreSQL** with **Drizzle ORM** (`server/db/schema.ts`)
 - **Auth**: single admin, session JWT in an `HttpOnly` cookie (`jose` + `bcryptjs`)
 - **Validation**: `zod` (`server/validation.ts`)
+- **Tailwind CSS 4**, Radix UI primitives, `lucide-react` icons
 
 ```
-app/            pages, components and API route handlers (app/api)
-server/         server-only code: db, auth, services, validation
+app/            pages, components, API route handlers (app/api), SEO files (robots, sitemap, images)
+server/         server-only code: db, auth, services, validation, rate limiting, notifications
 drizzle/        generated SQL migrations
-scripts/        db:migrate, db:seed, admin:create
-proxy.ts        redirects /admin to the login page without a session
+scripts/        db:migrate, db:seed, content:sync, admin:create, vercel-migrate
+proxy.ts        redirects /auth/login to /admin when already logged in
 ```
+
+## Security
+
+- Every write route requires an admin session; the read-only mode only hides controls, the API enforces it
+- CSRF defence: `SameSite` cookie plus an `Origin` check on state-changing requests
+- Rate limiting (hashed client IP, `rate_limit_hits` table): 5 logins per 15 minutes, 5 contact messages per hour
+- Contact form honeypot against basic bots
+- Security headers in `next.config.ts`: CSP, `X-Frame-Options`, `nosniff`, Referrer and Permissions policies, HSTS
 
 ## Local development
 
@@ -32,17 +49,42 @@ ADMIN_PASSWORD='a-long-password' npm run admin:create -- you@example.com "Your N
 npm run dev
 ```
 
-> PGlite can only be opened by one process at a time: stop `npm run dev` before running the `db:*` / `admin:create` scripts.
+> PGlite can only be opened by one process at a time: stop `npm run dev` before running the `db:*`, `content:sync` and `admin:create` scripts.
 
 ## Scripts
 
 | Script | Description |
 |---|---|
 | `npm run dev` / `build` / `start` | Next.js |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript check |
+| `npm test` | Vitest suite (see [Tests](#tests)) |
 | `npm run db:generate` | Generate a SQL migration after changing `server/db/schema.ts` |
 | `npm run db:migrate` | Apply pending migrations |
-| `npm run db:seed` | Fill an empty database with the initial content |
-| `npm run admin:create -- <email> [name]` | Create the admin, or reset its password (`ADMIN_PASSWORD` env var) |
+| `npm run db:seed` | Fill an empty database with the CV content (`scripts/content.ts`) |
+| `npm run content:sync` | Overwrite the experiences and the hero with the CV content (projects, messages and users are kept) |
+| `npm run admin:create -- <email> [name]` | Create the admin, or reset its password (`ADMIN_PASSWORD` env var, 12+ characters) |
+| `npm run vercel-build` | Used by Vercel: applies migrations on production deployments, then builds |
+
+## Tests
+
+`npm test` runs [Vitest](https://vitest.dev) against a throwaway in-memory PGlite database, so it never touches `./.pglite` and can run while `npm run dev` is up.
+
+- `tests/validation.test.ts`: input rules (no `javascript:` URLs, required contact subject, date order...)
+- `tests/api.test.ts`: route handlers called like Next.js does — read-only access for visitors, admin-only writes, CSRF origin check, tag CRUD, contact honeypot, contact and login rate limits
+
+GitHub Actions (`.github/workflows/ci.yml`) runs lint, type check, tests and the production build on every pull request and every push to `main`.
+
+## Environment variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `DATABASE_URL` | In production | PostgreSQL connection string (pooled). Empty locally to use PGlite |
+| `SESSION_SECRET` | Yes | Signs the session cookie, 32+ characters |
+| `NEXT_PUBLIC_SITE_URL` | No | Public URL for SEO links when using a custom domain (defaults to the Vercel production domain) |
+| `RESEND_API_KEY` | No | Enables an email notification for each contact message ([Resend](https://resend.com)) |
+| `CONTACT_NOTIFY_EMAIL` | No | Notification recipient (defaults to the contact email of the admin Hero tab) |
+| `CONTACT_FROM_EMAIL` | No | Notification sender (defaults to Resend's test sender, which only emails your Resend account) |
 
 ## API
 
@@ -50,23 +92,21 @@ Responses are `{ data }` on success and `{ message }` on error. 🔒 = admin ses
 
 | Route | Methods |
 |---|---|
-| `/api/auth/login` · `/api/auth/logout` · `/api/auth/me` | `POST` · `POST` · `GET` 🔒 |
+| `/api/auth/login` · `/api/auth/logout` · `/api/auth/me` | `POST` (rate limited) · `POST` · `GET` 🔒 |
 | `/api/projects` · `/api/projects/:id` | `GET`, `POST` 🔒 · `PATCH` 🔒, `DELETE` 🔒 |
 | `/api/experiences` · `/api/experiences/:id` | `GET`, `POST` 🔒 · `PATCH` 🔒, `DELETE` 🔒 |
-| `/api/tags` · `/api/tags/:id` | `GET`, `POST` 🔒 · `DELETE` 🔒 |
-| `/api/contacts` · `/api/contacts/:id` | `GET` 🔒, `POST` (contact form) · `PATCH` 🔒, `DELETE` 🔒 |
-| `/api/hero` | `GET`, `PUT` 🔒 |
+| `/api/tags` · `/api/tags/:id` | `GET` (`?usage=1` adds usage counts), `POST` 🔒 · `PATCH` 🔒 (rename), `DELETE` 🔒 |
+| `/api/contacts` · `/api/contacts/:id` | `GET` 🔒, `POST` (contact form, rate limited) · `PATCH` 🔒, `DELETE` 🔒 |
+| `/api/hero` | `GET` (contact email only for the admin), `PUT` 🔒 |
 
 ## Deployment (Vercel)
 
-1. Create a PostgreSQL database (Neon, Supabase, Railway...) and copy its **pooled** connection string.
-2. Import the GitHub repository in Vercel and set the environment variables:
-   - `DATABASE_URL`
-   - `SESSION_SECRET` (at least 32 random characters)
-3. From your machine, apply the migrations and create the admin on the production database:
+1. Create a PostgreSQL database (Neon via Vercel **Storage**, Supabase...) and connect it to the project, which sets `DATABASE_URL`.
+2. Set `SESSION_SECRET` (and optionally the Resend variables) in **Settings → Environment Variables**.
+3. Deploy. Production deployments apply pending migrations automatically (`vercel-build`); preview deployments never touch the database.
+4. Once, from your machine, fill the database and create the admin:
    ```bash
-   DATABASE_URL='postgres://...' npm run db:migrate
    DATABASE_URL='postgres://...' npm run db:seed
    DATABASE_URL='postgres://...' ADMIN_PASSWORD='...' npm run admin:create -- you@example.com "Your Name"
    ```
-4. Every push to `main` is deployed automatically.
+5. Every push to `main` is deployed automatically.

@@ -5,7 +5,7 @@ import { AdminDashboard } from "./AdminDashboard";
 export const dynamic = "force-dynamic";
 
 // The panel is public in read-only mode, but has nothing to do in search results
-export const metadata: Metadata = { robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Administration", robots: { index: false, follow: false } };
 
 /**
  * Visitors get a read-only view; only a valid admin session unlocks editing.
