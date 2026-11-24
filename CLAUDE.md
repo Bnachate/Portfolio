@@ -54,7 +54,7 @@ Vitest in `tests/`, run against an in-memory PGlite. `tests/setup.ts` mocks `nex
 
 ## Project skills
 
-Workflows live in `.claude/skills/`: `implement-feature` (full feature delivery, orchestrates the others), `db-change`, `api-resource`, `ship` (checks, commit, push), `prod-db` (production data operations the user runs) and `smoke-check`.
+Workflows live in `.claude/skills/`: `implement-feature` (full feature delivery, orchestrates the others), `db-change`, `api-resource`, `test-usecases` (use-case catalogue in `.claude/skills/test-usecases/usecases.md` + API, unit, UI and Playwright tests), `ship` (checks, commit, push), `prod-db` (production data operations the user runs) and `smoke-check`.
 
 **Recommend the relevant skill proactively.** Whenever a request or the current state of the work matches a trigger below, name the skill to the user (in French, one line, with the reason) before or while acting, even if they did not ask. If a request matches none, say nothing.
 
@@ -63,6 +63,7 @@ Workflows live in `.claude/skills/`: `implement-feature` (full feature delivery,
 | New feature, section, page, admin tab or endpoint | `/implement-feature` |
 | A change needs a new table, column, index or constraint | `/db-change` |
 | A new entity needs its own `/api` routes | `/api-resource` |
+| Tests to add, complete or audit; a bug fix (write the failing test first); a use case without a test in `usecases.md` | `/test-usecases` |
 | Work is done and verified, or the user says commit / push | `/ship` |
 | Data must change in production: content, admin account, backfill (not schema: migrations run on deploy) | `/prod-db` |
 | A change affects visitors, security, headers, SEO or routes; or after the user merges such a change | `/smoke-check` (local before shipping, production after merge) |
