@@ -1,0 +1,36 @@
+import { rm } from 'node:fs/promises';
+import path from 'node:path';
+import { closeDb, db, PGLITE_DIR, runMigrations } from '../server/db';
+import { upsertAdmin } from '../server/services/users';
+import { insertExperiences, saveCvHero } from './content';
+
+/**
+ * Recreates the throwaway database used by the Playwright tests (run by playwright.config.ts
+ * before the server starts): schema, CV content and a test admin.
+ * Refuses to touch the real local database or a remote one.
+ */
+async function main() {
+  const dataDir = process.env.PGLITE_DATA_DIR;
+  const { E2E_ADMIN_EMAIL: email, E2E_ADMIN_PASSWORD: password } = process.env;
+  if (!dataDir || dataDir.startsWith('memory://') || path.resolve(dataDir) === PGLITE_DIR) {
+    throw new Error('PGLITE_DATA_DIR must point to a dedicated E2E folder (e.g. ./.pglite-e2e)');
+  }
+  if (process.env.DATABASE_URL) throw new Error('DATABASE_URL must not be set for E2E tests');
+  if (!email || !password) throw new Error('E2E_ADMIN_EMAIL and E2E_ADMIN_PASSWORD are required');
+
+  await rm(dataDir, { recursive: true, force: true });
+  await runMigrations();
+  await db.transaction(async (tx) => {
+    await insertExperiences(tx);
+    await saveCvHero(tx, { overwrite: true });
+  });
+  await upsertAdmin(email, 'E2E Admin', password);
+  console.log(`E2E database ready in ${dataDir}`);
+}
+
+main()
+  .catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  })
+  .finally(closeDb);

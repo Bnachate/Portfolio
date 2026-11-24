@@ -7,18 +7,19 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['tests/**/*.test.ts'],
-    setupFiles: ['tests/setup.ts'],
+    // .tsx: React component tests in tests/ui (jsdom). Playwright specs live in e2e/ and are not run by Vitest.
+    include: ['tests/**/*.test.{ts,tsx}'],
+    setupFiles: ['tests/setup.ts', 'tests/ui/setup-ui.ts'],
     // Each test file gets its own in-memory database: keep files isolated
     pool: 'forks',
     // PGlite boots a WASM Postgres: first queries can take a few seconds
     testTimeout: 30_000,
     hookTimeout: 60_000,
-    // `npm run test:coverage`: server code, API routes and the pure helpers they rely on.
-    // React components are not unit tested (end-to-end tests will cover the UI).
+    // `npm run test:coverage`: server code, API routes, the API client and the React components
+    // (pages, SEO image files and the Next layout are covered by the Playwright suite instead).
     coverage: {
       provider: 'v8',
-      include: ['server/**', 'app/api/**', 'proxy.ts', 'app/components/experience/format.ts'],
+      include: ['server/**', 'app/api/**', 'proxy.ts', 'app/components/**', 'app/admin/**', 'app/auth/**', 'app/config/**'],
       reporter: ['text', 'html'],
     },
   },

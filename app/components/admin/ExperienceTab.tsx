@@ -92,6 +92,8 @@ export function ExperienceTab() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // The submit button is already disabled; this also covers submitting with the Enter key
+    if (!isFormValid) return;
     setIsSaving(true);
     setFormError("");
     try {

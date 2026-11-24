@@ -8,26 +8,11 @@ import { getCurrentUser } from "@/server/auth";
 import { getPublicHero } from "@/server/services/hero";
 import { listProjects } from "@/server/services/projects";
 import { listExperiences } from "@/server/services/experiences";
-import { SITE, getSiteUrl } from "./config/site";
+import { SITE } from "./config/site";
+import { personJsonLd } from "./config/structured-data";
 
 // Content is edited from the admin: always render with fresh data
 export const dynamic = "force-dynamic";
-
-/** Structured data (schema.org Person) that search engines use to describe who the site is about. */
-function personJsonLd(hero: { githubUrl: string; linkedinUrl: string }) {
-  const json = JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Person",
-    name: SITE.name,
-    jobTitle: SITE.jobTitle,
-    url: getSiteUrl(),
-    address: { "@type": "PostalAddress", addressLocality: "Paris", addressCountry: "FR" },
-    knowsAbout: SITE.skills,
-    sameAs: [hero.githubUrl, hero.linkedinUrl],
-  });
-  // Escape "<" so admin-edited URLs can never close the script tag
-  return json.replace(/</g, "\\u003c");
-}
 
 export default async function Home() {
   const [user, hero, projects, experiences] = await Promise.all([

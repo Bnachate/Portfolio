@@ -60,6 +60,7 @@ npm run dev
 | `npm run typecheck` | TypeScript check |
 | `npm test` | Vitest suite (see [Tests](#tests)) |
 | `npm run test:coverage` | Same, with a coverage report (`coverage/index.html`) |
+| `npm run test:e2e` | Playwright end-to-end tests (first time: `npx playwright install chromium`) |
 | `npm run db:generate` | Generate a SQL migration after changing `server/db/schema.ts` |
 | `npm run db:migrate` | Apply pending migrations |
 | `npm run db:seed` | Fill an empty database with the CV content (`scripts/content.ts`) |
@@ -80,10 +81,15 @@ npm run dev
 | `tests/notifications.test.ts` | Resend email (mocked): recipient, reply-to, no header injection, plain text only, failures never break the form |
 | `tests/proxy.test.ts` | Login page redirect for logged-in admins |
 | `tests/validation.test.ts`, `tests/format.test.ts` | Input rules and experience period/duration formatting |
+| `tests/api-client.test.ts` | Axios client: redirect to login on an expired session, error messages |
+| `tests/injection.test.ts`, `tests/structured-data.test.ts` | Injection payloads (HTML, script, SQL, dangerous and off-site links, control characters, hostile bodies) refused or stored as plain text; JSON-LD escaping |
+| `tests/ui/*.test.tsx` | React components with Testing Library: public sections, contact form, login page, every admin tab in admin and read-only modes |
 
-Server code and API routes are covered at about 98 %. React components are not unit tested: end-to-end tests (Playwright) are planned for the UI.
+**End-to-end** (`e2e/`, Playwright): the production build runs on port 3100 with a throwaway database (`./.pglite-e2e`, recreated on each run with the CV content and a test admin). Journeys: public site (sections, navigation, CV, no personal data, security headers, SEO files), contact form, login / logout, read-only admin, admin CRUD of experiences, projects, tags, hero and messages (each checked on the public site), and input safety (blank forms never sent, hostile content shown as text, off-site links refused).
 
-GitHub Actions (`.github/workflows/ci.yml`) runs lint, type check, tests and the production build on every pull request and every push to `main`.
+Coverage is about 96 % of the code measured by Vitest. Every use case and the tests covering it are listed in `.claude/skills/test-usecases/usecases.md`.
+
+GitHub Actions (`.github/workflows/ci.yml`) runs lint, type check, Vitest, the production build and Playwright on every pull request and every push to `main`, and uploads the Playwright report when E2E tests fail.
 
 ## Environment variables
 

@@ -1,32 +1,49 @@
 import { z } from 'zod';
 
+// Control characters (null byte, tab, line breaks...): Postgres rejects null bytes in text,
+// and browsers silently strip tabs / line breaks from URLs (turning "/<tab>/evil" into "//evil")
+const CONTROL_CHARS = /[\u0000-\u001f\u007f]/;
+const CONTROL_CHARS_EXCEPT_LINE_BREAKS = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/;
+const noControlChars = (value: string) => !CONTROL_CHARS.test(value);
+
 // Only http(s) links are accepted, so stored URLs can never be `javascript:` payloads
-const httpUrl = z.url({ protocol: /^https?$/, error: 'URL http(s) invalide' }).max(2000);
+const httpUrl = z
+  .url({ protocol: /^https?$/, error: 'URL http(s) invalide' })
+  .max(2000)
+  .refine(noControlChars, 'URL http(s) invalide');
 
 const optionalHttpUrl = z
   .union([httpUrl, z.literal('')])
   .nullish()
   .transform((value) => value || null);
 
-// In-page anchors (#contact), relative paths (/cv.pdf) or http(s) URLs
+// In-page anchors (#contact), relative paths (/cv.pdf) or http(s) URLs.
+// "/\evil.com" is refused: browsers read a leading "/\" as "//", i.e. another site.
 const link = z
   .string()
   .trim()
   .max(2000)
-  .regex(/^(#|\/(?!\/)|https?:\/\/)/, 'Lien invalide (#ancre, /chemin ou URL http(s))');
+  .refine(noControlChars, 'Lien invalide (#ancre, /chemin ou URL http(s))')
+  .regex(/^(#|\/(?![/\\])|https?:\/\/)/, 'Lien invalide (#ancre, /chemin ou URL http(s))');
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date attendue au format AAAA-MM-JJ');
 
 const tagIds = z.array(z.number().int().positive()).max(50);
 const position = z.number().int().min(0).max(10_000);
+// Required text, trimmed. Line breaks and tabs are allowed (descriptions, messages), other control characters are not.
 const shortText = (max: number) =>
-  z.string({ error: 'Champ requis' }).trim().min(1, 'Champ requis').max(max, `${max} caractères maximum`);
+  z
+    .string({ error: 'Champ requis' })
+    .trim()
+    .min(1, 'Champ requis')
+    .max(max, `${max} caractères maximum`)
+    .refine((value) => !CONTROL_CHARS_EXCEPT_LINE_BREAKS.test(value), 'Caractères invalides');
 
 /* ---------- Auth ---------- */
 
 export const loginSchema = z.object({
   email: z.email().max(200),
-  password: z.string().min(1).max(200),
+  password: z.string().min(1).max(200).refine(noControlChars, 'Caractères invalides'),
 });
 
 /* ---------- Projects ---------- */

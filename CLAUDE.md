@@ -13,6 +13,8 @@ npm test                    # Vitest, all tests
 npm run test:coverage       # Vitest + coverage report in coverage/index.html
 npx vitest run tests/session.test.ts            # a single test file
 npx vitest run -t "blocks brute force"          # tests whose name matches
+npm run test:e2e                                # Playwright (builds, starts its own server on :3100)
+npx playwright test e2e/admin-content.spec.ts -g "tags"   # one E2E spec / matching tests
 
 npm run db:generate         # SQL migration in drizzle/ after editing server/db/schema.ts
 npm run db:migrate          # apply pending migrations
@@ -45,12 +47,20 @@ Single Next.js 16 App Router project (React 19, Tailwind 4): public site, admin 
 - Every state-changing route except `POST /api/contacts` (public form) and the auth routes calls `requireAdmin()`.
 - Contact details are private: no email/phone in public pages; `/api/hero` returns the email only to the admin. The hero email receives contact notifications (`server/services/notifications.ts`, Resend, optional via `RESEND_API_KEY`).
 - `rateLimit(request, action, { limit, windowMs })` (`server/rate-limit.ts`): login 5 / 15 min, contact 5 / hour. Stores a salted hash of the IP in `rate_limit_hits`, and fails open if the DB check errors.
-- Stored URLs only accept `http(s)` (and `#anchor` / `/path` for hero buttons) to block `javascript:` links.
+- Stored URLs only accept `http(s)` (and `#anchor` / `/path` for hero buttons) to block `javascript:` links. Relative links may not start with `//` or `/\` (browsers read both as another site), and control characters are refused in links (browsers strip tabs / line breaks, turning `/<tab>/evil` into `//evil`) and in all text except line breaks (Postgres rejects null bytes).
+- Forms check required fields with `.trim()` before calling the API: the HTML `required` attribute accepts whitespace-only values.
+- Never render user or admin content as HTML: no `dangerouslySetInnerHTML` except JSON-LD, serialized with `toInlineJson()` (`app/config/structured-data.ts`).
 - Security headers and CSP are in `next.config.ts` (PDFs are excluded from the CSP so the CV opens in the browser viewer).
 
 ## Tests
 
-Vitest in `tests/`, run against an in-memory PGlite. `tests/setup.ts` mocks `next/headers` (`cookies()` reads `globalThis.__testCookies`) and `next/server` `after()`. `tests/helpers.ts` provides `setupDatabase()` (migrations + test admin, call in `beforeAll`), `actAs('visitor' | 'admin')` and `call(handler, method, path, { body, origin, ip, params })`, which invokes route handlers directly like Next.js does. Each test file runs in its own process with its own database (`pool: 'forks'`). React components have no unit tests; Playwright E2E tests are planned.
+Vitest in `tests/`, run against an in-memory PGlite. `tests/setup.ts` mocks `next/headers` (`cookies()` reads `globalThis.__testCookies`) and `next/server` `after()`. `tests/helpers.ts` provides `setupDatabase()` (migrations + test admin, call in `beforeAll`), `actAs('visitor' | 'admin')` and `call(handler, method, path, { body, origin, ip, params })`, which invokes route handlers directly like Next.js does. Each test file runs in its own process with its own database (`pool: 'forks'`).
+
+React component tests live in `tests/ui/*.test.tsx` (first line `// @vitest-environment jsdom`). `tests/ui/setup-ui.ts` (global setup) adds jest-dom matchers, Testing Library cleanup, Radix-friendly DOM polyfills and a `next/navigation` mock exposed as `routerMock`. Mock the `app/services/**` modules, never axios; wrap admin components in `<ReadOnlyProvider value={...}>` (the context defaults to read-only).
+
+Playwright specs live in `e2e/`. `playwright.config.ts` runs `e2e:prepare` (recreates `./.pglite-e2e` with migrations, CV content and a test admin), builds, and serves on port 3100; specs run serially on that shared database. `e2e/auth.setup.ts` logs in once and saves `e2e/.auth/admin.json`, reused via `test.use({ storageState: ADMIN_STATE })`: never log in per test (login rate limit: 5 per 15 min) and keep contact form submissions under 5 per run. Seeded tags include `Playwright`, `Java`, `TypeScript`: use other names for tags created in tests.
+
+The use-case catalogue mapping every use case to its tests is `.claude/skills/test-usecases/usecases.md`.
 
 ## Project skills
 

@@ -88,8 +88,12 @@ export function ProjectsTab() {
     }
   };
 
+  // Required fields must contain more than whitespace (`required` alone accepts "   ")
+  const isFormValid = Boolean(formData.title.trim() && formData.description.trim() && formData.projectImageUrl.trim());
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFormValid) return;
     setIsSaving(true);
     setFormError("");
     try {
@@ -143,6 +147,7 @@ export function ProjectsTab() {
           onOpenChange={(open) => (open ? setIsDialogOpen(true) : resetForm())}
           isEditing={Boolean(editingProject)}
           isSaving={isSaving}
+          submitDisabled={isSaving || !isFormValid}
           error={formError}
           formData={formData}
           tags={tags}
