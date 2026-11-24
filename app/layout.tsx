@@ -1,9 +1,33 @@
 import type { Metadata } from "next";
 import "./assets/css/globals.css";
+import { SITE, getSiteUrl } from "./config/site";
 
 export const metadata: Metadata = {
-  title: "PortFolio",
-  description: "Bienvenue sur mon portfolio, découvrez mes projets, compétences et expériences en développement web. Explorez mes réalisations et contactez-moi pour collaborer sur de futurs projets passionnants.",
+  metadataBase: new URL(getSiteUrl()),
+  title: {
+    default: SITE.title,
+    // Other pages get "<page> | Brahim Nachate"
+    template: `%s | ${SITE.name}`,
+  },
+  description: SITE.description,
+  applicationName: SITE.name,
+  authors: [{ name: SITE.name }],
+  keywords: ["développeur full-stack", "portfolio", ...SITE.skills, SITE.location],
+  alternates: { canonical: "/" },
+  // Link previews (LinkedIn, Slack, WhatsApp...). The image comes from app/opengraph-image.tsx
+  openGraph: {
+    type: "website",
+    locale: SITE.locale,
+    siteName: SITE.name,
+    title: SITE.title,
+    description: SITE.description,
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE.title,
+    description: SITE.description,
+  },
 };
 
 export default function RootLayout({
@@ -12,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="fr">
       <body>
         {children}
       </body>

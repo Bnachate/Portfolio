@@ -84,7 +84,7 @@ export function HeroTab() {
 
               <div className="space-y-2">
                 <Label htmlFor="title">Titre principal</Label>
-                <Input id="title" value={formData.title} onChange={update("title")} placeholder="Ex: Développeur Front-End" maxLength={200} required />
+                <Input id="title" value={formData.title} onChange={update("title")} placeholder="Ex: Développeur Full-Stack" maxLength={200} required />
               </div>
 
               <div className="space-y-2">
