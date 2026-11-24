@@ -59,6 +59,7 @@ npm run dev
 | `npm run lint` | ESLint |
 | `npm run typecheck` | TypeScript check |
 | `npm test` | Vitest suite (see [Tests](#tests)) |
+| `npm run test:coverage` | Same, with a coverage report (`coverage/index.html`) |
 | `npm run db:generate` | Generate a SQL migration after changing `server/db/schema.ts` |
 | `npm run db:migrate` | Apply pending migrations |
 | `npm run db:seed` | Fill an empty database with the CV content (`scripts/content.ts`) |
@@ -70,8 +71,17 @@ npm run dev
 
 `npm test` runs [Vitest](https://vitest.dev) against a throwaway in-memory PGlite database, so it never touches `./.pglite` and can run while `npm run dev` is up.
 
-- `tests/validation.test.ts`: input rules (no `javascript:` URLs, required contact subject, date order...)
-- `tests/api.test.ts`: route handlers called like Next.js does — read-only access for visitors, admin-only writes, CSRF origin check, tag CRUD, contact honeypot, contact and login rate limits
+| File | What it checks |
+|---|---|
+| `tests/api.test.ts` | Visitors are read-only, writes are admin-only, CSRF origin check, tag CRUD, contact email privacy, honeypot, contact and login rate limits |
+| `tests/api-crud.test.ts` | Full CRUD of experiences, projects, contact messages and hero; deleting a tag; session routes (`me`, logout, deleted user) |
+| `tests/session.test.ts` | Session tokens: tampered, expired, wrong secret, unsigned (`alg: none`) |
+| `tests/rate-limit.test.ts` | Client IP detection, hashed storage, per-action counters, window expiry, fail-open behaviour |
+| `tests/notifications.test.ts` | Resend email (mocked): recipient, reply-to, no header injection, plain text only, failures never break the form |
+| `tests/proxy.test.ts` | Login page redirect for logged-in admins |
+| `tests/validation.test.ts`, `tests/format.test.ts` | Input rules and experience period/duration formatting |
+
+Server code and API routes are covered at about 98 %. React components are not unit tested: end-to-end tests (Playwright) are planned for the UI.
 
 GitHub Actions (`.github/workflows/ci.yml`) runs lint, type check, tests and the production build on every pull request and every push to `main`.
 
