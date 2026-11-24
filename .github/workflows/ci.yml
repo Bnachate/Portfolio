@@ -1,4 +1,4 @@
-# Checks every pull request and every push to main: lint, types, tests, production build.
+# Checks every pull request and every push to main: lint, types, unit/API/UI tests, production build, E2E tests.
 name: CI
 
 on:
@@ -17,7 +17,7 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -40,3 +40,18 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      # Starts its own server on port 3100 with a throwaway database (see playwright.config.ts)
+      - name: End-to-end tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

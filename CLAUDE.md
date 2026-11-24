@@ -13,6 +13,8 @@ npm test                    # Vitest, all tests
 npm run test:coverage       # Vitest + coverage report in coverage/index.html
 npx vitest run tests/session.test.ts            # a single test file
 npx vitest run -t "blocks brute force"          # tests whose name matches
+npm run test:e2e                                # Playwright (builds, starts its own server on :3100)
+npx playwright test e2e/admin-content.spec.ts -g "tags"   # one E2E spec / matching tests
 
 npm run db:generate         # SQL migration in drizzle/ after editing server/db/schema.ts
 npm run db:migrate          # apply pending migrations
@@ -50,7 +52,13 @@ Single Next.js 16 App Router project (React 19, Tailwind 4): public site, admin 
 
 ## Tests
 
-Vitest in `tests/`, run against an in-memory PGlite. `tests/setup.ts` mocks `next/headers` (`cookies()` reads `globalThis.__testCookies`) and `next/server` `after()`. `tests/helpers.ts` provides `setupDatabase()` (migrations + test admin, call in `beforeAll`), `actAs('visitor' | 'admin')` and `call(handler, method, path, { body, origin, ip, params })`, which invokes route handlers directly like Next.js does. Each test file runs in its own process with its own database (`pool: 'forks'`). React components have no unit tests; Playwright E2E tests are planned.
+Vitest in `tests/`, run against an in-memory PGlite. `tests/setup.ts` mocks `next/headers` (`cookies()` reads `globalThis.__testCookies`) and `next/server` `after()`. `tests/helpers.ts` provides `setupDatabase()` (migrations + test admin, call in `beforeAll`), `actAs('visitor' | 'admin')` and `call(handler, method, path, { body, origin, ip, params })`, which invokes route handlers directly like Next.js does. Each test file runs in its own process with its own database (`pool: 'forks'`).
+
+React component tests live in `tests/ui/*.test.tsx` (first line `// @vitest-environment jsdom`). `tests/ui/setup-ui.ts` (global setup) adds jest-dom matchers, Testing Library cleanup, Radix-friendly DOM polyfills and a `next/navigation` mock exposed as `routerMock`. Mock the `app/services/**` modules, never axios; wrap admin components in `<ReadOnlyProvider value={...}>` (the context defaults to read-only).
+
+Playwright specs live in `e2e/`. `playwright.config.ts` runs `e2e:prepare` (recreates `./.pglite-e2e` with migrations, CV content and a test admin), builds, and serves on port 3100; specs run serially on that shared database. `e2e/auth.setup.ts` logs in once and saves `e2e/.auth/admin.json`, reused via `test.use({ storageState: ADMIN_STATE })`: never log in per test (login rate limit: 5 per 15 min) and keep contact form submissions under 5 per run. Seeded tags include `Playwright`, `Java`, `TypeScript`: use other names for tags created in tests.
+
+The use-case catalogue mapping every use case to its tests is `.claude/skills/test-usecases/usecases.md`.
 
 ## Project skills
 
