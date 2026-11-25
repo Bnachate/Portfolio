@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getPublicHero } from "@/server/services/hero";
 import { findProject } from "@/server/services/projects";
-import { LOREM } from "@/app/config/content";
+import { CASE_STUDIES_ENABLED, LOREM } from "@/app/config/content";
 import { SiteHeader } from "@/app/components/site/SiteHeader";
 import { SiteFooter } from "@/app/components/site/SiteFooter";
 import { Section, TechTag, underlineLink } from "@/app/components/site/ui";
@@ -22,6 +22,7 @@ async function loadProject(rawId: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  if (!CASE_STUDIES_ENABLED) return {};
   const project = await loadProject((await params).id);
   if (!project) return { title: "Projet introuvable" };
   return {
@@ -41,6 +42,8 @@ function CaseSection({ title, children }: { title: string; children: React.React
 }
 
 export default async function ProjectPage({ params }: Props) {
+  // Case studies are being written: send visitors to the home page meanwhile (temporary redirect)
+  if (!CASE_STUDIES_ENABLED) redirect("/");
   const [project, hero] = await Promise.all([loadProject((await params).id), getPublicHero()]);
   if (!project) notFound();
 

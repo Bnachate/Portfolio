@@ -90,16 +90,15 @@ test.describe('Admin - projects', () => {
     await expect(row).toBeVisible();
     await expect(row.getByRole('link', { name: 'github.com/example/e2e' })).toHaveAttribute('href', 'https://github.com/example/e2e');
 
-    // The admin link opens the public case study
-    await row.getByRole('link', { name: 'Voir Projet E2E sur le site' }).click();
-    await expect(page).toHaveURL(/\/projets\/\d+$/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Projet E2E' })).toBeVisible();
-    await expect(page.getByText('Projet de test')).toBeVisible();
-    await expect(page.getByRole('listitem').filter({ hasText: 'La faire passer' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Code source' })).toHaveAttribute('href', 'https://github.com/example/e2e');
+    // Case studies are switched off (CASE_STUDIES_ENABLED): no link to the public case study page.
+    // When they come back, restore the visit of the case study from this link.
+    await expect(row.getByRole('link', { name: 'Voir Projet E2E sur le site' })).toHaveCount(0);
 
     await page.goto('/projets');
-    await expect(page.getByRole('heading', { level: 2, name: 'Projet E2E' })).toBeVisible();
+    const card = page.getByRole('article').filter({ has: page.getByRole('heading', { level: 2, name: 'Projet E2E' }) });
+    await expect(card).toBeVisible();
+    await expect(card.getByText('Projet de test')).toBeVisible();
+    await expect(card.getByRole('link', { name: 'Code source sur GitHub' })).toHaveAttribute('href', 'https://github.com/example/e2e');
 
     await openTab(page, 'Projets');
     await row.getByRole('button', { name: 'Supprimer Projet E2E' }).click();

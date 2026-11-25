@@ -59,6 +59,15 @@ vi.mock('@/server/services/experiences', () => ({ listExperiences: vi.fn() }));
 vi.mock('@/server/services/tags', () => ({ listTags: vi.fn() }));
 vi.mock('@/server/services/skill-domains', () => ({ listSkillDomains: vi.fn() }));
 vi.mock('@/app/services/admin/skill-domains.service', () => ({ getSkillDomains: vi.fn() }));
+// Case study pages: on by default in these tests (the code stays covered), switched off per test
+const flags = vi.hoisted(() => ({ caseStudies: true }));
+vi.mock('@/app/config/content', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/app/config/content')>()),
+  get CASE_STUDIES_ENABLED() {
+    return flags.caseStudies;
+  },
+}));
+
 vi.mock('@/app/services/admin/tags.service', () => ({
   getTags: vi.fn(),
   getTagsWithUsage: vi.fn(),

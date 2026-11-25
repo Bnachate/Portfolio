@@ -70,26 +70,19 @@ test.describe('Public site (visitor)', () => {
     await expect(page.getByText('Coding Academy by Epitech Paris')).toBeVisible();
   });
 
-  test('a project opens its case study from the projects page (V5)', async ({ page }) => {
+  // Case studies are switched off (CASE_STUDIES_ENABLED = false in app/config/content.ts).
+  // When they come back, restore the journey "a project opens its case study" and the 404 checks.
+  test('case studies are switched off: no button, every case study URL leads home (V5)', async ({ page }) => {
     await page.goto('/projets');
-    // The list depends on what other specs created: open the first case study, if any
-    const caseStudy = page.getByRole('link', { name: /Lire l'étude de cas/ }).first();
-    if ((await caseStudy.count()) === 0) {
-      await expect(page.getByText('Les projets arrivent bientôt.')).toBeVisible();
-      return;
-    }
-    await caseStudy.click();
-    await expect(page).toHaveURL(/\/projets\/\d+$/);
-    for (const heading of ['Contexte', "Ce que j'ai fait", 'Résultats']) {
-      await expect(page.getByRole('heading', { level: 2, name: heading })).toBeVisible();
-    }
-    await page.getByRole('navigation', { name: "Fil d'Ariane" }).getByRole('link', { name: 'Projets' }).click();
-    await expect(page).toHaveURL('/projets');
-  });
+    await expect(page.getByRole('heading', { level: 1, name: 'Projets' })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Lire l'étude de cas/ })).toHaveCount(0);
 
-  test('an unknown project answers 404 (V5)', async ({ page }) => {
-    expect((await page.goto('/projets/999999'))!.status()).toBe(404);
-    expect((await page.goto('/projets/abc'))!.status()).toBe(404);
+    for (const path of ['/projets/1', '/projets/999999', '/projets/abc']) {
+      await page.goto(path);
+      await expect(page).toHaveURL('/');
+    }
+    const sitemap = await (await page.request.get('/sitemap.xml')).text();
+    expect(sitemap).not.toMatch(/\/projets\/\d+/);
   });
 
   test('links and buttons show a pointer cursor (V10)', async ({ page }) => {

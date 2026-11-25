@@ -41,6 +41,13 @@ export const LANGUAGES = [
 ];
 
 /**
+ * Public case study pages (/projets/[id]) and the links to them. Off while they are being written:
+ * the "Lire l'étude de cas" button and the sitemap entries are hidden, and /projets/[id] redirects
+ * to the home page. Set to true to bring everything back.
+ */
+export const CASE_STUDIES_ENABLED = false;
+
+/**
  * Placeholder texts shown while a case study field is still empty in the admin.
  * TODO(content): remove once every project has its case study written.
  */
