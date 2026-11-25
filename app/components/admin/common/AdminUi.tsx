@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowDown, ArrowUp, ExternalLink, Pencil, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../common/dialog";
 
 /**
  * Admin building blocks ("Encre et menthe"): 44 px icon buttons with accessible names,
@@ -89,6 +90,63 @@ export function InlineDeleteConfirm({
         Non
       </button>
     </div>
+  );
+}
+
+/**
+ * Deletion confirmation in a modal (alertdialog named after the question): "Oui" / "Non".
+ * Focus starts on "Non" (the safe answer); Escape, the close button or a click outside cancel,
+ * except while the deletion is running. The parent unmounts it once the server has answered.
+ */
+export function DeleteConfirmDialog({
+  question,
+  detail = "Cette action est définitive.",
+  onConfirm,
+  onCancel,
+  busy = false,
+}: {
+  question: string;
+  detail?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  busy?: boolean;
+}) {
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  return (
+    <Dialog open onOpenChange={(open) => !open && !busy && onCancel()}>
+      <DialogContent
+        role="alertdialog"
+        className="sm:max-w-md"
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          cancelRef.current?.focus();
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>{question}</DialogTitle>
+          <DialogDescription>{detail}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="font-display">
+          <button
+            ref={cancelRef}
+            type="button"
+            onClick={onCancel}
+            disabled={busy}
+            className="inline-flex min-h-11 items-center justify-center rounded-lg border-[1.5px] border-slate px-5 text-[15px] font-semibold text-ink transition-colors duration-150 hover:border-ink disabled:opacity-50"
+          >
+            Non
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={busy}
+            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-danger px-5 text-[15px] font-semibold text-on-ink transition-colors duration-150 hover:bg-ink disabled:opacity-50"
+          >
+            {busy ? "Suppression..." : "Oui"}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

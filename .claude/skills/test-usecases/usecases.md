@@ -32,7 +32,7 @@ Levels: API (Vitest + route handlers), Unit, UI (Testing Library, `tests/ui/`), 
 
 | ID | Use case | Level | Test | Status |
 |---|---|---|---|---|
-| R1 | Footer "Admin" link opens the panel with the read-only banner and a "Connexion" button | UI, E2E | `tests/ui/admin-dashboard.test.tsx`, `e2e/read-only-admin.spec.ts` | ✅ |
+| R1 | Header "Admin" link (right after "Contact") and footer "Admin" link open the panel with the read-only banner and a "Connexion" button | UI, E2E | `tests/ui/admin-dashboard.test.tsx`, `tests/ui/public-site.test.tsx`, `e2e/read-only-admin.spec.ts` | ✅ |
 | R2 | No create / edit / delete / reorder control and no domain select in any tab; hero fields and switch disabled | UI, E2E | `tests/ui/experiences-projects-tabs.test.tsx`, `tests/ui/tags-tab.test.tsx`, `tests/ui/hero-and-messages-tabs.test.tsx`, `e2e/read-only-admin.spec.ts` | ✅ |
 | R3 | The Messages tab is not shown and messages are never requested | UI, E2E | `tests/ui/admin-dashboard.test.tsx`, `e2e/read-only-admin.spec.ts` | ✅ |
 | R4 | Every write route refuses visitors, even when the UI is bypassed | API, E2E | `tests/api.test.ts`, `e2e/read-only-admin.spec.ts` | ✅ |
@@ -59,7 +59,7 @@ Levels: API (Vitest + route handlers), Unit, UI (Testing Library, `tests/ui/`), 
 |---|---|---|---|---|
 | E1 | Create an experience with tags; it goes to the end of the list and appears on /experience; "En cours" and "Chevauchement" badges | API, UI, E2E | `tests/api-crud.test.ts`, `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
 | E2 | Edit an experience; "Mettre à jour" stays disabled until something changes | API, UI, E2E | `tests/api-crud.test.ts`, `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
-| E3 | Delete an experience after the in-row confirmation ("Oui" / "Non", focus on "Non", Escape cancels), also removed from the public site | API, UI, E2E | `tests/api-crud.test.ts`, `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
+| E3 | Delete an experience after confirming in a modal ("Oui" / "Non", focus on "Non", Escape cancels, locked while the deletion runs), also removed from the public site | API, UI, E2E | `tests/api-crud.test.ts`, `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
 | E4 | Move an experience up / down (↑ ↓, disabled at the ends); the order is saved and shown on /experience; a stale list is refused (409) with the error shown | API, UI, E2E | `tests/redesign-api.test.ts`, `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
 | E5 | Create a new tag from the experience form | UI | `tests/ui/experiences-projects-tabs.test.tsx` | ✅ |
 | E6 | End date before start date is refused (blocked by the form, enforced by the API on create and update); API errors shown in the form | API, UI | `tests/api-crud.test.ts`, `tests/validation.test.ts`, `tests/ui/experiences-projects-tabs.test.tsx` | ✅ |
@@ -68,7 +68,7 @@ Levels: API (Vitest + route handlers), Unit, UI (Testing Library, `tests/ui/`), 
 
 | ID | Use case | Level | Test | Status |
 |---|---|---|---|---|
-| P1 | Create, edit and delete (in-row confirmation) a project, with its case study (type, scope, role, context, achievements one per line, results); it appears on /projets and /projets/[id] | API, UI, E2E | `tests/api-crud.test.ts`, `tests/redesign-api.test.ts`, `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
+| P1 | Create, edit and delete (confirmation modal) a project, with its case study (type, scope, role, context, achievements one per line, results); it appears on /projets and /projets/[id] | API, UI, E2E | `tests/api-crud.test.ts`, `tests/redesign-api.test.ts`, `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
 | P2 | `javascript:` or invalid URLs are refused; the error is shown in the form; empty links and case study fields saved as null | API, UI | `tests/api-crud.test.ts`, `tests/validation.test.ts`, `tests/redesign-api.test.ts`, `tests/ui/experiences-projects-tabs.test.tsx` | ✅ |
 | P3 | GitHub link and "Voir … sur le site" (public case study) open from the table | UI, E2E | `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
 | P4 | Move a project up / down; new projects go after the highest position, even with gaps | API, UI | `tests/redesign-api.test.ts`, `tests/ui/experiences-projects-tabs.test.tsx` | ✅ |
@@ -79,7 +79,7 @@ Levels: API (Vitest + route handlers), Unit, UI (Testing Library, `tests/ui/`), 
 |---|---|---|---|---|
 | T1 | Create, rename (Enter saves, Escape cancels) and delete a tag | API, UI, E2E | `tests/api.test.ts`, `tests/ui/tags-tab.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
 | T2 | Duplicate names are refused whatever the case, and the error is shown | API, UI, E2E | `tests/api.test.ts`, `tests/ui/tags-tab.test.tsx`, `e2e/admin-content.spec.ts` (rename onto a seeded tag) | ✅ |
-| T3 | Usage counts are shown ("Non utilisé" badge); the in-row deletion question of a used tag names its usage, and deletion removes it everywhere | API, UI, E2E | `tests/api-crud.test.ts`, `tests/ui/tags-tab.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
+| T3 | Usage counts are shown ("Non utilisé" badge); the deletion modal of a used tag names its usage, and deletion removes it everywhere | API, UI, E2E | `tests/api-crud.test.ts`, `tests/ui/tags-tab.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
 | T4 | Search filters the list; empty search result message | UI, E2E | `tests/ui/tags-tab.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
 | T5 | Each tag has a domain (a domain of the database or "Autres"), set on creation and saved as soon as it is changed; unknown domain ids refused; the seed gives common technologies a default domain | API, UI, E2E | `tests/redesign-api.test.ts`, `tests/ui/tags-tab.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
 
@@ -90,7 +90,7 @@ Levels: API (Vitest + route handlers), Unit, UI (Testing Library, `tests/ui/`), 
 | D1 | The migration creates the 5 initial domains in order and links the existing tags; the domain list is public | API | `tests/skill-domains.test.ts` | ✅ |
 | D2 | Create (trimmed, added at the end), rename (Enter saves, Escape cancels) a domain; duplicate names refused whatever the case, error shown; blank names never sent | API, UI, E2E | `tests/skill-domains.test.ts`, `tests/ui/skill-domains-tab.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
 | D3 | Move a domain up / down; stale list refused (409); the new order shows on /competences | API, UI, E2E | `tests/skill-domains.test.ts`, `tests/ui/skill-domains-tab.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
-| D4 | Delete a domain after an in-row question saying where its tags go; its tags move to "Autres" | API, UI, E2E | `tests/skill-domains.test.ts`, `tests/ui/skill-domains-tab.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
+| D4 | Delete a domain after a modal saying where its tags go; its tags move to "Autres" | API, UI, E2E | `tests/skill-domains.test.ts`, `tests/ui/skill-domains-tab.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
 | D5 | Every write is admin-only; read-only visitors see the domains without any control | API, UI, E2E | `tests/skill-domains.test.ts`, `tests/ui/skill-domains-tab.test.tsx`, `e2e/read-only-admin.spec.ts` | ✅ |
 
 ## Admin - hero
@@ -132,7 +132,7 @@ Levels: API (Vitest + route handlers), Unit, UI (Testing Library, `tests/ui/`), 
 | X1 | Every public page (desktop and phone), a case study, the 404 page and the contact form error have no WCAG A/AA violation: text contrast, names, structure | E2E | `e2e/accessibility.spec.ts` | ✅ |
 | X2 | Login page, including its error state; the password toggle is named and exposes its state (`aria-pressed`) | UI, E2E | `tests/ui/login-page.test.tsx`, `e2e/accessibility.spec.ts` | ✅ |
 | X3 | Read-only admin: every tab | E2E | `e2e/accessibility.spec.ts` | ✅ |
-| X4 | Admin: every tab, experience / project dialogs, tags menu with selected tags, open message, in-row deletion questions, tag renaming; icon buttons named after their target ("Modifier …", "Monter …") | UI, E2E | `tests/ui/hero-and-messages-tabs.test.tsx`, `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/accessibility.spec.ts` | ✅ |
+| X4 | Admin: every tab, experience / project dialogs, tags menu with selected tags, open message, deletion modals, tag renaming; icon buttons named after their target ("Modifier …", "Monter …") | UI, E2E | `tests/ui/hero-and-messages-tabs.test.tsx`, `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/accessibility.spec.ts` | ✅ |
 | X5 | Selected tags are removable with a visible, named button outside the menu trigger; the tag creation field is labelled and outside the menu | UI, E2E | `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/accessibility.spec.ts` | ✅ |
 
 ## Platform

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AxiosError, type AxiosResponse } from 'axios';
 import { TagsTab } from '@/app/components/admin/TagsTab';
@@ -113,18 +113,20 @@ describe('TagsTab (admin)', () => {
     expect(service.updateTag).toHaveBeenCalledTimes(1);
   });
 
-  it('asks in the row before deleting a used tag, then removes it', async () => {
+  it('asks in a modal before deleting a used tag, then removes it', async () => {
     service.deleteTag.mockResolvedValue({} as never);
     const user = userEvent.setup();
     await renderTab();
 
     await user.click(screen.getByRole('button', { name: 'Supprimer React' }));
-    const confirm = screen.getByRole('group', { name: /Supprimer « React » \? Il sera retiré de 2 expériences, 1 projet/ });
+    const confirm = await screen.findByRole('alertdialog', { name: 'Supprimer « React » ?' });
+    expect(confirm).toHaveAccessibleDescription('Il sera retiré de 2 expériences, 1 projet.');
     // The safe answer has the focus
     expect(within(confirm).getByRole('button', { name: 'Non' })).toHaveFocus();
 
     await user.click(within(confirm).getByRole('button', { name: 'Oui' }));
     expect(service.deleteTag).toHaveBeenCalledWith(1);
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
     expect(screen.queryByText('React')).not.toBeInTheDocument();
   });
 
@@ -133,12 +135,13 @@ describe('TagsTab (admin)', () => {
     await renderTab();
 
     await user.click(screen.getByRole('button', { name: 'Supprimer Svelte' }));
-    await user.click(within(screen.getByRole('group', { name: 'Supprimer « Svelte » ?' })).getByRole('button', { name: 'Non' }));
+    await user.click(within(await screen.findByRole('alertdialog', { name: 'Supprimer « Svelte » ?' })).getByRole('button', { name: 'Non' }));
     expect(screen.getByRole('button', { name: 'Supprimer Svelte' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Supprimer Svelte' }));
+    await screen.findByRole('alertdialog');
     await user.keyboard('{Escape}');
-    expect(screen.queryByRole('group')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     expect(service.deleteTag).not.toHaveBeenCalled();
   });
 

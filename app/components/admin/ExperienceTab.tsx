@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import isEqual from "lodash/isEqual";
 import { ErrorBanner } from "./common/ErrorBanner";
-import { AdminPanel, DeleteButton, EditButton, InlineDeleteConfirm, ReorderButtons, StatusBadge, movedIds, nextPosition } from "./common/AdminUi";
+import { AdminPanel, DeleteButton, EditButton, DeleteConfirmDialog, ReorderButtons, StatusBadge, movedIds, nextPosition } from "./common/AdminUi";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../common/table";
 import { ExperienceDialog, type ExperienceFormData } from "./experiences-tab/modal/ExperienceDialog";
 import {
@@ -144,10 +144,11 @@ export function ExperienceTab() {
     try {
       await deleteExperience(id);
       await fetchExperiences();
-      setDeleteTargetId(null);
     } catch (err) {
       setError(getErrorMessage(err, "Impossible de supprimer l'expérience"));
     } finally {
+      // Closed once the server has answered, also on error so the message is visible
+      setDeleteTargetId(null);
       setIsBusy(false);
     }
   };
@@ -258,18 +259,18 @@ export function ExperienceTab() {
                 </TableCell>
                 {!readOnly && (
                   <TableCell className="text-right">
-                    {deleteTargetId === experience.id ? (
-                      <InlineDeleteConfirm
+                    <div className="flex justify-end gap-2">
+                      <EditButton label={`Modifier ${experience.job}`} onClick={() => handleEdit(experience)} />
+                      <DeleteButton label={`Supprimer ${experience.job}`} onClick={() => setDeleteTargetId(experience.id)} />
+                    </div>
+                    {deleteTargetId === experience.id && (
+                      <DeleteConfirmDialog
                         question={`Supprimer « ${experience.job} » ?`}
+                        detail={`L'expérience chez ${experience.company} sera retirée du site. Cette action est définitive.`}
                         onConfirm={() => handleDelete(experience.id)}
                         onCancel={() => setDeleteTargetId(null)}
                         busy={isBusy}
                       />
-                    ) : (
-                      <div className="flex justify-end gap-2">
-                        <EditButton label={`Modifier ${experience.job}`} onClick={() => handleEdit(experience)} />
-                        <DeleteButton label={`Supprimer ${experience.job}`} onClick={() => setDeleteTargetId(experience.id)} />
-                      </div>
                     )}
                   </TableCell>
                 )}
