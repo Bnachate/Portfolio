@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { listProjects } from "@/server/services/projects";
 import { getSiteUrl } from "./config/site";
+import { CASE_STUDIES_ENABLED } from "./config/content";
 
 // Project pages come from the database: build the sitemap on each request
 export const dynamic = "force-dynamic";
@@ -24,7 +25,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // A database hiccup must not break the sitemap: the static pages are still listed
-  const projects = await listProjects().catch(() => []);
+  // Case study pages are only listed once they are published
+  const projects = CASE_STUDIES_ENABLED ? await listProjects().catch(() => []) : [];
   return [
     ...pages,
     ...projects.map((project) => ({

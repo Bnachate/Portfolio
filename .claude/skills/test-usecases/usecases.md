@@ -11,10 +11,10 @@ Levels: API (Vitest + route handlers), Unit, UI (Testing Library, `tests/ui/`), 
 | V2 | Separate pages (/, /projets, /experience, /competences, /contact): the header links them all and marks the current one (`aria-current`); the navigation wraps on a phone without horizontal scroll | UI, E2E | `tests/ui/public-site.test.tsx` (SiteHeader), `e2e/public-site.spec.ts` | ✅ |
 | V3 | The experience page shows the timeline (period, duration, bullet points, current position announced) and the education | Unit, UI, E2E | `tests/format.test.ts`, `tests/ui/public-site.test.tsx` (Experience page), `e2e/public-site.spec.ts` | ✅ |
 | V4 | "CV en PDF" (header) and "Télécharger le CV en PDF" open the full-stack CV PDF (served without CSP) | UI, E2E | `tests/ui/public-site.test.tsx`, `e2e/public-site.spec.ts` | ✅ |
-| V5 | /projets lists projects (or "Les projets arrivent bientôt."); each opens its case study /projets/[id], whose empty fields show lorem ipsum placeholders; unknown or invalid ids answer 404 | UI, E2E | `tests/ui/public-site.test.tsx` (Projects page, Case study page), `e2e/public-site.spec.ts`, `e2e/admin-content.spec.ts` (P1) | ✅ |
+| V5 | /projets lists projects (or "Les projets arrivent bientôt."); each opens its case study /projets/[id], whose empty fields show lorem ipsum placeholders; unknown or invalid ids answer 404. While `CASE_STUDIES_ENABLED` is false: no "Lire l'étude de cas" button, every /projets/[id] redirects to the home page and the sitemap lists no case study (E2E covers this mode only; UI tests cover both) | UI, E2E | `tests/ui/public-site.test.tsx` (Projects page, Case study page), `e2e/public-site.spec.ts`, `e2e/admin-content.spec.ts` (P1) | ✅ |
 | V6 | No email or phone number is visible on any public page | API, UI, E2E | `tests/api.test.ts`, `tests/ui/public-site.test.tsx` (SiteFooter, Home, Contact page), `e2e/public-site.spec.ts` | ✅ |
 | V7 | The footer of every page leads to the contact form ("Écrire à Brahim") and to the admin | UI, E2E | `tests/ui/public-site.test.tsx` (SiteFooter), `e2e/public-site.spec.ts`, `e2e/read-only-admin.spec.ts` | ✅ |
-| V8 | Link previews, robots.txt, sitemap.xml (every page and project), canonical URLs and `lang="fr"` are served | E2E | `e2e/public-site.spec.ts` | ✅ |
+| V8 | Link previews, robots.txt, sitemap.xml (every page, and every project once case studies are enabled), canonical URLs and `lang="fr"` are served | E2E | `e2e/public-site.spec.ts` | ✅ |
 | V9 | /competences groups the used tags by the domains of the database, in their display order (unused tags and empty domains hidden, no domain or unknown domain → "Autres" last); every skill has the same style for now (no legend); languages listed | UI, E2E | `tests/ui/public-site.test.tsx` (Skills page, page data helpers), `e2e/public-site.spec.ts` | ✅ |
 
 ## Visitor - contact form
@@ -68,7 +68,7 @@ Levels: API (Vitest + route handlers), Unit, UI (Testing Library, `tests/ui/`), 
 
 | ID | Use case | Level | Test | Status |
 |---|---|---|---|---|
-| P1 | Create, edit and delete (confirmation modal) a project, with its case study (type, scope, role, context, achievements one per line, results); it appears on /projets and /projets/[id] | API, UI, E2E | `tests/api-crud.test.ts`, `tests/redesign-api.test.ts`, `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
+| P1 | Create, edit and delete (confirmation modal) a project, with its case study (type, scope, role, context, achievements one per line, results); it appears on /projets and /projets/[id] (admin "Voir … sur le site" link hidden while case studies are switched off) | API, UI, E2E | `tests/api-crud.test.ts`, `tests/redesign-api.test.ts`, `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
 | P2 | `javascript:` or invalid URLs are refused; the error is shown in the form; empty links and case study fields saved as null | API, UI | `tests/api-crud.test.ts`, `tests/validation.test.ts`, `tests/redesign-api.test.ts`, `tests/ui/experiences-projects-tabs.test.tsx` | ✅ |
 | P3 | GitHub link and "Voir … sur le site" (public case study) open from the table | UI, E2E | `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/admin-content.spec.ts` | ✅ |
 | P4 | Move a project up / down; new projects go after the highest position, even with gaps | API, UI | `tests/redesign-api.test.ts`, `tests/ui/experiences-projects-tabs.test.tsx` | ✅ |
@@ -129,7 +129,7 @@ Levels: API (Vitest + route handlers), Unit, UI (Testing Library, `tests/ui/`), 
 
 | ID | Use case | Level | Test | Status |
 |---|---|---|---|---|
-| X1 | Every public page (desktop and phone), a case study, the 404 page and the contact form error have no WCAG A/AA violation: text contrast, names, structure | E2E | `e2e/accessibility.spec.ts` | ✅ |
+| X1 | Every public page (desktop and phone), a case study (when enabled), the 404 page and the contact form error have no WCAG A/AA violation: text contrast, names, structure | E2E | `e2e/accessibility.spec.ts` | ✅ |
 | X2 | Login page, including its error state; the password toggle is named and exposes its state (`aria-pressed`) | UI, E2E | `tests/ui/login-page.test.tsx`, `e2e/accessibility.spec.ts` | ✅ |
 | X3 | Read-only admin: every tab | E2E | `e2e/accessibility.spec.ts` | ✅ |
 | X4 | Admin: every tab, experience / project dialogs, tags menu with selected tags, open message, deletion modals, tag renaming; icon buttons named after their target ("Modifier …", "Monter …") | UI, E2E | `tests/ui/hero-and-messages-tabs.test.tsx`, `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/accessibility.spec.ts` | ✅ |

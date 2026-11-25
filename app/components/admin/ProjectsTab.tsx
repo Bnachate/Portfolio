@@ -16,6 +16,7 @@ import {
 } from "@/app/services/admin/projects.service";
 import { createTag, getTags } from "@/app/services/admin/experiences.service";
 import { getErrorMessage } from "@/app/config/api.config";
+import { CASE_STUDIES_ENABLED } from "@/app/config/content";
 import { ProjectDialog, type ProjectFormData } from "./projects-tab/modal/ProjectDialog";
 import type { Project, Tag } from "@/app/types/api";
 import { useReadOnly } from "@/app/admin/ReadOnlyContext";
@@ -269,7 +270,8 @@ export function ProjectsTab() {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <ViewLink label={`Voir ${project.title} sur le site`} href={`/projets/${project.id}`} />
+                    {/* The case study page redirects to the home page while CASE_STUDIES_ENABLED is false */}
+                    {CASE_STUDIES_ENABLED && <ViewLink label={`Voir ${project.title} sur le site`} href={`/projets/${project.id}`} />}
                     {!readOnly && (
                       <>
                         <EditButton label={`Modifier ${project.title}`} onClick={() => handleEdit(project)} />

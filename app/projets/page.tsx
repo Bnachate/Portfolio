@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getPublicHero } from "@/server/services/hero";
 import { listProjects } from "@/server/services/projects";
-import { LOREM } from "@/app/config/content";
+import { CASE_STUDIES_ENABLED, LOREM } from "@/app/config/content";
 import { SiteHeader } from "@/app/components/site/SiteHeader";
 import { SiteFooter } from "@/app/components/site/SiteFooter";
 import { ArrowIcon, PageTitle, Section, TechTagList, buttonStyles, underlineLink } from "@/app/components/site/ui";
@@ -46,10 +46,13 @@ export default async function ProjectsPage() {
                     <p className="max-w-[58ch] whitespace-pre-line text-[19px] leading-[1.65] text-slate">{project.description}</p>
                     <TechTagList names={project.tags.map((tag) => tag.name)} label={`Technologies de ${project.title}`} />
                     <div className="flex flex-wrap items-center gap-x-7 gap-y-3 pt-2">
-                      <Link href={`/projets/${project.id}`} className={buttonStyles.ink}>
-                        Lire l&apos;étude de cas
-                        <ArrowIcon />
-                      </Link>
+                      {/* Hidden while the case studies are being written (CASE_STUDIES_ENABLED) */}
+                      {CASE_STUDIES_ENABLED && (
+                        <Link href={`/projets/${project.id}`} className={buttonStyles.ink}>
+                          Lire l&apos;étude de cas
+                          <ArrowIcon />
+                        </Link>
+                      )}
                       {project.githubUrl && (
                         <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className={underlineLink}>
                           Code source sur GitHub

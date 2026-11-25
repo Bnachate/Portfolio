@@ -19,6 +19,15 @@ vi.mock('@/app/services/admin/experiences.service', () => ({
   getTags: vi.fn(),
   createTag: vi.fn(),
 }));
+// Case study pages: on by default in these tests (the code stays covered), switched off per test
+const flags = vi.hoisted(() => ({ caseStudies: true }));
+vi.mock('@/app/config/content', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/app/config/content')>()),
+  get CASE_STUDIES_ENABLED() {
+    return flags.caseStudies;
+  },
+}));
+
 vi.mock('@/app/services/admin/projects.service', () => ({
   getProjects: vi.fn(),
   createProject: vi.fn(),
@@ -79,6 +88,7 @@ const rowOf = (text: string) => screen.getByText(text).closest('tr')!;
 const jobs = () => screen.getAllByRole('row').slice(1).map((r) => within(r).getAllByRole('cell')[1].querySelector('span')!.textContent);
 
 beforeEach(() => {
+  flags.caseStudies = true;
   exp.getTags.mockResolvedValue([...TAGS]);
   exp.getExperiences.mockResolvedValue([{ ...EXPERIENCE }, { ...OLDER }]);
   proj.getProjects.mockResolvedValue([{ ...PROJECT }, { ...SECOND_PROJECT }]);
@@ -372,6 +382,16 @@ describe('ProjectsTab (admin)', () => {
     await user.click(screen.getByRole('button', { name: 'Supprimer Portfolio' }));
     await user.click(within(await screen.findByRole('alertdialog', { name: 'Supprimer « Portfolio » ?' })).getByRole('button', { name: 'Oui' }));
     expect(proj.deleteProject).toHaveBeenCalledWith(20);
+  });
+});
+
+describe('ProjectsTab (case studies switched off)', () => {
+  it('has no link to the public case study page', async () => {
+    flags.caseStudies = false;
+    render(withMode(false, <ProjectsTab />));
+    await screen.findByText('Portfolio');
+    expect(screen.queryByRole('link', { name: 'Voir Portfolio sur le site' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Modifier Portfolio' })).toBeInTheDocument();
   });
 });
 

@@ -10,6 +10,7 @@ import ProjectPage from '@/app/projets/[id]/page';
 import ExperiencePage from '@/app/experience/page';
 import SkillsPage from '@/app/competences/page';
 import ContactPage from '@/app/contact/page';
+import sitemap from '@/app/sitemap';
 import { LOREM } from '@/app/config/content';
 import { getPublicHero } from '@/server/services/hero';
 import { findProject, listProjects } from '@/server/services/projects';
@@ -28,6 +29,17 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
   notFound: () => {
     throw new Error('NEXT_NOT_FOUND');
+  },
+  redirect: (url: string) => {
+    throw new Error(`NEXT_REDIRECT ${url}`);
+  },
+}));
+// Case study pages: on by default in these tests (the code stays covered), switched off per test
+const flags = vi.hoisted(() => ({ caseStudies: true }));
+vi.mock('@/app/config/content', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/app/config/content')>()),
+  get CASE_STUDIES_ENABLED() {
+    return flags.caseStudies;
   },
 }));
 
@@ -97,6 +109,7 @@ const PROJECT: Project = {
 };
 
 beforeEach(() => {
+  flags.caseStudies = true;
   vi.mocked(getPublicHero).mockResolvedValue({ ...HERO });
   vi.mocked(listProjects).mockResolvedValue([{ ...PROJECT }]);
   vi.mocked(findProject).mockResolvedValue({ ...PROJECT });
@@ -169,6 +182,14 @@ describe('Projects page', () => {
     expect(within(article).queryByRole('link', { name: 'Voir la démo' })).not.toBeInTheDocument();
   });
 
+  it('hides the case study button while the case studies are switched off', async () => {
+    flags.caseStudies = false;
+    render(await ProjectsPage());
+    const article = screen.getByRole('heading', { level: 2, name: PROJECT.title }).closest('article')!;
+    expect(within(article).queryByRole('link', { name: /Lire l'étude de cas/ })).not.toBeInTheDocument();
+    expect(within(article).getByRole('link', { name: 'Code source sur GitHub' })).toBeInTheDocument();
+  });
+
   it('announces upcoming projects when there are none', async () => {
     vi.mocked(listProjects).mockResolvedValue([]);
     render(await ProjectsPage());
@@ -203,10 +224,25 @@ describe('Case study page', () => {
     expect(screen.queryByText(LOREM.context)).not.toBeInTheDocument();
   });
 
+  it('redirects to the home page while the case studies are switched off', async () => {
+    flags.caseStudies = false;
+    await expect(page('7')).rejects.toThrow('NEXT_REDIRECT /');
+    expect(findProject).not.toHaveBeenCalledWith(7);
+  });
+
   it('answers "not found" for an unknown or invalid id', async () => {
     vi.mocked(findProject).mockResolvedValue(null);
     await expect(page('999')).rejects.toThrow('NEXT_NOT_FOUND');
     await expect(page('abc')).rejects.toThrow('NEXT_NOT_FOUND');
+  });
+});
+
+describe('sitemap', () => {
+  it('lists the case study pages only when they are published', async () => {
+    const urls = async () => (await sitemap()).map((entry) => new URL(entry.url).pathname);
+    expect(await urls()).toContain('/projets/7');
+    flags.caseStudies = false;
+    expect(await urls()).toEqual(['/', '/projets', '/experience', '/competences', '/contact']);
   });
 });
 

@@ -30,7 +30,8 @@ test.describe('Accessibility (visitor)', () => {
       await expect(page).toHaveURL(/\/projets\/\d+$/);
       await expectNoViolations(page, 'case study');
     }
-    await page.goto('/projets/999999');
+    // Case studies are switched off for now: /projets/:id redirects home, so check the 404 page elsewhere
+    await page.goto('/page-inconnue');
     await expectNoViolations(page, '404');
   });
 
