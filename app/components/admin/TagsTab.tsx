@@ -6,7 +6,7 @@ import { Button } from "../common/Button";
 import { Input } from "../common/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../common/table";
 import { ErrorBanner } from "./common/ErrorBanner";
-import { AdminPanel, DeleteButton, EditButton, InlineDeleteConfirm, StatusBadge } from "./common/AdminUi";
+import { AdminPanel, DeleteButton, DeleteConfirmDialog, EditButton, StatusBadge } from "./common/AdminUi";
 import { createTag, deleteTag, getTagsWithUsage, updateTag } from "@/app/services/admin/tags.service";
 import { getErrorMessage } from "@/app/config/api.config";
 import { getSkillDomains } from "@/app/services/admin/skill-domains.service";
@@ -243,18 +243,20 @@ export function TagsTab() {
                             <X size={20} aria-hidden="true" />
                           </Button>
                         </div>
-                      ) : deleteTargetId === tag.id ? (
-                        <InlineDeleteConfirm
-                          question={isUnused(tag) ? `Supprimer « ${tag.name} » ?` : `Supprimer « ${tag.name} » ? Il sera retiré de ${formatUsage(tag)}.`}
-                          onConfirm={() => handleDelete(tag)}
-                          onCancel={() => setDeleteTargetId(null)}
-                          busy={isDeleting}
-                        />
                       ) : (
                         <div className="flex justify-end gap-2">
                           <EditButton label={`Renommer ${tag.name}`} onClick={() => startEditing(tag)} />
                           <DeleteButton label={`Supprimer ${tag.name}`} onClick={() => setDeleteTargetId(tag.id)} />
                         </div>
+                      )}
+                      {deleteTargetId === tag.id && (
+                        <DeleteConfirmDialog
+                          question={`Supprimer « ${tag.name} » ?`}
+                          detail={isUnused(tag) ? "Ce tag n'est utilisé nulle part." : `Il sera retiré de ${formatUsage(tag)}.`}
+                          onConfirm={() => handleDelete(tag)}
+                          onCancel={() => setDeleteTargetId(null)}
+                          busy={isDeleting}
+                        />
                       )}
                     </TableCell>
                   )}

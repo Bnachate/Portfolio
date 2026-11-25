@@ -4,12 +4,16 @@ import { Container } from "./ui";
 
 export type PageKey = "home" | "projets" | "experience" | "competences" | "contact";
 
-const NAV: { key: PageKey; href: string; label: string }[] = [
+type NavKey = PageKey | "admin";
+
+const NAV: { key: NavKey; href: string; label: string }[] = [
   { key: "home", href: "/", label: "Accueil" },
   { key: "projets", href: "/projets", label: "Projets" },
   { key: "experience", href: "/experience", label: "Expérience" },
   { key: "competences", href: "/competences", label: "Compétences" },
   { key: "contact", href: "/contact", label: "Contact" },
+  // Admin panel: read-only for visitors, editable once logged in
+  { key: "admin", href: "/admin", label: "Admin" },
 ];
 
 /**

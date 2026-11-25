@@ -104,9 +104,9 @@ test.describe('Accessibility (admin)', () => {
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
 
-    // In-row deletion question
+    // Deletion modal
     await page.getByRole('button', { name: /^Supprimer / }).first().click();
-    await expect(page.getByRole('group', { name: /^Supprimer « / })).toBeVisible();
+    await expect(page.getByRole('alertdialog', { name: /^Supprimer « / })).toBeVisible();
     await expectNoViolations(page, 'experience deletion question');
     await page.keyboard.press('Escape');
 
@@ -123,7 +123,7 @@ test.describe('Accessibility (admin)', () => {
 
     await page.getByRole('tab', { name: 'Tags' }).click();
     await page.getByRole('button', { name: 'Supprimer Java', exact: true }).click();
-    await expect(page.getByRole('group', { name: /^Supprimer « Java »/ })).toBeVisible();
+    await expect(page.getByRole('alertdialog', { name: /^Supprimer « Java »/ })).toBeVisible();
     await expectNoViolations(page, 'tag deletion question');
     await page.keyboard.press('Escape');
     await page.getByRole('button', { name: 'Renommer Java', exact: true }).click();

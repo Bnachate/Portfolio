@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "../common/Button";
 import { ErrorBanner } from "./common/ErrorBanner";
-import { AdminPanel, DeleteButton, EditButton, InlineDeleteConfirm, ReorderButtons, ViewLink, movedIds, nextPosition } from "./common/AdminUi";
+import { AdminPanel, DeleteButton, EditButton, DeleteConfirmDialog, ReorderButtons, ViewLink, movedIds, nextPosition } from "./common/AdminUi";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../common/table";
 import {
   getProjects,
@@ -113,10 +113,11 @@ export function ProjectsTab() {
     try {
       await deleteProject(id);
       await fetchProjects();
-      setDeleteTargetId(null);
     } catch (err) {
       setError(getErrorMessage(err, "Impossible de supprimer le projet"));
     } finally {
+      // Closed once the server has answered, also on error so the message is visible
+      setDeleteTargetId(null);
       setIsBusy(false);
     }
   };
@@ -267,23 +268,23 @@ export function ProjectsTab() {
                   </ul>
                 </TableCell>
                 <TableCell className="text-right">
-                  {deleteTargetId === project.id ? (
-                    <InlineDeleteConfirm
+                  <div className="flex justify-end gap-2">
+                    <ViewLink label={`Voir ${project.title} sur le site`} href={`/projets/${project.id}`} />
+                    {!readOnly && (
+                      <>
+                        <EditButton label={`Modifier ${project.title}`} onClick={() => handleEdit(project)} />
+                        <DeleteButton label={`Supprimer ${project.title}`} onClick={() => setDeleteTargetId(project.id)} />
+                      </>
+                    )}
+                  </div>
+                  {deleteTargetId === project.id && (
+                    <DeleteConfirmDialog
                       question={`Supprimer « ${project.title} » ?`}
+                      detail="Le projet et son étude de cas seront retirés du site. Cette action est définitive."
                       onConfirm={() => handleDelete(project.id)}
                       onCancel={() => setDeleteTargetId(null)}
                       busy={isBusy}
                     />
-                  ) : (
-                    <div className="flex justify-end gap-2">
-                      <ViewLink label={`Voir ${project.title} sur le site`} href={`/projets/${project.id}`} />
-                      {!readOnly && (
-                        <>
-                          <EditButton label={`Modifier ${project.title}`} onClick={() => handleEdit(project)} />
-                          <DeleteButton label={`Supprimer ${project.title}`} onClick={() => setDeleteTargetId(project.id)} />
-                        </>
-                      )}
-                    </div>
                   )}
                 </TableCell>
               </TableRow>

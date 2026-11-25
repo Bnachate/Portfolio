@@ -111,11 +111,11 @@ const noContactDetails = (container: HTMLElement) => {
 };
 
 describe('SiteHeader', () => {
-  it('links every page, marks the current one and offers the CV', () => {
+  it('links every page and the admin, marks the current one and offers the CV', () => {
     render(<SiteHeader current="experience" />);
     const nav = screen.getByRole('navigation', { name: 'Navigation principale' });
     const hrefs = within(nav).getAllByRole('link').map((link) => link.getAttribute('href'));
-    expect(hrefs).toEqual(['/', '/projets', '/experience', '/competences', '/contact', '/CV_Brahim_Nachate_Developpeur_Full-Stack.pdf']);
+    expect(hrefs).toEqual(['/', '/projets', '/experience', '/competences', '/contact', '/admin', '/CV_Brahim_Nachate_Developpeur_Full-Stack.pdf']);
     expect(within(nav).getByRole('link', { name: 'Expérience' })).toHaveAttribute('aria-current', 'page');
     expect(within(nav).getByRole('link', { name: 'Accueil' })).not.toHaveAttribute('aria-current');
   });

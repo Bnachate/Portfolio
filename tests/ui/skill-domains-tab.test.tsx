@@ -89,17 +89,37 @@ describe('SkillDomainsTab (admin)', () => {
     expect(service.renameSkillDomain).toHaveBeenCalledTimes(1);
   });
 
-  it('asks in the row before deleting, saying where its tags go', async () => {
+  it('asks in a modal before deleting, saying where its tags go', async () => {
     service.deleteSkillDomain.mockResolvedValue({} as AxiosResponse);
     const user = userEvent.setup();
     await renderTab();
 
     await user.click(screen.getByRole('button', { name: 'Supprimer Front-end' }));
-    expect(screen.getByText('Supprimer « Front-end » ? Ses tags iront dans « Autres ».')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Oui' }));
+    const confirm = await screen.findByRole('alertdialog', { name: 'Supprimer « Front-end » ?' });
+    expect(confirm).toHaveAccessibleDescription('Ses tags iront dans « Autres ».');
+    await user.click(within(confirm).getByRole('button', { name: 'Oui' }));
     expect(service.deleteSkillDomain).toHaveBeenCalledWith(1);
     await waitFor(() => expect(names()).toEqual(['API et données']));
-    expect(screen.queryByText(/Ses tags iront/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('keeps the modal open and locked while the deletion runs', async () => {
+    let finish!: () => void;
+    service.deleteSkillDomain.mockReturnValue(new Promise((resolve) => (finish = () => resolve({} as AxiosResponse))));
+    const user = userEvent.setup();
+    await renderTab();
+
+    await user.click(screen.getByRole('button', { name: 'Supprimer Front-end' }));
+    const confirm = await screen.findByRole('alertdialog');
+    await user.click(within(confirm).getByRole('button', { name: 'Oui' }));
+    expect(within(confirm).getByRole('button', { name: 'Suppression...' })).toBeDisabled();
+    expect(within(confirm).getByRole('button', { name: 'Non' })).toBeDisabled();
+    await user.keyboard('{Escape}');
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+
+    finish();
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    expect(names()).toEqual(['API et données']);
   });
 
   it('moves a domain down and shows the saved order', async () => {

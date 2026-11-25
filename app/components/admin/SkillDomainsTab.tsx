@@ -6,7 +6,7 @@ import { Button } from "../common/Button";
 import { Input } from "../common/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../common/table";
 import { ErrorBanner } from "./common/ErrorBanner";
-import { AdminPanel, DeleteButton, EditButton, InlineDeleteConfirm, ReorderButtons, movedIds } from "./common/AdminUi";
+import { AdminPanel, DeleteButton, DeleteConfirmDialog, EditButton, ReorderButtons, movedIds } from "./common/AdminUi";
 import {
   createSkillDomain,
   deleteSkillDomain,
@@ -188,18 +188,20 @@ export function SkillDomainsTab() {
                             <X size={20} aria-hidden="true" />
                           </Button>
                         </div>
-                      ) : deleteTargetId === domain.id ? (
-                        <InlineDeleteConfirm
-                          question={`Supprimer « ${domain.name} » ? Ses tags iront dans « ${OTHER_DOMAIN_LABEL} ».`}
-                          onConfirm={() => handleDelete(domain)}
-                          onCancel={() => setDeleteTargetId(null)}
-                          busy={isBusy}
-                        />
                       ) : (
                         <div className="flex justify-end gap-2">
                           <EditButton label={`Renommer ${domain.name}`} onClick={() => startEditing(domain)} />
                           <DeleteButton label={`Supprimer ${domain.name}`} onClick={() => setDeleteTargetId(domain.id)} />
                         </div>
+                      )}
+                      {deleteTargetId === domain.id && (
+                        <DeleteConfirmDialog
+                          question={`Supprimer « ${domain.name} » ?`}
+                          detail={`Ses tags iront dans « ${OTHER_DOMAIN_LABEL} ».`}
+                          onConfirm={() => handleDelete(domain)}
+                          onCancel={() => setDeleteTargetId(null)}
+                          busy={isBusy}
+                        />
                       )}
                     </TableCell>
                   )}

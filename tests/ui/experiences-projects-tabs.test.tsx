@@ -239,7 +239,7 @@ describe('ExperienceTab (admin)', () => {
     expect(within(dialog).getByLabelText('Titre du poste')).toHaveValue('Développeur Vue.js senior');
   });
 
-  it('deletes an experience after the in-row confirmation', async () => {
+  it('deletes an experience after confirming in a modal', async () => {
     exp.deleteExperience.mockResolvedValue({} as never);
     exp.getExperiences.mockResolvedValueOnce([{ ...EXPERIENCE }, { ...OLDER }]).mockResolvedValueOnce([{ ...OLDER }]);
     const user = userEvent.setup();
@@ -247,12 +247,15 @@ describe('ExperienceTab (admin)', () => {
     await screen.findByText('Développeur Vue.js');
 
     await user.click(screen.getByRole('button', { name: 'Supprimer Développeur Vue.js' }));
-    const confirm = screen.getByRole('group', { name: 'Supprimer « Développeur Vue.js » ?' });
+    const confirm = await screen.findByRole('alertdialog', { name: 'Supprimer « Développeur Vue.js » ?' });
+    expect(confirm).toHaveAccessibleDescription(/Weborama.*définitive/);
+    // The safe answer has the focus
     expect(within(confirm).getByRole('button', { name: 'Non' })).toHaveFocus();
     await user.click(within(confirm).getByRole('button', { name: 'Oui' }));
 
     expect(exp.deleteExperience).toHaveBeenCalledWith(10);
     await waitFor(() => expect(screen.queryByText('Développeur Vue.js')).not.toBeInTheDocument());
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 
   it('keeps the experience when the deletion is refused', async () => {
@@ -261,7 +264,8 @@ describe('ExperienceTab (admin)', () => {
     await screen.findByText('Développeur Vue.js');
 
     await user.click(screen.getByRole('button', { name: 'Supprimer Développeur Vue.js' }));
-    await user.click(screen.getByRole('button', { name: 'Non' }));
+    await user.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Non' }));
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     expect(exp.deleteExperience).not.toHaveBeenCalled();
     expect(screen.getByRole('button', { name: 'Supprimer Développeur Vue.js' })).toBeInTheDocument();
   });
@@ -359,14 +363,14 @@ describe('ProjectsTab (admin)', () => {
     expect(jobs()).toEqual(['API Next.js', 'Portfolio']);
   });
 
-  it('deletes a project after the in-row confirmation', async () => {
+  it('deletes a project after confirming in a modal', async () => {
     proj.deleteProject.mockResolvedValue({} as never);
     const user = userEvent.setup();
     render(withMode(false, <ProjectsTab />));
     await screen.findByText('Portfolio');
 
     await user.click(screen.getByRole('button', { name: 'Supprimer Portfolio' }));
-    await user.click(within(screen.getByRole('group', { name: 'Supprimer « Portfolio » ?' })).getByRole('button', { name: 'Oui' }));
+    await user.click(within(await screen.findByRole('alertdialog', { name: 'Supprimer « Portfolio » ?' })).getByRole('button', { name: 'Oui' }));
     expect(proj.deleteProject).toHaveBeenCalledWith(20);
   });
 });

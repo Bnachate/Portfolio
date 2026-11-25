@@ -192,8 +192,9 @@ test.describe('Admin - tags', () => {
     await expect(row).toContainText('expérience');
 
     await row.getByRole('button', { name: 'Supprimer Java', exact: true }).click();
-    const confirm = page.getByRole('group', { name: /Supprimer « Java » \? Il sera retiré de/ });
+    const confirm = page.getByRole('alertdialog', { name: 'Supprimer « Java » ?' });
     await expect(confirm).toBeVisible();
+    await expect(confirm).toHaveAccessibleDescription(/Il sera retiré de .*expérience/);
     // Focus is on the safe answer: Enter would keep the tag
     await expect(confirm.getByRole('button', { name: 'Non' })).toBeFocused();
     await page.keyboard.press('Escape');

@@ -14,6 +14,15 @@ test.describe('Read-only admin (visitor)', () => {
     await expect(page.getByRole('tab', { name: 'Messages' })).toHaveCount(0);
   });
 
+  test('the header "Admin" link, right after "Contact", opens the panel in read-only mode (R1)', async ({ page }) => {
+    await page.goto('/contact');
+    const nav = page.getByRole('navigation', { name: 'Navigation principale' });
+    await expect(nav.getByRole('link')).toHaveText(['Accueil', 'Projets', 'Expérience', 'Compétences', 'Contact', 'Admin', 'CV en PDF']);
+    await nav.getByRole('link', { name: 'Admin' }).click();
+    await expect(page).toHaveURL('/admin');
+    await expect(page.getByText(/Mode lecture seule/)).toBeVisible();
+  });
+
   test('every tab can be browsed without any way to change anything (R2)', async ({ page }) => {
     await page.goto('/admin');
 

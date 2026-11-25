@@ -6,7 +6,8 @@ import { expect, type Page } from '@playwright/test';
  * right after the click could otherwise pass or fail depending on the DELETE request timing.
  */
 export async function confirmDeletion(page: Page, question: string | RegExp) {
-  const confirm = page.getByRole('group', { name: question });
+  // Experiences, projects, tags and domains ask in a modal; a contact message asks in place
+  const confirm = page.getByRole('alertdialog', { name: question }).or(page.getByRole('group', { name: question }));
   await confirm.getByRole('button', { name: 'Oui', exact: true }).click();
   await expect(confirm).toBeHidden();
 }
