@@ -70,6 +70,8 @@ describe('hero links', () => {
     githubUrl: 'https://github.com/someone',
     linkedinUrl: 'https://linkedin.com/in/someone',
     email: 'me@example.com',
+    availabilityEnabled: true,
+    availabilityText: 'Ouvert aux opportunités',
   };
 
   it('accepts anchors, relative paths and http(s) URLs', () => {

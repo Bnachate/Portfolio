@@ -8,13 +8,14 @@ import { ProjectsTab } from '@/app/components/admin/ProjectsTab';
 import { ReadOnlyProvider } from '@/app/admin/ReadOnlyContext';
 import * as experiencesService from '@/app/services/admin/experiences.service';
 import * as projectsService from '@/app/services/admin/projects.service';
-import type { Experience, Project, Tag } from '@/app/types/api';
+import type { Experience, Project, TagWithDomain } from '@/app/types/api';
 
 vi.mock('@/app/services/admin/experiences.service', () => ({
   getExperiences: vi.fn(),
   createExperience: vi.fn(),
   updateExperience: vi.fn(),
   deleteExperience: vi.fn(),
+  reorderExperiences: vi.fn(),
   getTags: vi.fn(),
   createTag: vi.fn(),
 }));
@@ -23,13 +24,14 @@ vi.mock('@/app/services/admin/projects.service', () => ({
   createProject: vi.fn(),
   updateProject: vi.fn(),
   deleteProject: vi.fn(),
+  reorderProjects: vi.fn(),
 }));
 const exp = vi.mocked(experiencesService);
 const proj = vi.mocked(projectsService);
 
-const TAGS: Tag[] = [
-  { id: 1, name: 'Java' },
-  { id: 2, name: 'Vue.js' },
+const TAGS: TagWithDomain[] = [
+  { id: 1, name: 'Java', domainId: 2 },
+  { id: 2, name: 'Vue.js', domainId: 1 },
 ];
 const EXPERIENCE: Experience = {
   id: 10,
@@ -41,6 +43,16 @@ const EXPERIENCE: Experience = {
   position: 0,
   tags: [TAGS[1]],
 };
+const OLDER: Experience = {
+  id: 9,
+  job: 'Développeur React',
+  company: 'Ipocamp',
+  description: 'React',
+  startDate: '2021-04-01',
+  endDate: '2022-12-01',
+  position: 1,
+  tags: [],
+};
 const PROJECT: Project = {
   id: 20,
   title: 'Portfolio',
@@ -49,37 +61,86 @@ const PROJECT: Project = {
   githubUrl: 'https://github.com/x/portfolio',
   demoUrl: null,
   position: 0,
+  kind: null,
+  scope: null,
+  role: null,
+  context: null,
+  achievements: null,
+  results: null,
   tags: [],
 };
+// Position 4: a gap left by deleted projects
+const SECOND_PROJECT: Project = { ...PROJECT, id: 21, title: 'API Next.js', githubUrl: null, position: 4 };
 
 const apiError = (message: string) =>
   new AxiosError('Bad Request', '400', undefined, undefined, { status: 400, data: { message } } as AxiosResponse);
 const withMode = (readOnly: boolean, ui: React.ReactNode) => <ReadOnlyProvider value={readOnly}>{ui}</ReadOnlyProvider>;
+const rowOf = (text: string) => screen.getByText(text).closest('tr')!;
+const jobs = () => screen.getAllByRole('row').slice(1).map((r) => within(r).getAllByRole('cell')[1].querySelector('span')!.textContent);
 
 beforeEach(() => {
   exp.getTags.mockResolvedValue([...TAGS]);
-  exp.getExperiences.mockResolvedValue([{ ...EXPERIENCE }]);
-  proj.getProjects.mockResolvedValue([{ ...PROJECT }]);
+  exp.getExperiences.mockResolvedValue([{ ...EXPERIENCE }, { ...OLDER }]);
+  proj.getProjects.mockResolvedValue([{ ...PROJECT }, { ...SECOND_PROJECT }]);
 });
 
 describe('ExperienceTab (admin)', () => {
-  it('lists experiences with their period and tags', async () => {
+  it('lists experiences with their period, tags and state badges', async () => {
     render(withMode(false, <ExperienceTab />));
-    const row = (await screen.findByText('Développeur Vue.js')).closest('tr')!;
-    expect(within(row).getByText("01-01-2023 - Aujourd'hui")).toBeInTheDocument();
-    expect(within(row).getByText('Vue.js')).toBeInTheDocument();
-    expect(screen.getByText(/1 expérience au total/)).toBeInTheDocument();
+    await screen.findByText('Développeur Vue.js');
+    const row = rowOf('Développeur Vue.js');
+    expect(within(row).getByText('Janv. 2023 - Présent')).toBeInTheDocument();
+    expect(within(row).getByRole('list', { name: 'Tags de Développeur Vue.js' })).toHaveTextContent('Vue.js');
+    expect(within(row).getByText('En cours')).toBeInTheDocument();
+    expect(within(rowOf('Développeur React')).queryByText('En cours')).not.toBeInTheDocument();
+    expect(screen.queryByText('Chevauchement')).not.toBeInTheDocument();
+    expect(screen.getByText(/2 expériences au total/)).toBeInTheDocument();
   });
 
-  it('creates an experience once the required fields and a tag are filled', async () => {
+  it('flags experiences whose periods overlap', async () => {
+    exp.getExperiences.mockResolvedValue([{ ...EXPERIENCE }, { ...OLDER, endDate: '2023-06-01' }]);
+    render(withMode(false, <ExperienceTab />));
+    await screen.findByText('Développeur Vue.js');
+    expect(screen.getAllByText('Chevauchement')).toHaveLength(2);
+  });
+
+  it('moves an experience down and shows the order saved by the API', async () => {
+    exp.reorderExperiences.mockResolvedValue([{ ...OLDER, position: 0 }, { ...EXPERIENCE, position: 1 }]);
+    const user = userEvent.setup();
+    render(withMode(false, <ExperienceTab />));
+    await screen.findByText('Développeur Vue.js');
+
+    // The first row cannot go up, the last one cannot go down
+    expect(screen.getByRole('button', { name: 'Monter Développeur Vue.js' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Descendre Développeur React' })).toBeDisabled();
+
+    await user.click(screen.getByRole('button', { name: 'Descendre Développeur Vue.js' }));
+    expect(exp.reorderExperiences).toHaveBeenCalledWith([9, 10]);
+    expect(jobs()).toEqual(['Développeur React', 'Développeur Vue.js']);
+  });
+
+  it('shows the API error when the order could not be saved', async () => {
+    exp.reorderExperiences.mockRejectedValue(apiError('La liste a changé entre-temps : rechargez la page'));
+    const user = userEvent.setup();
+    render(withMode(false, <ExperienceTab />));
+    await screen.findByText('Développeur Vue.js');
+
+    await user.click(screen.getByRole('button', { name: 'Monter Développeur React' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('rechargez la page');
+    expect(jobs()).toEqual(['Développeur Vue.js', 'Développeur React']);
+  });
+
+  it('creates an experience at the end of the list once the required fields and a tag are filled', async () => {
     exp.createExperience.mockResolvedValue({ ...EXPERIENCE, id: 11 });
     const user = userEvent.setup();
     render(withMode(false, <ExperienceTab />));
     await screen.findByText('Développeur Vue.js');
 
-    await user.click(screen.getByRole('button', { name: /nouvelle expérience/i }));
+    await user.click(screen.getByRole('button', { name: 'Nouvelle expérience' }));
     const dialog = await screen.findByRole('dialog');
     const create = within(dialog).getByRole('button', { name: 'Créer' });
+    // The order is set with the arrows, not in the form
+    expect(within(dialog).queryByLabelText(/Position/)).not.toBeInTheDocument();
 
     await user.type(within(dialog).getByLabelText('Titre du poste'), 'Développeur Java');
     await user.type(within(dialog).getByLabelText('Entreprise'), 'ACME');
@@ -97,7 +158,7 @@ describe('ExperienceTab (admin)', () => {
     expect(exp.createExperience).toHaveBeenCalledWith({
       job: 'Développeur Java',
       company: 'ACME',
-      position: 0,
+      position: 2,
       description: 'Spring Boot',
       startDate: '2024-02-01',
       endDate: null,
@@ -107,12 +168,12 @@ describe('ExperienceTab (admin)', () => {
   });
 
   it('creates a missing tag from the experience form', async () => {
-    exp.createTag.mockResolvedValue({ id: 3, name: 'Go' });
+    exp.createTag.mockResolvedValue({ id: 3, name: 'Go', domainId: null });
     const user = userEvent.setup();
     render(withMode(false, <ExperienceTab />));
     await screen.findByText('Développeur Vue.js');
 
-    await user.click(screen.getByRole('button', { name: /nouvelle expérience/i }));
+    await user.click(screen.getByRole('button', { name: 'Nouvelle expérience' }));
     const dialog = await screen.findByRole('dialog');
     await user.type(within(dialog).getByLabelText('Nom du nouveau tag'), 'Go');
     await user.click(within(dialog).getByRole('button', { name: 'Créer le tag' }));
@@ -133,7 +194,7 @@ describe('ExperienceTab (admin)', () => {
     render(withMode(false, <ExperienceTab />));
     await screen.findByText('Développeur Vue.js');
 
-    await user.click(screen.getByRole('button', { name: 'Modifier' }));
+    await user.click(screen.getByRole('button', { name: 'Modifier Développeur Vue.js' }));
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByText("Modifier l'expérience")).toBeInTheDocument();
     const update = within(dialog).getByRole('button', { name: 'Mettre à jour' });
@@ -143,7 +204,7 @@ describe('ExperienceTab (admin)', () => {
     expect(update).toBeEnabled();
     await user.click(update);
 
-    expect(exp.updateExperience).toHaveBeenCalledWith(10, expect.objectContaining({ company: 'Weborama SA', tags: [2] }));
+    expect(exp.updateExperience).toHaveBeenCalledWith(10, expect.objectContaining({ company: 'Weborama SA', tags: [2], position: 0 }));
   });
 
   it('blocks an end date before the start date in the form itself', async () => {
@@ -151,9 +212,9 @@ describe('ExperienceTab (admin)', () => {
     render(withMode(false, <ExperienceTab />));
     await screen.findByText('Développeur Vue.js');
 
-    await user.click(screen.getByRole('button', { name: 'Modifier' }));
+    await user.click(screen.getByRole('button', { name: 'Modifier Développeur Vue.js' }));
     const dialog = await screen.findByRole('dialog');
-    const endDate = within(dialog).getByLabelText('Date de fin');
+    const endDate = within(dialog).getByLabelText('Date de fin (vide = poste actuel)');
     expect(endDate).toHaveAttribute('min', '2023-01-01');
 
     await user.type(endDate, '2020-01-01');
@@ -168,7 +229,7 @@ describe('ExperienceTab (admin)', () => {
     render(withMode(false, <ExperienceTab />));
     await screen.findByText('Développeur Vue.js');
 
-    await user.click(screen.getByRole('button', { name: 'Modifier' }));
+    await user.click(screen.getByRole('button', { name: 'Modifier Développeur Vue.js' }));
     const dialog = await screen.findByRole('dialog');
     await user.type(within(dialog).getByLabelText('Titre du poste'), ' senior');
     await user.click(within(dialog).getByRole('button', { name: 'Mettre à jour' }));
@@ -178,55 +239,99 @@ describe('ExperienceTab (admin)', () => {
     expect(within(dialog).getByLabelText('Titre du poste')).toHaveValue('Développeur Vue.js senior');
   });
 
-  it('deletes an experience after confirmation', async () => {
+  it('deletes an experience after the in-row confirmation', async () => {
     exp.deleteExperience.mockResolvedValue({} as never);
-    exp.getExperiences.mockResolvedValueOnce([{ ...EXPERIENCE }]).mockResolvedValueOnce([]);
+    exp.getExperiences.mockResolvedValueOnce([{ ...EXPERIENCE }, { ...OLDER }]).mockResolvedValueOnce([{ ...OLDER }]);
     const user = userEvent.setup();
     render(withMode(false, <ExperienceTab />));
     await screen.findByText('Développeur Vue.js');
 
-    await user.click(screen.getByRole('button', { name: "Supprimer l'expérience" }));
-    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Supprimer' }));
+    await user.click(screen.getByRole('button', { name: 'Supprimer Développeur Vue.js' }));
+    const confirm = screen.getByRole('group', { name: 'Supprimer « Développeur Vue.js » ?' });
+    expect(within(confirm).getByRole('button', { name: 'Non' })).toHaveFocus();
+    await user.click(within(confirm).getByRole('button', { name: 'Oui' }));
 
     expect(exp.deleteExperience).toHaveBeenCalledWith(10);
     await waitFor(() => expect(screen.queryByText('Développeur Vue.js')).not.toBeInTheDocument());
   });
+
+  it('keeps the experience when the deletion is refused', async () => {
+    const user = userEvent.setup();
+    render(withMode(false, <ExperienceTab />));
+    await screen.findByText('Développeur Vue.js');
+
+    await user.click(screen.getByRole('button', { name: 'Supprimer Développeur Vue.js' }));
+    await user.click(screen.getByRole('button', { name: 'Non' }));
+    expect(exp.deleteExperience).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Supprimer Développeur Vue.js' })).toBeInTheDocument();
+  });
 });
 
 describe('ExperienceTab (read-only visitor)', () => {
-  it('shows the experiences without any editing control', async () => {
+  it('shows the experiences without any editing or ordering control', async () => {
     render(withMode(true, <ExperienceTab />));
     await screen.findByText('Développeur Vue.js');
-    expect(screen.queryByRole('button', { name: /nouvelle expérience/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Modifier' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: "Supprimer l'expérience" })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Nouvelle expérience' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^(Modifier|Supprimer|Monter|Descendre) / })).not.toBeInTheDocument();
     expect(screen.queryByRole('columnheader', { name: 'Actions' })).not.toBeInTheDocument();
   });
 });
 
 describe('ProjectsTab (admin)', () => {
-  it('lists projects with a GitHub link', async () => {
+  it('lists projects with their GitHub link and a link to the public page', async () => {
     render(withMode(false, <ProjectsTab />));
     await screen.findByText('Portfolio');
-    expect(screen.getByRole('link', { name: 'Ouvrir sur GitHub' })).toHaveAttribute('href', PROJECT.githubUrl);
+    expect(within(rowOf('Portfolio')).getByRole('link', { name: 'github.com/x/portfolio' })).toHaveAttribute('href', PROJECT.githubUrl);
+    expect(within(rowOf('API Next.js')).getByText('Aucun')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Voir Portfolio sur le site' })).toHaveAttribute('href', '/projets/20');
+    expect(screen.getByRole('img', { name: 'Capture de Portfolio' })).toHaveAttribute('src', PROJECT.projectImageUrl);
   });
 
-  it('creates a project, sending empty optional links as null', async () => {
-    proj.createProject.mockResolvedValue({ ...PROJECT, id: 21 });
+  it('creates a project at the end of the list, sending empty optional fields as null', async () => {
+    proj.createProject.mockResolvedValue({ ...PROJECT, id: 22 });
     const user = userEvent.setup();
     render(withMode(false, <ProjectsTab />));
     await screen.findByText('Portfolio');
 
-    await user.click(screen.getByRole('button', { name: /nouveau projet/i }));
+    await user.click(screen.getByRole('button', { name: 'Nouveau projet' }));
     const dialog = await screen.findByRole('dialog');
-    await user.type(within(dialog).getByLabelText('Titre du projet'), 'API Next.js');
-    await user.type(within(dialog).getByLabelText("URL de l'image"), 'https://example.com/api.png');
-    await user.type(within(dialog).getByLabelText('Description'), 'Route handlers');
+    await user.type(within(dialog).getByLabelText('Titre du projet'), 'Blog');
+    await user.type(within(dialog).getByLabelText("URL de l'image"), 'https://example.com/blog.png');
+    await user.type(within(dialog).getByLabelText('Description'), 'Articles');
+    await user.type(within(dialog).getByLabelText('Rôle'), '   ');
     await user.click(within(dialog).getByRole('button', { name: 'Créer' }));
 
-    expect(proj.createProject).toHaveBeenCalledWith(
-      expect.objectContaining({ title: 'API Next.js', githubUrl: null, demoUrl: null, tags: [] }),
-    );
+    expect(proj.createProject).toHaveBeenCalledWith({
+      title: 'Blog',
+      description: 'Articles',
+      projectImageUrl: 'https://example.com/blog.png',
+      githubUrl: null,
+      demoUrl: null,
+      position: 5,
+      kind: null,
+      scope: null,
+      role: null,
+      context: null,
+      achievements: null,
+      results: null,
+      tags: [],
+    });
+  });
+
+  it('edits the case study of a project', async () => {
+    proj.updateProject.mockResolvedValue({ ...PROJECT });
+    const user = userEvent.setup();
+    render(withMode(false, <ProjectsTab />));
+    await screen.findByText('Portfolio');
+
+    await user.click(screen.getByRole('button', { name: 'Modifier Portfolio' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('group', { name: 'Étude de cas' })).toBeInTheDocument();
+    await user.type(within(dialog).getByLabelText('Type'), 'Projet personnel');
+    await user.type(within(dialog).getByLabelText("Ce que j'ai fait (une réalisation par ligne)"), 'API{Enter}Tests');
+    await user.click(within(dialog).getByRole('button', { name: 'Mettre à jour' }));
+
+    expect(proj.updateProject).toHaveBeenCalledWith(20, expect.objectContaining({ kind: 'Projet personnel', achievements: 'API\nTests', results: null }));
   });
 
   it('shows the API error when a link is refused', async () => {
@@ -235,7 +340,7 @@ describe('ProjectsTab (admin)', () => {
     render(withMode(false, <ProjectsTab />));
     await screen.findByText('Portfolio');
 
-    await user.click(screen.getByRole('button', { name: 'Modifier' }));
+    await user.click(screen.getByRole('button', { name: 'Modifier Portfolio' }));
     const dialog = await screen.findByRole('dialog');
     await user.type(within(dialog).getByLabelText('URL de démo'), 'https://example.com/demo');
     await user.click(within(dialog).getByRole('button', { name: 'Mettre à jour' }));
@@ -243,25 +348,36 @@ describe('ProjectsTab (admin)', () => {
     expect(await within(dialog).findByRole('alert')).toHaveTextContent('URL http(s) invalide');
   });
 
-  it('deletes a project after confirmation', async () => {
+  it('moves a project up', async () => {
+    proj.reorderProjects.mockResolvedValue([{ ...SECOND_PROJECT, position: 0 }, { ...PROJECT, position: 1 }]);
+    const user = userEvent.setup();
+    render(withMode(false, <ProjectsTab />));
+    await screen.findByText('Portfolio');
+
+    await user.click(screen.getByRole('button', { name: 'Monter API Next.js' }));
+    expect(proj.reorderProjects).toHaveBeenCalledWith([21, 20]);
+    expect(jobs()).toEqual(['API Next.js', 'Portfolio']);
+  });
+
+  it('deletes a project after the in-row confirmation', async () => {
     proj.deleteProject.mockResolvedValue({} as never);
     const user = userEvent.setup();
     render(withMode(false, <ProjectsTab />));
     await screen.findByText('Portfolio');
 
-    await user.click(screen.getByRole('button', { name: 'Supprimer le projet' }));
-    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Supprimer' }));
+    await user.click(screen.getByRole('button', { name: 'Supprimer Portfolio' }));
+    await user.click(within(screen.getByRole('group', { name: 'Supprimer « Portfolio » ?' })).getByRole('button', { name: 'Oui' }));
     expect(proj.deleteProject).toHaveBeenCalledWith(20);
   });
 });
 
 describe('ProjectsTab (read-only visitor)', () => {
-  it('keeps the GitHub link but hides every editing control', async () => {
+  it('keeps the links but hides every editing control', async () => {
     render(withMode(true, <ProjectsTab />));
     await screen.findByText('Portfolio');
-    expect(screen.getByRole('link', { name: 'Ouvrir sur GitHub' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /nouveau projet/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Modifier' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Supprimer le projet' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'github.com/x/portfolio' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Voir Portfolio sur le site' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Nouveau projet' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^(Modifier|Supprimer|Monter|Descendre) / })).not.toBeInTheDocument();
   });
 });

@@ -41,56 +41,70 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-cyan-50 via-white to-teal-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full">
-        {/* Logo/Title */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Portfolio</h1>
-          </Link>
-          <p className="text-gray-600">Connectez-vous à votre espace admin</p>
+    <div className="grid min-h-screen md:grid-cols-2">
+      {/* Ink panel: who this space is for */}
+      <div className="flex flex-col justify-between gap-12 bg-ink px-[clamp(24px,6vw,80px)] py-12 text-on-ink">
+        <Link href="/" className="flex items-center gap-3 self-start font-display text-lg font-semibold">
+          <span aria-hidden="true" className="flex h-[38px] w-[38px] items-center justify-center rounded-lg bg-mint-light text-base font-bold text-ink">
+            BN
+          </span>
+          Brahim Nachate
+        </Link>
+        <div className="flex max-w-[30rem] flex-col gap-5">
+          <p className="font-display text-[clamp(36px,5vw,56px)] font-bold leading-[1.02] tracking-[-0.03em]">Espace d&apos;administration</p>
+          <p className="text-lg leading-[1.6] text-on-ink-soft">
+            Gérez vos projets, votre parcours, vos compétences et les messages reçus par le formulaire de contact.
+          </p>
         </div>
+        <Link href="/" className="self-start font-display text-base font-semibold text-line underline underline-offset-4 hover:text-mint-light">
+          ← Retour au site
+        </Link>
+      </div>
 
-        {/* Login Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          {/* Error Message */}
+      <main className="flex items-center justify-center px-[clamp(20px,6vw,80px)] py-12">
+        <div className="flex w-full max-w-md flex-col gap-8">
+          <div className="flex flex-col gap-2">
+            <h1 className="font-display text-[44px] font-bold leading-none tracking-[-0.025em]">Connexion</h1>
+            <p className="text-lg text-slate">Accès réservé au propriétaire du site.</p>
+          </div>
+
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
-              <AlertCircle size={20} />
-              <span className="text-sm">{error}</span>
-            </div>
+            <p role="alert" className="flex items-center gap-2 rounded-lg border border-danger bg-danger-pale p-4 font-display text-base font-medium text-danger">
+              <AlertCircle size={20} aria-hidden="true" className="shrink-0" />
+              {error}
+            </p>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="mb-1">Email</Label>
+              <Label htmlFor="email">E-mail</Label>
               <div className="relative">
-                <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
+                <Mail aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-slate" size={20} />
                 <Input
                   id="email"
                   type="email"
-                  placeholder="votre@email.com"
+                  autoComplete="username"
+                  placeholder="vous@exemple.fr"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="h-11 pl-10 pr-10"
+                  className="min-h-12 pl-11"
                   required
                 />
               </div>
             </div>
 
-            {/* Password Field */}
             <div className="space-y-2">
-              <Label htmlFor="password" className="mb-1">Mot de passe</Label>
+              <Label htmlFor="password">Mot de passe</Label>
               <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
+                <Lock aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-slate" size={20} />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-11 pl-10 pr-10"
+                  className="min-h-12 pr-12 pl-11"
                   required
                 />
                 <button
@@ -98,31 +112,19 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                   aria-pressed={showPassword}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute top-1/2 right-1.5 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-slate hover:bg-mist hover:text-ink"
                 >
                   {showPassword ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
                 </button>
               </div>
             </div>
 
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              className="w-full bg-cyan-700 hover:bg-cyan-800 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="min-h-[52px] w-full text-[17px]" disabled={isLoading}>
               {isLoading ? "Connexion en cours..." : "Se connecter"}
             </Button>
           </form>
         </div>
-
-        {/* Back to Home */}
-        <div className="text-center mt-6">
-          <Link href="/" className="text-gray-600 hover:text-cyan-700 text-sm">
-            ← Retour à l&apos;accueil
-          </Link>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }

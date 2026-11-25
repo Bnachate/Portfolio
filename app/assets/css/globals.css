@@ -1,15 +1,80 @@
 @import "tailwindcss";
 
+/*
+ * "Encre et menthe" design system (see the Charte graphique artboard).
+ * One accent only: mint for actions and the current page; mint-light on ink backgrounds only.
+ * Measured contrasts: ink on paper 16.1:1, slate on paper 7.1:1, mint on paper 4.9:1,
+ * mint-light on ink 9.4:1. Never mint text on mist (4.4:1).
+ */
+@theme {
+  --color-ink: #0F1B2D; /* titles, main text, dark bands */
+  --color-paper: #F5F7FA; /* page background */
+  --color-mist: #E6EBF2; /* tag and inset backgrounds */
+  --color-line: #CBD4E0; /* 1px rules and borders */
+  --color-slate: #46556A; /* secondary text, dates, captions */
+  --color-mint: #0A7A63; /* links, current page, button hover */
+  --color-mint-light: #3DD6A8; /* accent on ink only */
+  --color-mint-pale: #DDF3EC; /* "en cours" badge background */
+  --color-amber: #E9A23B; /* availability dot, "non lu" / "non utilisé" / "chevauchement" badges */
+  --color-night: #1B2A40; /* panels on ink */
+  --color-danger: #B3261E; /* deletion and errors only */
+  --color-danger-pale: #FBE4E2;
+  /* Text and rules on ink backgrounds */
+  --color-on-ink: #F5F7FA;
+  --color-on-ink-soft: #D5DCE6;
+  --color-on-ink-muted: #9FB0C6;
+  --color-ink-rule: #2B3B54;
+
+  /* Set by next/font in app/layout.tsx */
+  --font-display: var(--font-familjen), "Helvetica Neue", Arial, sans-serif; /* titles, navigation, buttons */
+  --font-serif: var(--font-source-serif), Georgia, serif; /* running text */
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace; /* technologies, dates and durations only */
+}
+
 :root {
-	--input-background: #f3f3f5;
-    --primary: #030213;
-    --input: transparent;
+  --input-background: #ffffff;
+  --primary: #0F1B2D;
+  --input: transparent;
 }
 
 @layer base {
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-serif);
+  }
+
   /* Tailwind 4 no longer gives buttons a pointer cursor: restore it for every enabled button */
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]) {
     cursor: pointer;
+  }
+
+  /* Visible focus on every interactive element: ink outline plus a mint halo */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px var(--color-mint-light);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-slate);
+    opacity: 1;
+  }
+}
+
+/* Hover transitions only (150-180 ms), none when the user asks for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
   }
 }

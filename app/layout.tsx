@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Familjen_Grotesk, JetBrains_Mono, Source_Serif_4 } from "next/font/google";
 import "./assets/css/globals.css";
 import { SITE, getSiteUrl } from "./config/site";
 
@@ -30,13 +31,18 @@ export const metadata: Metadata = {
   },
 };
 
+// Fonts of the design system, self-hosted at build time by next/font (no request to Google, CSP unchanged)
+const familjen = Familjen_Grotesk({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-familjen", display: "swap" });
+const sourceSerif = Source_Serif_4({ subsets: ["latin"], weight: ["400", "600"], variable: "--font-source-serif", display: "swap" });
+const jetbrains = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-jetbrains", display: "swap" });
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr">
+    <html lang="fr" className={`${familjen.variable} ${sourceSerif.variable} ${jetbrains.variable}`}>
       <body>
         {children}
       </body>

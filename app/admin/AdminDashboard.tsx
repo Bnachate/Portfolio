@@ -1,21 +1,33 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, LogIn, FolderKanban, Briefcase, Mail, Home, Tags, Eye } from "lucide-react";
+import { LogOut, LogIn, FolderKanban, Briefcase, Mail, Home, Tags, Eye, Layers } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/common/tabs";
 import { ProjectsTab } from "../components/admin/ProjectsTab";
 import { ExperienceTab } from "../components/admin/ExperienceTab";
 import { ContactsTab } from "../components/admin/ContactsTab";
 import { HeroTab } from "../components/admin/HeroTab";
 import { TagsTab } from "../components/admin/TagsTab";
+import { SkillDomainsTab } from "../components/admin/SkillDomainsTab";
 import { logout } from "../services/auth.service";
-import { useState } from "react";
+import { getContacts } from "../services/admin/contacts.service";
 import { ReadOnlyProvider } from "./ReadOnlyContext";
 
 export function AdminDashboard({ readOnly }: { readOnly: boolean }) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Unread messages badge on the Messages tab (admin only: messages are private)
+  useEffect(() => {
+    if (readOnly) return;
+    getContacts()
+      .then((contacts) => setUnreadCount(contacts.filter((c) => c.status === "new").length))
+      .catch(() => {});
+  }, [readOnly]);
+  const handleUnreadCount = useCallback((count: number) => setUnreadCount(count), []);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -29,127 +41,112 @@ export function AdminDashboard({ readOnly }: { readOnly: boolean }) {
     }
   };
 
+  const headerLink = "inline-flex min-h-11 items-center gap-2 rounded-lg px-4 font-display text-base font-semibold transition-colors duration-150";
+
   return (
     <ReadOnlyProvider value={readOnly}>
-      <div className="min-h-screen bg-gray-50">
-        {/* Admin Header */}
-        <header className="bg-white border-b border-gray-200">
-          <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center gap-3">
-                <div className="bg-cyan-700 text-white p-2 rounded-lg">
-                  <FolderKanban size={24} />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">Panneau d&apos;administration</h1>
-                  <p className="text-sm text-gray-500">{readOnly ? "Consultation en lecture seule" : "Gérez votre portfolio"}</p>
-                </div>
+      <div className="min-h-screen bg-paper">
+        <header className="bg-ink px-[clamp(16px,4vw,48px)] text-on-ink">
+          <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-4 py-4">
+            <div className="flex items-center gap-3">
+              <span aria-hidden="true" className="flex h-[38px] w-[38px] items-center justify-center rounded-lg bg-mint-light font-display text-base font-bold text-ink">
+                BN
+              </span>
+              <div>
+                <h1 className="font-display text-xl font-bold">Panneau d&apos;administration</h1>
+                <p className="font-display text-sm text-on-ink-muted">{readOnly ? "Consultation en lecture seule" : "Gérez votre portfolio"}</p>
               </div>
-              <div className="flex items-center gap-4">
-                <Link
-                  href="/"
-                  className="text-gray-600 hover:text-cyan-700 flex items-center gap-2 transition-colors"
-                >
-                  <Home size={20} />
-                  <span className="hidden sm:inline">Voir le site</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Link href="/" className={`${headerLink} text-line hover:text-mint-light`}>
+                <Home size={20} aria-hidden="true" />
+                Voir le site
+              </Link>
+              {readOnly ? (
+                <Link href="/auth/login" className={`${headerLink} border-[1.5px] border-line text-on-ink hover:border-mint-light hover:text-mint-light`}>
+                  <LogIn size={20} aria-hidden="true" />
+                  Connexion
                 </Link>
-                {readOnly ? (
-                  <Link
-                    href="/auth/login"
-                    className="border border-cyan-700 text-cyan-700 px-4 py-2 rounded-lg hover:bg-cyan-50 transition-colors flex items-center gap-2 font-medium"
-                  >
-                    <LogIn size={20} />
-                    <span className="hidden sm:inline">Connexion</span>
-                  </Link>
-                ) : (
-                  <button
-                    onClick={handleLogout}
-                    disabled={isLoggingOut}
-                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 active:bg-red-800 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-medium"
-                  >
-                    <LogOut size={20} />
-                    <span className="hidden sm:inline">{isLoggingOut ? 'Déconnexion...' : 'Déconnexion'}</span>
-                  </button>
-                )}
-              </div>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className={`${headerLink} border-[1.5px] border-line text-on-ink hover:border-mint-light hover:text-mint-light disabled:opacity-50`}
+                >
+                  <LogOut size={20} aria-hidden="true" />
+                  {isLoggingOut ? "Déconnexion..." : "Déconnexion"}
+                </button>
+              )}
             </div>
           </div>
         </header>
 
         {readOnly && (
-          <div className="bg-cyan-50 border-b border-cyan-100 text-cyan-900 text-sm">
-            <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2">
-              <Eye size={18} className="shrink-0" />
-              <span>
-                Mode lecture seule : vous pouvez parcourir le panneau d&apos;administration, mais aucune modification n&apos;est possible.
-              </span>
-            </div>
+          <div className="border-b border-line bg-mint-pale px-[clamp(16px,4vw,48px)] font-display text-base text-ink">
+            <p className="mx-auto flex max-w-[1280px] items-center gap-2 py-3">
+              <Eye size={18} aria-hidden="true" className="shrink-0" />
+              Mode lecture seule : vous pouvez parcourir le panneau d&apos;administration, mais aucune modification n&apos;est possible.
+            </p>
           </div>
         )}
 
-        {/* Admin Content */}
-        <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Tabs defaultValue="experiences" className="space-y-6">
-            <TabsList className={`grid w-full grid-cols-2 ${readOnly ? "sm:grid-cols-4" : "sm:grid-cols-5"} h-auto gap-2 bg-transparent`}>
-              <TabsTrigger
-                value="experiences"
-                className="flex items-center gap-2 py-3"
-              >
-                <Briefcase size={18} />
+        <main className="mx-auto max-w-[1280px] px-[clamp(16px,4vw,48px)] py-8">
+          <Tabs defaultValue="experiences" className="gap-6">
+            <TabsList className="rounded-2xl border">
+              <TabsTrigger value="experiences">
+                <Briefcase aria-hidden="true" />
                 Expériences
               </TabsTrigger>
               {/* Contact messages hold visitors' personal data: admin only */}
               {!readOnly && (
-                <TabsTrigger
-                  value="contacts"
-                  className="flex items-center gap-2 py-3"
-                >
-                  <Mail size={18} />
+                <TabsTrigger value="contacts">
+                  <Mail aria-hidden="true" />
                   Messages
+                  {unreadCount > 0 && " "}
+                  {unreadCount > 0 && (
+                    <span className="min-w-5 rounded-full bg-amber px-1.5 text-center text-xs font-bold text-ink">
+                      {unreadCount}{" "}
+                      <span className="sr-only">non lu{unreadCount > 1 ? "s" : ""}</span>
+                    </span>
+                  )}
                 </TabsTrigger>
               )}
-              <TabsTrigger
-                value="projects"
-                className="flex items-center gap-2 py-3"
-              >
-                <FolderKanban size={18} />
+              <TabsTrigger value="projects">
+                <FolderKanban aria-hidden="true" />
                 Projets
               </TabsTrigger>
-              <TabsTrigger
-                value="tags"
-                className="flex items-center gap-2 py-3"
-              >
-                <Tags size={18} />
+              <TabsTrigger value="tags">
+                <Tags aria-hidden="true" />
                 Tags
               </TabsTrigger>
-              <TabsTrigger
-                value="hero"
-                className="flex items-center gap-2 py-3"
-              >
-                <Home size={18} />
+              <TabsTrigger value="domains">
+                <Layers aria-hidden="true" />
+                Domaines
+              </TabsTrigger>
+              <TabsTrigger value="hero">
+                <Home aria-hidden="true" />
                 Hero
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="projects" className="space-y-4">
-              <ProjectsTab />
-            </TabsContent>
-
-            <TabsContent value="experiences" className="space-y-4">
+            <TabsContent value="experiences">
               <ExperienceTab />
             </TabsContent>
-
             {!readOnly && (
-              <TabsContent value="contacts" className="space-y-4">
-                <ContactsTab />
+              <TabsContent value="contacts">
+                <ContactsTab onUnreadCountChange={handleUnreadCount} />
               </TabsContent>
             )}
-
-            <TabsContent value="tags" className="space-y-4">
+            <TabsContent value="projects">
+              <ProjectsTab />
+            </TabsContent>
+            <TabsContent value="tags">
               <TagsTab />
             </TabsContent>
-
-            <TabsContent value="hero" className="space-y-4">
+            <TabsContent value="domains">
+              <SkillDomainsTab />
+            </TabsContent>
+            <TabsContent value="hero">
               <HeroTab />
             </TabsContent>
           </Tabs>

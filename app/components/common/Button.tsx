@@ -4,6 +4,10 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   color?: "primary" | "secondary";
 };
 
+/**
+ * Admin button ("Encre et menthe"): 8 px radius, at least 44 px high.
+ * plain primary = ink (mint on hover), plain secondary = danger, outline, ghost (icon buttons).
+ */
 export function Button({
   children,
   variant = "plain",
@@ -12,30 +16,19 @@ export function Button({
   ...props
 }: ButtonProps) {
   const base =
-    "inline-flex items-center justify-center gap-2 rounded-xl h-12 w-32 max-w-full cursor-pointer font-medium transition-all duration-300 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50";
-
-  const colorClasses = {
-    primary: "focus:ring-cyan-600",
-    secondary: "focus:ring-red-600",
-  };
+    "inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-lg px-5 font-display text-base font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50";
 
   const variants = {
-    plain: color === "primary"
-      ? "bg-cyan-700 text-white hover:bg-cyan-800 hover:shadow-lg"
-      : "bg-red-600 text-white hover:bg-red-700 hover:shadow-lg",
-    outline: color === "primary"
-      ? "border-2 border-cyan-700 text-cyan-700 hover:bg-cyan-50 focus:ring-2"
-      : "border-2 border-red-600 text-red-600 hover:bg-red-50 focus:ring-2",
-    ghost: color === "primary"
-      ? "text-gray-700 hover:text-cyan-700 hover:bg-transparent"
-      : "text-gray-700 hover:text-red-600 hover:bg-transparent",
+    plain: color === "primary" ? "bg-ink text-on-ink hover:bg-mint" : "bg-danger text-on-ink hover:bg-ink",
+    outline:
+      color === "primary"
+        ? "border-[1.5px] border-ink text-ink hover:border-mint hover:text-mint"
+        : "border-[1.5px] border-danger text-danger hover:bg-danger-pale",
+    ghost: color === "primary" ? "text-ink hover:bg-mist" : "text-danger hover:bg-danger-pale",
   };
 
   return (
-    <button
-      className={`${base} ${colorClasses[color]} ${variants[variant]} ${className}`}
-      {...props}
-    >
+    <button className={`${base} ${variants[variant]} ${className}`} {...props}>
       {children}
     </button>
   );

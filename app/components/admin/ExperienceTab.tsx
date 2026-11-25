@@ -1,26 +1,23 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import dayjs from "dayjs";
 import isEqual from "lodash/isEqual";
-import { Pencil, Calendar } from "lucide-react";
-import { Button } from "../common/Button";
-import { TagChip } from "./common/TagChip";
-import { TruncateWithTooltip } from "./common/TruncateWithTooltip";
 import { ErrorBanner } from "./common/ErrorBanner";
+import { AdminPanel, DeleteButton, EditButton, InlineDeleteConfirm, ReorderButtons, StatusBadge, movedIds, nextPosition } from "./common/AdminUi";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../common/table";
 import { ExperienceDialog, type ExperienceFormData } from "./experiences-tab/modal/ExperienceDialog";
-import { DeleteExperienceDialog } from "./experiences-tab/modal/DeleteExperienceDialog";
 import {
   getExperiences,
   createExperience,
   updateExperience,
   deleteExperience,
+  reorderExperiences,
   getTags,
   createTag,
   type ExperiencePayload,
 } from "@/app/services/admin/experiences.service";
 import { getErrorMessage } from "@/app/config/api.config";
+import { formatPeriod } from "@/app/components/experience/format";
 import type { Experience, Tag } from "@/app/types/api";
 import { useReadOnly } from "@/app/admin/ReadOnlyContext";
 
@@ -40,7 +37,24 @@ const toPayload = (form: ExperienceFormData): ExperiencePayload => ({
   tags: form.tags.map((tag) => tag.id).sort((a, b) => a - b),
 });
 
-const formatDate = (value: string | null) => (value ? dayjs(value).format("DD-MM-YYYY") : "Aujourd'hui");
+const VISIBLE_TAGS = 4;
+
+/** Ids of the experiences whose period overlaps another one (shown as a warning badge). */
+function overlappingIds(experiences: Experience[], today = new Date().toISOString().slice(0, 10)) {
+  const ids = new Set<number>();
+  for (const a of experiences) {
+    for (const b of experiences) {
+      if (a.id >= b.id) continue;
+      const aEnd = a.endDate ?? today;
+      const bEnd = b.endDate ?? today;
+      if (a.startDate < bEnd && b.startDate < aEnd) {
+        ids.add(a.id);
+        ids.add(b.id);
+      }
+    }
+  }
+  return ids;
+}
 
 export function ExperienceTab() {
   const readOnly = useReadOnly();
@@ -53,6 +67,7 @@ export function ExperienceTab() {
   const [error, setError] = useState("");
   const [formError, setFormError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isBusy, setIsBusy] = useState(false);
 
   const fetchExperiences = useCallback(async () => setExperiences(await getExperiences()), []);
 
@@ -84,11 +99,22 @@ export function ExperienceTab() {
   });
 
   const handleEdit = (experience: Experience) => {
+    setDeleteTargetId(null);
     setEditingExperience(experience);
     setFormData(toForm(experience));
     setFormError("");
     setIsDialogOpen(true);
   };
+
+  const isFormValid = Boolean(
+    formData.job.trim() &&
+      formData.company.trim() &&
+      formData.description.trim() &&
+      formData.startDate &&
+      formData.tags.length > 0,
+  );
+
+  const hasEditChanges = editingExperience ? !isEqual(toPayload(formData), toPayload(toForm(editingExperience))) : true;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,7 +127,8 @@ export function ExperienceTab() {
       if (editingExperience) {
         await updateExperience(editingExperience.id, payload);
       } else {
-        await createExperience(payload);
+        // Computed on submit (the list may still be loading when the form opens)
+        await createExperience({ ...payload, position: nextPosition(experiences) });
       }
       await fetchExperiences();
       resetForm();
@@ -113,12 +140,26 @@ export function ExperienceTab() {
   };
 
   const handleDelete = async (id: number) => {
+    setIsBusy(true);
     try {
       await deleteExperience(id);
       await fetchExperiences();
       setDeleteTargetId(null);
     } catch (err) {
       setError(getErrorMessage(err, "Impossible de supprimer l'expérience"));
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const handleMove = async (index: number, direction: -1 | 1) => {
+    setIsBusy(true);
+    try {
+      setExperiences(await reorderExperiences(movedIds(experiences, index, direction)));
+    } catch (err) {
+      setError(getErrorMessage(err, "Impossible de changer l'ordre"));
+    } finally {
+      setIsBusy(false);
     }
   };
 
@@ -128,29 +169,15 @@ export function ExperienceTab() {
     return tag;
   };
 
-  const isFormValid = Boolean(
-    formData.job.trim() &&
-    formData.company.trim() &&
-    formData.position >= 0 &&
-    formData.description.trim() &&
-    formData.startDate &&
-    formData.tags.length > 0,
-  );
-
-  const hasEditChanges = editingExperience
-    ? !isEqual(toPayload(formData), toPayload(toForm(editingExperience)))
-    : true;
+  const overlaps = overlappingIds(experiences);
+  const count = experiences.length;
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">Gestion des Expériences</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {experiences.length} expérience{experiences.length > 1 ? "s" : ""} au total
-          </p>
-        </div>
-        {!readOnly && (
+    <AdminPanel
+      title="Expériences"
+      summary={`${count} expérience${count > 1 ? "s" : ""} au total`}
+      action={
+        !readOnly && (
           <ExperienceDialog
             isOpen={isDialogOpen}
             onOpenChange={(open) => (open ? setIsDialogOpen(true) : resetForm())}
@@ -165,106 +192,92 @@ export function ExperienceTab() {
             onSubmit={handleSubmit}
             onReset={resetForm}
           />
-        )}
-      </div>
+        )
+      }
+    >
       <ErrorBanner message={error} onClose={() => setError("")} />
-      <div className="flex justify-center w-full">
-        <div className="flex w-full overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm ">
-          <Table className="w-full table-fixed">
-            <TableHeader className="bg-gray-50/50">
-              <TableRow className="hover:bg-transparent border-b border-gray-100">
-                <TableHead className="py-5 font-semibold text-gray-900">Position</TableHead>
-                <TableHead className="py-5 px-6 font-semibold text-gray-900">Poste</TableHead>
-                <TableHead className="py-5 font-semibold text-gray-900">Entreprise</TableHead>
-                <TableHead className="py-5 font-semibold text-gray-900">Période</TableHead>
-                <TableHead className="py-5 font-semibold text-gray-900">Description</TableHead>
-                <TableHead className="py-5 font-semibold text-gray-900">Tags</TableHead>
-                {!readOnly && <TableHead className="py-5 text-right px-6 font-semibold text-gray-900">Actions</TableHead>}
-              </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              {experiences.map((experience) => (
-                <TableRow
-                  key={experience.id}
-                  className="group transition-all hover:bg-cyan-50/20 border-b border-gray-50 last:border-0"
-                >
-                  {/* POSITION */}
-                  <TableCell className="max-w-10">
-                    <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-xs font-medium text-gray-700">
-                      {experience.position}
-                    </span>
-                  </TableCell>
-
-                  {/* JOB TITLE */}
-                  <TableCell className="py-5 px-6 max-w-45">
-                    <TruncateWithTooltip
-                      text={experience.job}
-                      className="font-bold text-gray-800 text-base block truncate group-hover:text-cyan-800 transition-colors"
-                    />
-                  </TableCell>
-
-                  {/* COMPANY */}
-                  <TableCell>
-                    <div className="inline-flex max-w-40 items-center truncate px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
-                      <TruncateWithTooltip text={experience.company} className="block truncate" />
-                    </div>
-                  </TableCell>
-
-                  {/* PERIOD */}
-                  <TableCell>
-                    <div className="flex max-w-55 items-center gap-2 truncate text-sm text-gray-500 font-medium">
-                      <Calendar size={14} className="text-cyan-500" />
-                      <TruncateWithTooltip
-                        text={`${formatDate(experience.startDate)} - ${formatDate(experience.endDate)}`}
-                        className="block truncate"
+      {count === 0 ? (
+        <p className="p-6 font-display text-base text-slate">Aucune expérience. Ajoutez la première avec le bouton « Nouvelle expérience ».</p>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead>Ordre</TableHead>
+              <TableHead>Poste</TableHead>
+              <TableHead>Entreprise</TableHead>
+              <TableHead>Période</TableHead>
+              <TableHead>Tags</TableHead>
+              {!readOnly && <TableHead className="text-right">Actions</TableHead>}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {experiences.map((experience, index) => (
+              <TableRow key={experience.id}>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <span className="w-5 font-mono text-sm text-slate">{index + 1}</span>
+                    {!readOnly && (
+                      <ReorderButtons
+                        name={experience.job}
+                        onUp={() => handleMove(index, -1)}
+                        onDown={() => handleMove(index, 1)}
+                        isFirst={index === 0}
+                        isLast={index === count - 1}
+                        disabled={isBusy}
                       />
-                    </div>
-                  </TableCell>
-
-                  {/* DESCRIPTION */}
-                  <TableCell>
-                    <TruncateWithTooltip text={experience.description} className="block max-w-70 truncate text-sm text-gray-600" />
-                  </TableCell>
-
-                  {/* TAGS */}
-                  <TableCell className="w-auto">
-                    {/* Scrollable: focusable so keyboard users can scroll it */}
-                    <div
-                      tabIndex={0}
-                      role="group"
-                      aria-label={`Tags de ${experience.job}`}
-                      className="inline-flex flex-wrap gap-2 overflow-x-auto max-h-24 rounded-md focus-visible:outline-2 focus-visible:outline-cyan-700"
-                    >
-                      {experience.tags.map((tag) => (
-                        <TagChip key={tag.id} label={tag.name} />
-                      ))}
-                    </div>
-                  </TableCell>
-
-                  {/* ACTIONS */}
-                  {!readOnly && (
-                    <TableCell className="text-right px-6">
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell className="min-w-56">
+                  <div className="flex flex-col items-start gap-1.5">
+                    <span className="font-bold">{experience.job}</span>
+                    <span className="flex flex-wrap gap-1.5">
+                      {experience.endDate === null && <StatusBadge tone="current">En cours</StatusBadge>}
+                      {overlaps.has(experience.id) && <StatusBadge tone="warning">Chevauchement</StatusBadge>}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell>{experience.company}</TableCell>
+                <TableCell className="whitespace-nowrap font-mono text-[13px] text-slate">
+                  {formatPeriod(experience.startDate, experience.endDate)}
+                </TableCell>
+                <TableCell>
+                  <ul aria-label={`Tags de ${experience.job}`} className="flex flex-wrap gap-1.5">
+                    {experience.tags.slice(0, VISIBLE_TAGS).map((tag) => (
+                      <li key={tag.id} className="rounded bg-mist px-2 py-1 font-mono text-xs">
+                        {tag.name}
+                      </li>
+                    ))}
+                    {experience.tags.length > VISIBLE_TAGS && (
+                      <li className="px-1 py-1 font-mono text-xs text-slate">
+                        +{experience.tags.length - VISIBLE_TAGS}
+                        {" "}<span className="sr-only">autres tags</span>
+                      </li>
+                    )}
+                  </ul>
+                </TableCell>
+                {!readOnly && (
+                  <TableCell className="text-right">
+                    {deleteTargetId === experience.id ? (
+                      <InlineDeleteConfirm
+                        question={`Supprimer « ${experience.job} » ?`}
+                        onConfirm={() => handleDelete(experience.id)}
+                        onCancel={() => setDeleteTargetId(null)}
+                        busy={isBusy}
+                      />
+                    ) : (
                       <div className="flex justify-end gap-2">
-                        <Button variant="ghost" className="w-auto" aria-label="Modifier" onClick={() => handleEdit(experience)}>
-                          <Pencil size={18} />
-                        </Button>
-                        <DeleteExperienceDialog
-                          isOpen={deleteTargetId === experience.id}
-                          onOpenChange={(open) => setDeleteTargetId(open ? experience.id : null)}
-                          experienceId={experience.id}
-                          onSubmit={() => handleDelete(experience.id)}
-                          onReset={() => setDeleteTargetId(null)}
-                        />
+                        <EditButton label={`Modifier ${experience.job}`} onClick={() => handleEdit(experience)} />
+                        <DeleteButton label={`Supprimer ${experience.job}`} onClick={() => setDeleteTargetId(experience.id)} />
                       </div>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-    </div>
+                    )}
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </AdminPanel>
   );
 }

@@ -6,9 +6,10 @@ Full-stack Next.js app: the public site, the admin panel and the API (`app/api/*
 
 ## Features
 
-- **Public site**: hero, projects, experience timeline, education and languages, contact form
-- **Admin panel** (`/admin`): manage experiences, projects, tags, the hero section and contact messages
-- **Read-only admin for visitors**: anyone can browse `/admin` (linked from the menu) without being able to change anything; the Messages tab stays admin-only because it holds visitors' personal data
+- **Public site**, one page per topic: home (`/`), projects (`/projets`) with a case study per project (`/projets/[id]`), experience and education (`/experience`), skills grouped by domain (`/competences`), contact form (`/contact`)
+- **Design system "Encre et menthe"**: ink, paper and mint colors, Familjen Grotesk / Source Serif 4 / JetBrains Mono (self-hosted with `next/font`), tokens in `app/assets/css/globals.css`
+- **Admin panel** (`/admin`): manage experiences and projects (order with ↑ ↓, project case studies), tags (with their skill domain), the hero section (with an availability indicator) and contact messages (inbox in two columns, unread badge); deletions are confirmed in place
+- **Read-only admin for visitors**: anyone can browse `/admin` (linked from the footer) without being able to change anything; the Messages tab stays admin-only because it holds visitors' personal data
 - **Private contact details**: no email or phone number is published; visitors use the contact form
 - **SEO**: page metadata, link preview image (Open Graph), `robots.txt`, `sitemap.xml`, structured data
 
@@ -83,9 +84,10 @@ npm run dev
 | `tests/validation.test.ts`, `tests/format.test.ts` | Input rules and experience period/duration formatting |
 | `tests/api-client.test.ts` | Axios client: redirect to login on an expired session, error messages |
 | `tests/injection.test.ts`, `tests/structured-data.test.ts` | Injection payloads (HTML, script, SQL, dangerous and off-site links, control characters, hostile bodies) refused or stored as plain text; JSON-LD escaping |
-| `tests/ui/*.test.tsx` | React components with Testing Library: public sections, contact form, login page, every admin tab in admin and read-only modes |
+| `tests/redesign-api.test.ts` | Display order of experiences and projects, tag domains, project case study fields, hero availability indicator |
+| `tests/ui/*.test.tsx` | React components with Testing Library: every public page (server components rendered with mocked services), contact form, login page, every admin tab in admin and read-only modes |
 
-**End-to-end** (`e2e/`, Playwright): the production build runs on port 3100 with a throwaway database (`./.pglite-e2e`, recreated on each run with the CV content and a test admin). Journeys: public site (sections, navigation, CV, no personal data, security headers, SEO files), contact form, login / logout, read-only admin, admin CRUD of experiences, projects, tags, hero and messages (each checked on the public site), input safety (blank forms never sent, hostile content shown as text, off-site links refused), and accessibility: axe-core checks every page, admin tab and dialog against WCAG 2.1 AA.
+**End-to-end** (`e2e/`, Playwright): the production build runs on port 3100 with a throwaway database (`./.pglite-e2e`, recreated on each run with the CV content and a test admin). Journeys: public site (every page, navigation, case studies, CV, no personal data, security headers, SEO files), contact form, login / logout, read-only admin, admin CRUD and ordering of experiences, projects, tags, hero and messages (each checked on the public site), input safety (blank forms never sent, hostile content shown as text, off-site links refused), and accessibility: axe-core checks every page, admin tab, dialog and in-place confirmation against WCAG 2.1 AA.
 
 Coverage is about 96 % of the code measured by Vitest. Every use case and the tests covering it are listed in `.claude/skills/test-usecases/usecases.md`.
 
@@ -109,9 +111,10 @@ Responses are `{ data }` on success and `{ message }` on error. 🔒 = admin ses
 | Route | Methods |
 |---|---|
 | `/api/auth/login` · `/api/auth/logout` · `/api/auth/me` | `POST` (rate limited) · `POST` · `GET` 🔒 |
-| `/api/projects` · `/api/projects/:id` | `GET`, `POST` 🔒 · `PATCH` 🔒, `DELETE` 🔒 |
-| `/api/experiences` · `/api/experiences/:id` | `GET`, `POST` 🔒 · `PATCH` 🔒, `DELETE` 🔒 |
-| `/api/tags` · `/api/tags/:id` | `GET` (`?usage=1` adds usage counts), `POST` 🔒 · `PATCH` 🔒 (rename), `DELETE` 🔒 |
+| `/api/projects` · `/api/projects/:id` · `/api/projects/order` | `GET`, `POST` 🔒 · `PATCH` 🔒, `DELETE` 🔒 · `PUT` 🔒 (`{ ids }` in display order) |
+| `/api/experiences` · `/api/experiences/:id` · `/api/experiences/order` | `GET`, `POST` 🔒 · `PATCH` 🔒, `DELETE` 🔒 · `PUT` 🔒 (`{ ids }` in display order, 409 if the list changed) |
+| `/api/tags` · `/api/tags/:id` | `GET` (`?usage=1` adds usage counts), `POST` 🔒 (`{ name, domainId }`, `null` = "Autres") · `PATCH` 🔒 (rename and / or domain), `DELETE` 🔒 |
+| `/api/skill-domains` · `/api/skill-domains/:id` · `/api/skill-domains/order` | `GET`, `POST` 🔒 (`{ name }`, added at the end) · `PATCH` 🔒 (rename), `DELETE` 🔒 (its tags move to "Autres") · `PUT` 🔒 (`{ ids }`, every id in the new order) |
 | `/api/contacts` · `/api/contacts/:id` | `GET` 🔒, `POST` (contact form, rate limited) · `PATCH` 🔒, `DELETE` 🔒 |
 | `/api/hero` | `GET` (contact email only for the admin), `PUT` 🔒 |
 

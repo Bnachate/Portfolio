@@ -5,6 +5,7 @@ import { projects, projectTags } from '../db/schema';
 import { HttpError } from '../http';
 import type { createProjectSchema, updateProjectSchema } from '../validation';
 import { assertTagsExist, type TagDTO } from './tags';
+import { reorder } from './ordering';
 
 export type ProjectDTO = {
   id: number;
@@ -14,6 +15,13 @@ export type ProjectDTO = {
   githubUrl: string | null;
   demoUrl: string | null;
   position: number;
+  // Case study, null while not written yet
+  kind: string | null;
+  scope: string | null;
+  role: string | null;
+  context: string | null;
+  achievements: string | null;
+  results: string | null;
   tags: TagDTO[];
 };
 
@@ -35,6 +43,15 @@ async function findProjects(tx: Executor, id?: number): Promise<ProjectDTO[]> {
 }
 
 export const listProjects = () => findProjects(db);
+
+/** One project for its public case study page, or null if it does not exist. */
+export async function findProject(id: number): Promise<ProjectDTO | null> {
+  const [project] = await findProjects(db, id);
+  return project ?? null;
+}
+
+/** Saves a new display order: `ids` must list every project exactly once. */
+export const reorderProjects = (ids: number[]) => reorder(projects, ids);
 
 async function getProject(tx: Executor, id: number) {
   const [project] = await findProjects(tx, id);

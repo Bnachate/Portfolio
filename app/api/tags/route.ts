@@ -10,6 +10,6 @@ export const GET = handler(async (request) => {
 
 export const POST = handler(async (request) => {
   await requireAdmin();
-  const { name } = await parseBody(request, tagSchema);
-  return ok(await createTag(name), 201);
+  const { name, domainId } = await parseBody(request, tagSchema);
+  return ok(await createTag(name, domainId), 201);
 });

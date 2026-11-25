@@ -4,7 +4,7 @@ import { ADMIN_STATE, E2E_ADMIN } from './fixtures';
 // Logs the admin in once (A1) and saves the session for the admin specs
 setup('admin logs in and lands on the admin panel', async ({ page }) => {
   await page.goto('/auth/login');
-  await page.getByLabel('Email').fill(E2E_ADMIN.email);
+  await page.getByLabel('E-mail').fill(E2E_ADMIN.email);
   await page.getByLabel('Mot de passe', { exact: true }).fill(E2E_ADMIN.password);
   await page.getByRole('button', { name: 'Se connecter' }).click();
 

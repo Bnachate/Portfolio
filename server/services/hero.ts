@@ -13,12 +13,14 @@ export const DEFAULT_HERO: HeroDTO = {
   description:
     "Je conçois et développe des applications web de bout en bout : interfaces en Vue.js et React, API REST en Node.js et Java / Spring Boot. Attaché à la qualité du code, aux tests et à l'expérience utilisateur, j'aime participer aux choix d'architecture et partager mes connaissances avec l'équipe.",
   primaryButtonText: 'Me contacter',
-  primaryButtonUrl: '#contact',
+  primaryButtonUrl: '/contact',
   secondaryButtonText: 'Voir mes projets',
-  secondaryButtonUrl: '#projets',
+  secondaryButtonUrl: '/projets',
   githubUrl: 'https://github.com/Bnachate',
   linkedinUrl: 'https://www.linkedin.com/in/brahim-nachate/',
   email: 'nachate.brahim@gmail.com',
+  availabilityEnabled: true,
+  availabilityText: 'Ouvert aux opportunités, Paris',
 };
 
 // Every column except technical ones

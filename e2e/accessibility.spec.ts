@@ -15,22 +15,48 @@ async function expectNoViolations(page: Page, label: string) {
 }
 
 test.describe('Accessibility (visitor)', () => {
-  test('home page (X1)', async ({ page }) => {
-    await page.goto('/');
-    await expectNoViolations(page, 'home');
+  test('every public page (X1)', async ({ page }) => {
+    for (const path of ['/', '/projets', '/experience', '/competences', '/contact']) {
+      await page.goto(path);
+      await expectNoViolations(page, path);
+    }
   });
 
-  test('home page with the mobile menu open (X1)', async ({ page }) => {
+  test('a project case study and the 404 page (X1)', async ({ page }) => {
+    await page.goto('/projets');
+    const caseStudy = page.getByRole('link', { name: /Lire l'étude de cas/ }).first();
+    if ((await caseStudy.count()) > 0) {
+      await caseStudy.click();
+      await expect(page).toHaveURL(/\/projets\/\d+$/);
+      await expectNoViolations(page, 'case study');
+    }
+    await page.goto('/projets/999999');
+    await expectNoViolations(page, '404');
+  });
+
+  test('public pages on a phone (X1)', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 800 });
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Ouvrir le menu' }).click();
-    await expectNoViolations(page, 'mobile menu');
+    for (const path of ['/', '/contact']) {
+      await page.goto(path);
+      await expectNoViolations(page, `${path} on a phone`);
+    }
+  });
+
+  test('contact form after sending nothing (X1)', async ({ page }) => {
+    await page.goto('/contact');
+    await page.getByLabel('Nom').fill('   ');
+    await page.getByLabel('E-mail').fill('ada@example.com');
+    await page.getByLabel('Sujet').fill('   ');
+    await page.getByLabel('Message').fill('   ');
+    await page.getByRole('button', { name: /Envoyer le message/ }).click();
+    await expect(page.getByText('Merci de remplir tous les champs.')).toBeVisible();
+    await expectNoViolations(page, 'contact form error');
   });
 
   test('login page, including the error state (X2)', async ({ page }) => {
     await page.goto('/auth/login');
     await expectNoViolations(page, 'login');
-    await page.getByLabel('Email').fill('nobody@example.com');
+    await page.getByLabel('E-mail').fill('nobody@example.com');
     await page.getByLabel('Mot de passe', { exact: true }).fill('   ');
     await page.getByRole('button', { name: 'Se connecter' }).click();
     await expect(page.getByText('Veuillez saisir votre email et votre mot de passe')).toBeVisible();
@@ -39,7 +65,7 @@ test.describe('Accessibility (visitor)', () => {
 
   test('read-only admin, every tab (X3)', async ({ page }) => {
     await page.goto('/admin');
-    for (const tab of ['Expériences', 'Projets', 'Tags', 'Hero']) {
+    for (const tab of ['Expériences', 'Projets', 'Tags', 'Domaines', 'Hero']) {
       await page.getByRole('tab', { name: tab }).click();
       await expect(page.getByRole('tabpanel')).toBeVisible();
       await expectNoViolations(page, `read-only ${tab}`);
@@ -52,14 +78,14 @@ test.describe('Accessibility (admin)', () => {
 
   test('every admin tab (X4)', async ({ page }) => {
     await page.goto('/admin');
-    for (const tab of ['Expériences', 'Messages', 'Projets', 'Tags', 'Hero']) {
+    for (const tab of ['Expériences', 'Messages', 'Projets', 'Tags', 'Domaines', 'Hero']) {
       await page.getByRole('tab', { name: tab }).click();
       await expect(page.getByRole('tabpanel')).toBeVisible();
       await expectNoViolations(page, `admin ${tab}`);
     }
   });
 
-  test('admin dialogs: experience and project forms, tags menu, message, tag deletion (X4)', async ({ page }) => {
+  test('admin dialogs and in-place states: forms, tags menu, open message, deletion questions, tag renaming (X4)', async ({ page }) => {
     await page.goto('/admin');
     await page.getByRole('button', { name: 'Nouvelle expérience' }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
@@ -67,7 +93,7 @@ test.describe('Accessibility (admin)', () => {
     await page.keyboard.press('Escape');
 
     // Editing an experience shows its selected tags (removable chips) and the tags menu
-    await page.getByRole('button', { name: 'Modifier' }).first().click();
+    await page.getByRole('button', { name: /^Modifier / }).first().click();
     const dialog = page.getByRole('dialog');
     await expect(dialog.getByRole('list', { name: 'Tags sélectionnés' })).toBeVisible();
     await expectNoViolations(page, 'experience edit dialog with tags');
@@ -76,12 +102,18 @@ test.describe('Accessibility (admin)', () => {
     await expectNoViolations(page, 'tags menu');
     await page.keyboard.press('Escape');
     await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+
+    // In-row deletion question
+    await page.getByRole('button', { name: /^Supprimer / }).first().click();
+    await expect(page.getByRole('group', { name: /^Supprimer « / })).toBeVisible();
+    await expectNoViolations(page, 'experience deletion question');
+    await page.keyboard.press('Escape');
 
     await page.getByRole('tab', { name: 'Messages' }).click();
-    await page.getByRole('button', { name: 'Voir le message de Seed Visitor' }).click();
-    await expect(page.getByRole('dialog')).toBeVisible();
-    await expectNoViolations(page, 'message dialog');
-    await page.keyboard.press('Escape');
+    await page.getByRole('list', { name: 'Messages reçus' }).getByRole('button', { name: /Seed Visitor/ }).click();
+    await expect(page.getByRole('article', { name: 'Message de Seed Visitor' })).toBeVisible();
+    await expectNoViolations(page, 'open message');
 
     await page.getByRole('tab', { name: 'Projets' }).click();
     await page.getByRole('button', { name: 'Nouveau projet' }).click();
@@ -91,7 +123,11 @@ test.describe('Accessibility (admin)', () => {
 
     await page.getByRole('tab', { name: 'Tags' }).click();
     await page.getByRole('button', { name: 'Supprimer Java', exact: true }).click();
-    await expect(page.getByRole('dialog')).toBeVisible();
-    await expectNoViolations(page, 'tag deletion dialog');
+    await expect(page.getByRole('group', { name: /^Supprimer « Java »/ })).toBeVisible();
+    await expectNoViolations(page, 'tag deletion question');
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Renommer Java', exact: true }).click();
+    await expect(page.getByLabel('Nouveau nom pour Java')).toBeVisible();
+    await expectNoViolations(page, 'tag renaming');
   });
 });

@@ -13,5 +13,9 @@ export const updateExperience = (id: number, payload: Partial<ExperiencePayload>
 
 export const deleteExperience = (id: number) => apiClient.delete(`/experiences/${id}`);
 
+/** Saves a new display order (every experience id, in order) and returns the reordered list. */
+export const reorderExperiences = (ids: number[]) =>
+  unwrap<Experience[]>(apiClient.put('/experiences/order', { ids }));
+
 // Kept here for the existing imports; tag calls live in tags.service
 export { getTags, createTag } from './tags.service';

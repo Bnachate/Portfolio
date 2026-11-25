@@ -15,7 +15,7 @@ const apiError = (status: number, message: string) =>
 async function fillForm() {
   const user = userEvent.setup();
   await user.type(screen.getByLabelText('Nom'), 'Ada Lovelace');
-  await user.type(screen.getByLabelText('Email'), 'ada@example.com');
+  await user.type(screen.getByLabelText('E-mail'), 'ada@example.com');
   await user.type(screen.getByLabelText('Sujet'), 'Proposition de mission');
   await user.type(screen.getByLabelText('Message'), 'Bonjour !');
   return user;
@@ -44,10 +44,10 @@ describe('ContactForm', () => {
 
   it('marks every visible field as required, with an email input', () => {
     render(<ContactForm />);
-    for (const label of ['Nom', 'Email', 'Sujet', 'Message']) {
+    for (const label of ['Nom', 'E-mail', 'Sujet', 'Message']) {
       expect(screen.getByLabelText(label)).toBeRequired();
     }
-    expect(screen.getByLabelText('Email')).toHaveAttribute('type', 'email');
+    expect(screen.getByLabelText('E-mail')).toHaveAttribute('type', 'email');
   });
 
   it('hides the honeypot field from people and assistive technologies', () => {
