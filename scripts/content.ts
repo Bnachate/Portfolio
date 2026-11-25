@@ -1,7 +1,8 @@
 import { inArray } from 'drizzle-orm';
 import type { Executor } from '../server/db';
-import { experiences, experienceTags, hero, tags } from '../server/db/schema';
+import { experiences, experienceTags, hero, skillDomains, tags } from '../server/db/schema';
 import { DEFAULT_HERO } from '../server/services/hero';
+import { defaultTagDomain } from '../app/config/tag-domains';
 
 /**
  * Portfolio content taken from the CV.
@@ -84,7 +85,13 @@ export const EXPERIENCES: ExperienceContent[] = [
 /** Inserts the CV experiences (and their missing tags). Call it inside a transaction. */
 export async function insertExperiences(tx: Executor) {
   const tagNames = [...new Set(EXPERIENCES.flatMap((e) => e.stack))];
-  await tx.insert(tags).values(tagNames.map((name) => ({ name }))).onConflictDoNothing();
+  // The domains are created by the migrations; tags get the default one of their technology
+  const domainRows = await tx.select({ id: skillDomains.id, name: skillDomains.name }).from(skillDomains);
+  const domainIdByName = new Map(domainRows.map((d) => [d.name, d.id]));
+  await tx
+    .insert(tags)
+    .values(tagNames.map((name) => ({ name, domainId: domainIdByName.get(defaultTagDomain(name) ?? '') ?? null })))
+    .onConflictDoNothing();
   const tagRows = await tx
     .select({ id: tags.id, name: tags.name })
     .from(tags)

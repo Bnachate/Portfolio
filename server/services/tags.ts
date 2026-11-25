@@ -2,13 +2,17 @@ import { and, asc, eq, inArray, ne, sql } from 'drizzle-orm';
 import { db, type Executor } from '../db';
 import { experienceTags, projectTags, tags } from '../db/schema';
 import { HttpError } from '../http';
+import { assertSkillDomainExists } from './skill-domains';
 
+// Tags nested in experiences and projects
 export type TagDTO = { id: number; name: string };
-export type TagWithUsageDTO = TagDTO & { experienceCount: number; projectCount: number };
+// Tags listed on their own, with the domain used to group skills
+export type TagWithDomainDTO = TagDTO & { domainId: number | null };
+export type TagWithUsageDTO = TagWithDomainDTO & { experienceCount: number; projectCount: number };
 
-const tagColumns = { id: tags.id, name: tags.name };
+const tagColumns = { id: tags.id, name: tags.name, domainId: tags.domainId };
 
-export async function listTags(): Promise<TagDTO[]> {
+export async function listTags(): Promise<TagWithDomainDTO[]> {
   return db.select(tagColumns).from(tags).orderBy(asc(tags.name));
 }
 
@@ -35,15 +39,21 @@ async function assertNameAvailable(name: string, exceptId?: number) {
   if (existing) throw new HttpError(409, 'Ce tag existe déjà');
 }
 
-export async function createTag(name: string): Promise<TagDTO> {
+export async function createTag(name: string, domainId: number | null = null): Promise<TagWithDomainDTO> {
   await assertNameAvailable(name);
-  const [tag] = await db.insert(tags).values({ name }).returning(tagColumns);
+  await assertSkillDomainExists(domainId);
+  const [tag] = await db.insert(tags).values({ name, domainId }).returning(tagColumns);
   return tag;
 }
 
-export async function updateTag(id: number, name: string): Promise<TagDTO> {
-  await assertNameAvailable(name, id);
-  const [tag] = await db.update(tags).set({ name }).where(eq(tags.id, id)).returning(tagColumns);
+/** Renames a tag and / or changes its domain. */
+export async function updateTag(
+  id: number,
+  changes: { name?: string; domainId?: number | null },
+): Promise<TagWithDomainDTO> {
+  if (changes.name !== undefined) await assertNameAvailable(changes.name, id);
+  await assertSkillDomainExists(changes.domainId);
+  const [tag] = await db.update(tags).set(changes).where(eq(tags.id, id)).returning(tagColumns);
   if (!tag) throw new HttpError(404, 'Tag introuvable');
   return tag;
 }

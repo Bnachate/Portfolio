@@ -1,34 +1,57 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Save, RotateCcw } from "lucide-react";
+import Link from "next/link";
 import { Button } from "../common/Button";
 import { Input } from "../common/input";
 import { Label } from "../common/label";
 import { Textarea } from "../common/textarea";
 import { ErrorBanner } from "./common/ErrorBanner";
+import { AdminPanel } from "./common/AdminUi";
 import { getHero, saveHero } from "@/app/services/admin/hero.service";
 import { getErrorMessage } from "@/app/config/api.config";
 import type { Hero } from "@/app/types/api";
 import { useReadOnly } from "@/app/admin/ReadOnlyContext";
 
-// Every hero field is required (same labels as the form)
-const REQUIRED_FIELDS: { field: keyof Hero; label: string }[] = [
+type TextField = Exclude<keyof Hero, "availabilityEnabled">;
+
+// Every text field is required (same labels as the form)
+const REQUIRED_FIELDS: { field: TextField; label: string }[] = [
   { field: "title", label: "Titre principal" },
   { field: "subtitle", label: "Sous-titre" },
   { field: "description", label: "Description" },
-  { field: "primaryButtonText", label: "Texte bouton principal" },
-  { field: "primaryButtonUrl", label: "Lien bouton principal" },
-  { field: "secondaryButtonText", label: "Texte bouton secondaire" },
-  { field: "secondaryButtonUrl", label: "Lien bouton secondaire" },
-  { field: "githubUrl", label: "GitHub URL" },
-  { field: "linkedinUrl", label: "LinkedIn URL" },
-  { field: "email", label: "Email de contact" },
+  { field: "primaryButtonText", label: "Texte du bouton principal" },
+  { field: "primaryButtonUrl", label: "Lien du bouton principal" },
+  { field: "secondaryButtonText", label: "Texte du bouton secondaire" },
+  { field: "secondaryButtonUrl", label: "Lien du bouton secondaire" },
+  { field: "availabilityText", label: "Texte du voyant" },
+  { field: "githubUrl", label: "GitHub" },
+  { field: "linkedinUrl", label: "LinkedIn" },
+  { field: "email", label: "E-mail de contact" },
 ];
+
+const sectionTitle = "border-b border-line pb-2 font-display text-lg font-bold";
+
+/** Accessible on / off switch (mint when on, slate when off). */
+function Switch({ id, checked, onChange, disabled }: { id: string; checked: boolean; onChange: (checked: boolean) => void; disabled?: boolean }) {
+  return (
+    <button
+      id={id}
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={`relative h-[34px] w-[60px] shrink-0 rounded-full transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-60 ${checked ? "bg-mint" : "bg-slate"}`}
+    >
+      <span aria-hidden="true" className={`absolute top-1 h-[26px] w-[26px] rounded-full bg-white transition-[left] duration-150 ${checked ? "left-[30px]" : "left-1"}`} />
+    </button>
+  );
+}
 
 export function HeroTab() {
   const readOnly = useReadOnly();
-  // Last saved version, used by "Reset"
+  // Last saved version, used by "Annuler les modifications"
   const [savedData, setSavedData] = useState<Hero | null>(null);
   const [formData, setFormData] = useState<Hero | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -46,14 +69,16 @@ export function HeroTab() {
 
   if (!formData) {
     return (
-      <div className="bg-white rounded-lg shadow w-full p-6">
-        {error ? <ErrorBanner message={error} /> : <p className="text-gray-500">Chargement...</p>}
-      </div>
+      <AdminPanel title="Section Hero">
+        {error ? <ErrorBanner message={error} /> : <p className="p-6 font-display text-slate">Chargement...</p>}
+      </AdminPanel>
     );
   }
 
-  const update = (field: keyof Hero) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+  const update = (field: TextField) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setIsSaved(false);
     setFormData({ ...formData, [field]: e.target.value });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +96,6 @@ export function HeroTab() {
       setSavedData(saved);
       setFormData(saved);
       setIsSaved(true);
-      setTimeout(() => setIsSaved(false), 3000);
     } catch (err) {
       setError(getErrorMessage(err, "Impossible d'enregistrer la section Hero"));
     } finally {
@@ -86,132 +110,144 @@ export function HeroTab() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow w-full">
-      <div className="p-6 border-b border-gray-200">
-        <h2 className="text-xl font-bold text-gray-900">Configuration de la Section Hero</h2>
-        <p className="text-sm text-gray-500 mt-1">
-          Personnalisez les informations affichées dans la section principale de votre portfolio
-        </p>
-      </div>
+    <AdminPanel title="Section Hero" summary="Le premier écran de la page d'accueil. L'aperçu suit vos modifications.">
       <ErrorBanner message={error} onClose={() => setError("")} />
-      <div className="w-full flex justify-center">
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+      <div className="grid gap-8 p-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
+        <form onSubmit={handleSubmit} className="flex min-w-0 flex-col gap-8">
           {/* A disabled fieldset makes every field read-only for visitors */}
-          <fieldset disabled={readOnly} className="space-y-6 min-w-0">
-            {/* Main Content Section */}
+          <fieldset disabled={readOnly} className="flex min-w-0 flex-col gap-8">
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 pb-2 border-b">Contenu Principal</h3>
-
+              <h3 className={sectionTitle}>Contenu principal</h3>
               <div className="space-y-2">
                 <Label htmlFor="title">Titre principal</Label>
-                <Input id="title" value={formData.title} onChange={update("title")} placeholder="Ex: Développeur Full-Stack" maxLength={200} required />
+                <Input id="title" value={formData.title} onChange={update("title")} placeholder="Ex : Développeur Full-Stack" maxLength={200} required />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="subtitle">Sous-titre</Label>
-                <Input id="subtitle" value={formData.subtitle} onChange={update("subtitle")} placeholder="Ex: Création d'expériences web modernes" maxLength={300} required />
+                <Input id="subtitle" value={formData.subtitle} onChange={update("subtitle")} maxLength={300} required />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
-                <Textarea id="description" rows={4} value={formData.description} onChange={update("description")} placeholder="Décrivez votre parcours et vos compétences..." maxLength={2000} required />
+                <Textarea id="description" rows={4} value={formData.description} onChange={update("description")} maxLength={2000} required />
               </div>
             </div>
 
-            {/* Buttons Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 pb-2 border-b">Boutons d&apos;Action</h3>
-
-              <div className="grid grid-cols-2 gap-4">
+              <h3 className={sectionTitle}>Boutons d&apos;action</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="primaryButtonText">Texte bouton principal</Label>
+                  <Label htmlFor="primaryButtonText">Texte du bouton principal</Label>
                   <Input id="primaryButtonText" value={formData.primaryButtonText} onChange={update("primaryButtonText")} maxLength={50} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="primaryButtonUrl">Lien bouton principal</Label>
-                  <Input id="primaryButtonUrl" value={formData.primaryButtonUrl} onChange={update("primaryButtonUrl")} placeholder="#contact" required />
+                  <Label htmlFor="primaryButtonUrl">Lien du bouton principal</Label>
+                  <Input id="primaryButtonUrl" value={formData.primaryButtonUrl} onChange={update("primaryButtonUrl")} placeholder="/contact" required />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="secondaryButtonText">Texte bouton secondaire</Label>
+                  <Label htmlFor="secondaryButtonText">Texte du bouton secondaire</Label>
                   <Input id="secondaryButtonText" value={formData.secondaryButtonText} onChange={update("secondaryButtonText")} maxLength={50} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="secondaryButtonUrl">Lien bouton secondaire</Label>
-                  <Input id="secondaryButtonUrl" value={formData.secondaryButtonUrl} onChange={update("secondaryButtonUrl")} placeholder="#projets" required />
+                  <Label htmlFor="secondaryButtonUrl">Lien du bouton secondaire</Label>
+                  <Input id="secondaryButtonUrl" value={formData.secondaryButtonUrl} onChange={update("secondaryButtonUrl")} placeholder="/projets" required />
                 </div>
+              </div>
+              <p className="font-display text-sm text-slate">Chaque section a sa propre page : utilisez /projets, /experience, /competences ou /contact.</p>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className={sectionTitle}>Disponibilité</h3>
+              <div className="flex items-center gap-4">
+                <Switch
+                  id="availabilityEnabled"
+                  checked={formData.availabilityEnabled}
+                  onChange={(checked) => {
+                    setIsSaved(false);
+                    setFormData({ ...formData, availabilityEnabled: checked });
+                  }}
+                  disabled={readOnly}
+                />
+                <div className="flex flex-col">
+                  <label htmlFor="availabilityEnabled" className="font-display text-base font-semibold">
+                    Afficher le voyant de disponibilité
+                  </label>
+                  <span className="font-display text-sm text-slate">Un point ambre et une courte phrase au-dessus du titre.</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="availabilityText">Texte du voyant</Label>
+                <Input id="availabilityText" value={formData.availabilityText} onChange={update("availabilityText")} maxLength={120} required />
               </div>
             </div>
 
-            {/* Social Links Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 pb-2 border-b">Liens Sociaux</h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <h3 className={sectionTitle}>Liens sociaux</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="githubUrl">GitHub URL</Label>
+                  <Label htmlFor="githubUrl">GitHub</Label>
                   <Input id="githubUrl" type="url" value={formData.githubUrl} onChange={update("githubUrl")} placeholder="https://github.com/username" required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="linkedinUrl">LinkedIn URL</Label>
+                  <Label htmlFor="linkedinUrl">LinkedIn</Label>
                   <Input id="linkedinUrl" type="url" value={formData.linkedinUrl} onChange={update("linkedinUrl")} placeholder="https://linkedin.com/in/username" required />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email de contact</Label>
-                  {/* Never published: it receives the contact form notifications. Visitors don't get it from the API. */}
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email ?? ""}
-                    onChange={update("email")}
-                    placeholder={readOnly ? "Masqué en lecture seule" : "contact@email.com"}
-                    required
-                  />
-                  {!readOnly && <p className="text-xs text-gray-500">Jamais affiché sur le site : reçoit les notifications de messages.</p>}
-                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">E-mail de contact</Label>
+                {/* Never published: it receives the contact form notifications. Visitors don't get it from the API. */}
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email ?? ""}
+                  onChange={update("email")}
+                  placeholder={readOnly ? "Masqué en lecture seule" : "contact@email.com"}
+                  required
+                />
+                {!readOnly && <p className="font-display text-sm text-slate">Jamais affiché sur le site : il reçoit les notifications de messages.</p>}
               </div>
             </div>
           </fieldset>
 
-          {/* Preview Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 pb-2 border-b">Aperçu</h3>
-            <div className="bg-linear-to-br from-cyan-50 to-teal-50 rounded-lg p-8 text-center">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">{formData.title}</h1>
-              <p className="text-xl text-gray-700 mb-6">{formData.subtitle}</p>
-              <p className="text-gray-600 max-w-2xl mx-auto mb-8 whitespace-pre-line">{formData.description}</p>
-              <div className="flex gap-4 justify-center">
-                <Button type="button" className="bg-cyan-700 hover:bg-cyan-800">
-                  {formData.primaryButtonText}
-                </Button>
-                <Button type="button" variant="outline" className="border-cyan-700 text-cyan-700">
-                  {formData.secondaryButtonText}
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          {!readOnly && <div className="flex items-center justify-between pt-6 border-t">
-            <Button type="button" variant="outline" onClick={handleReset}>
-              <RotateCcw size={18} className="mr-2" />
-              Annuler
-            </Button>
-            <Button type="submit" variant="plain" color="primary" className="w-64" disabled={isSaving}>
-              <Save size={18} className="mr-2" />
-              {isSaving ? "Enregistrement..." : isSaved ? "✓ Sauvegardé" : "Sauvegarder les modifications"}
-            </Button>
-          </div>}
-
-          {isSaved && (
-            <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-center">
-              Les modifications ont été sauvegardées avec succès !
+          {!readOnly && (
+            <div className="flex flex-wrap items-center gap-3 border-t border-line pt-6">
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? "Enregistrement..." : "Enregistrer"}
+              </Button>
+              <Button type="button" variant="outline" onClick={handleReset}>
+                Annuler les modifications
+              </Button>
+              <Link href="/" className="font-display text-base font-semibold text-ink underline underline-offset-4 hover:text-mint">
+                Voir l&apos;accueil
+              </Link>
+              {isSaved && (
+                <p role="status" className="font-display text-base font-semibold text-mint">
+                  Enregistré : les modifications sont en ligne.
+                </p>
+              )}
             </div>
           )}
         </form>
+
+        {/* Live preview of the home page hero */}
+        <aside aria-label="Aperçu" className="min-w-0 lg:sticky lg:top-6 lg:self-start">
+          <p className="mb-2 font-display text-sm font-semibold text-slate">Aperçu</p>
+          <div className="flex flex-col gap-4 rounded-2xl bg-ink p-7 text-on-ink">
+            {formData.availabilityEnabled && (
+              <p className="flex items-center gap-2 font-display text-sm text-line">
+                <span aria-hidden="true" className="h-2 w-2 rounded-full bg-amber" />
+                {formData.availabilityText}
+              </p>
+            )}
+            <p className="font-display text-4xl font-bold leading-none tracking-[-0.03em]">{formData.title}</p>
+            <p className="font-display text-lg font-medium text-mint-light">{formData.subtitle}</p>
+            <p className="whitespace-pre-line text-base leading-relaxed text-on-ink-soft">{formData.description}</p>
+            <div className="flex flex-wrap gap-2 pt-1 font-display text-sm font-semibold">
+              <span className="rounded-lg bg-mint-light px-4 py-2.5 text-ink">{formData.primaryButtonText}</span>
+              <span className="rounded-lg border-[1.5px] border-line px-4 py-2 text-on-ink">{formData.secondaryButtonText}</span>
+            </div>
+          </div>
+        </aside>
       </div>
-    </div>
+    </AdminPanel>
   );
 }

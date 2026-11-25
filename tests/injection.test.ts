@@ -43,6 +43,8 @@ const validHero = {
   githubUrl: 'https://github.com/someone',
   linkedinUrl: 'https://www.linkedin.com/in/someone/',
   email: 'me@example.com',
+  availabilityEnabled: true,
+  availabilityText: 'Ouvert aux opportunités',
 };
 
 describe('text payloads are stored verbatim, never executed or interpreted', () => {

@@ -5,6 +5,7 @@ import { experiences, experienceTags } from '../db/schema';
 import { HttpError } from '../http';
 import type { createExperienceSchema, updateExperienceSchema } from '../validation';
 import { assertTagsExist, type TagDTO } from './tags';
+import { reorder } from './ordering';
 
 export type ExperienceDTO = {
   id: number;
@@ -35,6 +36,9 @@ async function findExperiences(tx: Executor, id?: number): Promise<ExperienceDTO
 }
 
 export const listExperiences = () => findExperiences(db);
+
+/** Saves a new display order: `ids` must list every experience exactly once. */
+export const reorderExperiences = (ids: number[]) => reorder(experiences, ids);
 
 async function getExperience(tx: Executor, id: number) {
   const [experience] = await findExperiences(tx, id);

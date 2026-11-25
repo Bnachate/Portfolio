@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HeroTab } from '@/app/components/admin/HeroTab';
 import { ContactsTab } from '@/app/components/admin/ContactsTab';
@@ -24,12 +24,14 @@ const HERO: Hero = {
   subtitle: "7 ans d'expérience",
   description: 'Bonjour',
   primaryButtonText: 'Me contacter',
-  primaryButtonUrl: '#contact',
+  primaryButtonUrl: '/contact',
   secondaryButtonText: 'Voir mes projets',
-  secondaryButtonUrl: '#projets',
+  secondaryButtonUrl: '/projets',
   githubUrl: 'https://github.com/someone',
   linkedinUrl: 'https://www.linkedin.com/in/someone/',
   email: 'private@example.com',
+  availabilityEnabled: true,
+  availabilityText: 'Ouvert aux opportunités, Paris',
 };
 
 const withMode = (readOnly: boolean, ui: React.ReactNode) => <ReadOnlyProvider value={readOnly}>{ui}</ReadOnlyProvider>;
@@ -47,14 +49,45 @@ describe('HeroTab (admin)', () => {
     const title = await screen.findByLabelText('Titre principal');
     await user.clear(title);
     await user.type(title, 'Lead Developer');
-    expect(screen.getByRole('heading', { level: 1, name: 'Lead Developer' })).toBeInTheDocument();
+    expect(within(screen.getByRole('complementary', { name: 'Aperçu' })).getByText('Lead Developer')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /sauvegarder les modifications/i }));
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
     expect(hero.saveHero).toHaveBeenCalledWith({ ...HERO, title: 'Lead Developer' });
-    expect(await screen.findByText('Les modifications ont été sauvegardées avec succès !')).toBeInTheDocument();
+    expect(await screen.findByRole('status')).toHaveTextContent('Enregistré : les modifications sont en ligne.');
   });
 
-  it('"Annuler" restores the last saved version after confirmation', async () => {
+  it('turns the availability indicator off, in the preview and in the saved data', async () => {
+    hero.saveHero.mockImplementation(async (data) => data as Hero);
+    const user = userEvent.setup();
+    render(withMode(false, <HeroTab />));
+
+    const toggle = await screen.findByRole('switch', { name: 'Afficher le voyant de disponibilité' });
+    expect(toggle).toHaveAttribute('aria-checked', 'true');
+    const preview = screen.getByRole('complementary', { name: 'Aperçu' });
+    expect(within(preview).getByText(HERO.availabilityText)).toBeInTheDocument();
+
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute('aria-checked', 'false');
+    expect(within(preview).queryByText(HERO.availabilityText)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+    expect(hero.saveHero).toHaveBeenCalledWith({ ...HERO, availabilityEnabled: false });
+  });
+
+  it('refuses a blank required field without calling the API', async () => {
+    const user = userEvent.setup();
+    render(withMode(false, <HeroTab />));
+
+    const text = await screen.findByLabelText('Texte du voyant');
+    await user.clear(text);
+    await user.type(text, '   ');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Champ requis : Texte du voyant');
+    expect(hero.saveHero).not.toHaveBeenCalled();
+  });
+
+  it('"Annuler les modifications" restores the last saved version after confirmation', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     const user = userEvent.setup();
     render(withMode(false, <HeroTab />));
@@ -62,7 +95,7 @@ describe('HeroTab (admin)', () => {
     const subtitle = await screen.findByLabelText('Sous-titre');
     await user.clear(subtitle);
     await user.type(subtitle, 'Brouillon');
-    await user.click(screen.getByRole('button', { name: 'Annuler' }));
+    await user.click(screen.getByRole('button', { name: 'Annuler les modifications' }));
 
     expect(screen.getByLabelText('Sous-titre')).toHaveValue(HERO.subtitle);
     expect(hero.saveHero).not.toHaveBeenCalled();
@@ -76,11 +109,12 @@ describe('HeroTab (read-only visitor)', () => {
     render(withMode(true, <HeroTab />));
 
     expect(await screen.findByLabelText('Titre principal')).toBeDisabled();
-    expect(screen.getByLabelText('Email de contact')).toBeDisabled();
-    expect(screen.getByLabelText('Email de contact')).toHaveValue('');
-    expect(screen.getByLabelText('Email de contact')).toHaveAttribute('placeholder', 'Masqué en lecture seule');
-    expect(screen.queryByRole('button', { name: /sauvegarder/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Annuler' })).not.toBeInTheDocument();
+    expect(screen.getByRole('switch', { name: 'Afficher le voyant de disponibilité' })).toBeDisabled();
+    expect(screen.getByLabelText('E-mail de contact')).toBeDisabled();
+    expect(screen.getByLabelText('E-mail de contact')).toHaveValue('');
+    expect(screen.getByLabelText('E-mail de contact')).toHaveAttribute('placeholder', 'Masqué en lecture seule');
+    expect(screen.queryByRole('button', { name: 'Enregistrer' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Annuler les modifications' })).not.toBeInTheDocument();
   });
 });
 
@@ -99,47 +133,57 @@ describe('ContactsTab', () => {
     contacts.getContacts.mockResolvedValue([message(1, 'new', 'Ada'), message(2, 'read', 'Alan'), message(3, 'new', 'Grace')]);
   });
 
-  const row = (name: string) => screen.getByText(name).closest('tr')!;
-  // Row actions are icon buttons named after the sender
-  const viewButton = (name: string) => screen.getByRole('button', { name: `Voir le message de ${name}` });
-  const deleteButton = (name: string) => screen.getByRole('button', { name: `Supprimer le message de ${name}` });
+  // Each message of the list is a button named by its content (sender, date, subject)
+  const listItem = (name: string) => within(screen.getByRole('list', { name: 'Messages reçus' })).getByRole('button', { name: new RegExp(name) });
+  const article = (name: string) => screen.getByRole('article', { name: `Message de ${name}` });
 
-  it('lists the messages with subject and counts the new ones', async () => {
-    render(<ContactsTab />);
-    expect(await screen.findByText('Ada')).toBeInTheDocument();
-    expect(screen.getByText(/3 messages total/)).toBeInTheDocument();
-    expect(screen.getByText(/2 nouveaux/)).toBeInTheDocument();
-    expect(within(row('Ada')).getByText('Sujet de Ada')).toBeInTheDocument();
-    expect(within(row('Ada')).getByRole('link', { name: /ada@example.com/ })).toHaveAttribute('href', 'mailto:ada@example.com');
+  it('lists the messages with subject and counts the unread ones', async () => {
+    const onUnread = vi.fn();
+    render(<ContactsTab onUnreadCountChange={onUnread} />);
+    await screen.findByText('Ada');
+    expect(screen.getByText(/3 messages au total/)).toBeInTheDocument();
+    expect(screen.getByText(/2 non lus/)).toBeInTheDocument();
+    expect(listItem('Ada')).toHaveTextContent('Sujet de Ada');
+    expect(screen.getByText('Sélectionnez un message pour le lire.')).toBeInTheDocument();
+    await waitFor(() => expect(onUnread).toHaveBeenLastCalledWith(2));
   });
 
-  it('announces new messages to screen readers, and keeps the indicator slot on every row', async () => {
+  it('announces unread messages to screen readers, the amber dot being visual only', async () => {
     render(<ContactsTab />);
     await screen.findByText('Ada');
-    // The blue dot is visual only: its meaning is also given as text
-    expect(within(row('Ada')).getByText('Nouveau message :')).toHaveClass('sr-only');
-    expect(within(row('Alan')).queryByText('Nouveau message :')).not.toBeInTheDocument();
-    // Same leading slot before the name on read and new rows, so names line up
-    for (const name of ['Ada', 'Alan']) {
-      const slot = screen.getByText(name).parentElement!.firstElementChild!;
-      expect(slot).toHaveAttribute('aria-hidden', 'true');
-      expect(slot).toHaveClass('w-2');
-    }
+    expect(listItem('Ada')).toHaveAccessibleName(/^Nouveau message : Ada/);
+    expect(listItem('Alan')).not.toHaveAccessibleName(/Nouveau message/);
   });
 
-  it('opening a new message shows it and marks it as read', async () => {
-    contacts.updateContactStatus.mockImplementation(async (id, status) => ({ ...message(id, status, 'Ada') }));
+  it('filters the unread messages', async () => {
     const user = userEvent.setup();
     render(<ContactsTab />);
     await screen.findByText('Ada');
 
-    await user.click(viewButton('Ada'));
+    await user.click(screen.getByRole('button', { name: 'Non lus (2)' }));
+    expect(screen.getByRole('button', { name: 'Non lus (2)' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByText('Alan')).not.toBeInTheDocument();
+    expect(screen.getByText('Grace')).toBeInTheDocument();
+  });
 
-    const dialog = await screen.findByRole('dialog');
-    expect(within(dialog).getByText('Message de Ada')).toBeInTheDocument();
+  it('opening an unread message shows it next to the list and marks it as read', async () => {
+    contacts.updateContactStatus.mockImplementation(async (id, status) => ({ ...message(id, status, 'Ada') }));
+    const onUnread = vi.fn();
+    const user = userEvent.setup();
+    render(<ContactsTab onUnreadCountChange={onUnread} />);
+    await screen.findByText('Ada');
+
+    await user.click(listItem('Ada'));
+
+    expect(within(article('Ada')).getByText('Message de Ada')).toBeInTheDocument();
     expect(contacts.updateContactStatus).toHaveBeenCalledWith(1, 'read');
-    expect(await within(dialog).findByText('Lu')).toBeInTheDocument();
-    expect(within(dialog).getByRole('link', { name: /répondre par email/i })).toHaveAttribute('href', 'mailto:ada@example.com');
+    expect(await within(article('Ada')).findByText('Lu')).toBeInTheDocument();
+    expect(within(article('Ada')).getByRole('link', { name: 'Répondre par e-mail' })).toHaveAttribute(
+      'href',
+      'mailto:ada@example.com?subject=Re%3A%20Sujet%20de%20Ada',
+    );
+    expect(listItem('Ada')).toHaveAttribute('aria-current', 'true');
+    expect(onUnread).toHaveBeenLastCalledWith(1);
   });
 
   it('opening an already read message does not change its status', async () => {
@@ -147,35 +191,41 @@ describe('ContactsTab', () => {
     render(<ContactsTab />);
     await screen.findByText('Alan');
 
-    await user.click(viewButton('Alan'));
-    await screen.findByRole('dialog');
+    await user.click(listItem('Alan'));
+    expect(article('Alan')).toBeInTheDocument();
     expect(contacts.updateContactStatus).not.toHaveBeenCalled();
   });
 
-  it('marks a message as done', async () => {
+  it('marks a message as done, or back as unread', async () => {
     contacts.updateContactStatus.mockImplementation(async (id, status) => ({ ...message(id, status, 'Alan') }));
     const user = userEvent.setup();
     render(<ContactsTab />);
     await screen.findByText('Alan');
 
-    await user.click(viewButton('Alan'));
-    await user.click(await screen.findByRole('button', { name: /marquer comme traité/i }));
+    await user.click(listItem('Alan'));
+    await user.click(screen.getByRole('button', { name: 'Marquer comme traité' }));
     expect(contacts.updateContactStatus).toHaveBeenCalledWith(2, 'done');
+    expect(await within(article('Alan')).findByText('Traité')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Marquer comme non lu' }));
+    expect(contacts.updateContactStatus).toHaveBeenLastCalledWith(2, 'new');
   });
 
-  it('deletes a message only after confirmation', async () => {
-    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true);
+  it('deletes a message only after the in-place confirmation', async () => {
     contacts.deleteContact.mockResolvedValue({} as never);
     const user = userEvent.setup();
     render(<ContactsTab />);
     await screen.findByText('Grace');
 
-    await user.click(deleteButton('Grace'));
+    await user.click(listItem('Grace'));
+    await user.click(screen.getByRole('button', { name: 'Supprimer' }));
+    await user.click(within(screen.getByRole('group', { name: 'Supprimer ce message ?' })).getByRole('button', { name: 'Non' }));
     expect(contacts.deleteContact).not.toHaveBeenCalled();
 
-    await user.click(deleteButton('Grace'));
+    await user.click(screen.getByRole('button', { name: 'Supprimer' }));
+    await user.click(within(screen.getByRole('group', { name: 'Supprimer ce message ?' })).getByRole('button', { name: 'Oui' }));
     expect(contacts.deleteContact).toHaveBeenCalledWith(3);
     expect(screen.queryByText('Grace')).not.toBeInTheDocument();
-    expect(confirm).toHaveBeenCalledTimes(2);
+    expect(screen.getByText('Sélectionnez un message pour le lire.')).toBeInTheDocument();
   });
 });

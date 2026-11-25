@@ -1,15 +1,14 @@
 import { expect, type Page } from '@playwright/test';
 
 /**
- * Confirms a deletion dialog and waits until it closes, i.e. until the server confirmed the deletion.
- * While a modal is open, Radix hides the rest of the page from assistive technologies (aria-hidden),
- * so role-based locators see no table rows at all: asserting "row is gone" right after the click
- * would pass immediately, before the DELETE request completed.
+ * Answers "Oui" to an in-place deletion question ("Supprimer « X » ? Oui / Non") and waits until
+ * the question disappears, i.e. until the server confirmed the deletion. Asserting "row is gone"
+ * right after the click could otherwise pass or fail depending on the DELETE request timing.
  */
-export async function confirmDeletion(page: Page) {
-  const dialog = page.getByRole('dialog');
-  await dialog.getByRole('button', { name: 'Supprimer', exact: true }).click();
-  await expect(dialog).toBeHidden();
+export async function confirmDeletion(page: Page, question: string | RegExp) {
+  const confirm = page.getByRole('group', { name: question });
+  await confirm.getByRole('button', { name: 'Oui', exact: true }).click();
+  await expect(confirm).toBeHidden();
 }
 
 // Shared constants of the Playwright suite (also read by playwright.config.ts)

@@ -5,9 +5,22 @@ export interface Tag {
   name: string;
 }
 
-export interface TagWithUsage extends Tag {
+/** A tag listed on its own (GET /api/tags), with the domain used to group skills. */
+export interface TagWithDomain extends Tag {
+  /** Id of its skill domain; null = "Autres". */
+  domainId: number | null;
+}
+
+export interface TagWithUsage extends TagWithDomain {
   experienceCount: number;
   projectCount: number;
+}
+
+/** A group of skills on the "Compétences" page (GET /api/skill-domains), in display order. */
+export interface SkillDomain {
+  id: number;
+  name: string;
+  position: number;
 }
 
 export interface Project {
@@ -18,6 +31,13 @@ export interface Project {
   githubUrl: string | null;
   demoUrl: string | null;
   position: number;
+  // Case study, null while not written yet
+  kind: string | null;
+  scope: string | null;
+  role: string | null;
+  context: string | null;
+  achievements: string | null; // one achievement per line
+  results: string | null;
   tags: Tag[];
 }
 
@@ -55,6 +75,8 @@ export interface Hero {
   githubUrl: string;
   linkedinUrl: string;
   email?: string; // Only returned to the admin
+  availabilityEnabled: boolean;
+  availabilityText: string;
 }
 
 /** Payload for create/update: tags are sent as ids. */

@@ -56,17 +56,16 @@ export function ExperienceDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button
-          className="w-auto px-5"
           onClick={() => {
             onReset();
             onOpenChange(true);
           }}
         >
-          <Plus size={20} className="mr-2" />
+          <Plus size={20} aria-hidden="true" />
           Nouvelle expérience
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl bg-white max-h-[90vh] overflow-y-auto rounded-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? "Modifier l'expérience" : "Nouvelle expérience"}
@@ -86,31 +85,18 @@ export function ExperienceDialog({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="company">Entreprise</Label>
-              <Input
-                id="company"
-                value={formData.company}
-                onChange={(e) => onFormChange({ ...formData, company: e.target.value })}
-                maxLength={200}
-                required
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="company">Entreprise</Label>
+            <Input
+              id="company"
+              value={formData.company}
+              onChange={(e) => onFormChange({ ...formData, company: e.target.value })}
+              maxLength={200}
+              required
+            />
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="position">Position</Label>
-              <Input
-                id="position"
-                type="number"
-                min={0}
-                value={formData.position}
-                onChange={(e) => onFormChange({ ...formData, position: Number(e.target.value) })}
-                placeholder="0"
-                required
-              />
-            </div>
-
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="startDate">Date de début</Label>
               <DatePicker
@@ -122,7 +108,7 @@ export function ExperienceDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="endDate">Date de fin</Label>
+              <Label htmlFor="endDate">Date de fin (vide = poste actuel)</Label>
               <DatePicker
                 id="endDate"
                 value={formData.endDate ?? ""}
@@ -154,7 +140,8 @@ export function ExperienceDialog({
               maxLength={DESCRIPTION_MAX_LENGTH}
               required
             />
-            <p className="text-right text-xs text-gray-500">
+            <p className="font-display text-sm text-slate">Une ligne par point : chaque ligne devient une puce sur la page Expérience.</p>
+            <p className="text-right font-mono text-xs text-slate">
               {formData.description.length}/{DESCRIPTION_MAX_LENGTH}
             </p>
           </div>
@@ -163,7 +150,7 @@ export function ExperienceDialog({
             <Button type="button" variant="outline" onClick={onReset}>
               Annuler
             </Button>
-            <Button type="submit" className="bg-cyan-700 hover:bg-cyan-800" disabled={submitDisabled}>
+            <Button type="submit" disabled={submitDisabled}>
               {isSaving ? "Enregistrement..." : isEditing ? "Mettre à jour" : "Créer"}
             </Button>
           </div>

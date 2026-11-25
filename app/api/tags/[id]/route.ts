@@ -1,14 +1,15 @@
 import { handler, ok, parseBody, parseId, requireAdmin } from '@/server/http';
-import { tagSchema } from '@/server/validation';
+import { updateTagSchema } from '@/server/validation';
 import { deleteTag, updateTag } from '@/server/services/tags';
 
 type Context = { params: Promise<{ id: string }> };
 
+// Rename and / or change the domain
 export const PATCH = handler<Context>(async (request, { params }) => {
   await requireAdmin();
   const id = parseId((await params).id);
-  const { name } = await parseBody(request, tagSchema);
-  return ok(await updateTag(id, name));
+  const changes = await parseBody(request, updateTagSchema);
+  return ok(await updateTag(id, changes));
 });
 
 // Also removes the tag from every experience and project using it (ON DELETE CASCADE)

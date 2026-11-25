@@ -1,43 +1,167 @@
-import { Header } from "./components/Header";
-import { Hero } from "./components/Hero";
-import { Projects } from "./components/Projects";
-import { Experience } from "./components/Experience";
-import { Education } from "./components/Education";
-import { Contact } from "./components/Contact";
-import { getCurrentUser } from "@/server/auth";
+import Link from "next/link";
 import { getPublicHero } from "@/server/services/hero";
 import { listProjects } from "@/server/services/projects";
 import { listExperiences } from "@/server/services/experiences";
-import { SITE } from "./config/site";
+import { listTags } from "@/server/services/tags";
+import { listSkillDomains } from "@/server/services/skill-domains";
 import { personJsonLd } from "./config/structured-data";
+import { HERO_FACTS, PROFILE, TILE_TEXTS } from "./config/content";
+import { SiteHeader } from "./components/site/SiteHeader";
+import { SiteFooter } from "./components/site/SiteFooter";
+import { ArrowIcon, ButtonLink, Container, Section, underlineLink } from "./components/site/ui";
+import { buildSkillGroups, currentExperience, experienceSummary, toBulletPoints } from "./components/site/data";
+import { formatPeriod } from "./components/experience/format";
 
 // Content is edited from the admin: always render with fresh data
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [user, hero, projects, experiences] = await Promise.all([
-    getCurrentUser(),
-    getPublicHero(),
-    listProjects(),
-    listExperiences(),
-  ]);
+  const [hero, projects, experiences, tags, domains] = await Promise.all([getPublicHero(), listProjects(), listExperiences(), listTags(), listSkillDomains()]);
+  const latest = currentExperience(experiences);
+  const domainCount = buildSkillGroups(domains, tags, experiences, projects).length;
+
+  const tiles = [
+    {
+      href: "/projets",
+      title: "Projets",
+      meta: projects.length === 0 ? "Bientôt" : `${projects.length} projet${projects.length > 1 ? "s" : ""}`,
+      text: TILE_TEXTS.projects,
+    },
+    { href: "/experience", title: "Expérience", meta: experienceSummary(experiences), text: TILE_TEXTS.experience },
+    { href: "/competences", title: "Compétences", meta: `${domainCount} domaine${domainCount > 1 ? "s" : ""}`, text: TILE_TEXTS.skills },
+  ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: personJsonLd(hero) }} />
-      <Header isAuthenticated={Boolean(user)} />
+
+      {/* Opening band: header and hero on ink */}
+      <div className="bg-ink px-[clamp(20px,6vw,80px)] text-on-ink">
+        <SiteHeader current="home" tone="dark" />
+      </div>
       <main>
-        <Hero hero={hero} />
-        <Projects projects={projects} />
-        <Experience experiences={experiences} />
-        <Education />
-        <Contact />
-      </main>
-      <footer className="bg-gray-900 text-white py-8">
-        <div className="container mx-auto px-6 text-center">
-          <p>&copy; {new Date().getFullYear()} {SITE.name}. Tous droits réservés.</p>
+        <div className="bg-ink px-[clamp(20px,6vw,80px)] pb-24 text-on-ink">
+          <Container className="flex flex-wrap items-end gap-x-[72px] gap-y-14 pt-[88px]">
+            <div className="flex min-w-0 flex-[1_1_520px] flex-col gap-7">
+              {hero.availabilityEnabled && (
+                <p className="flex items-center gap-2.5 font-display text-base font-medium text-line">
+                  <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-amber" />
+                  {hero.availabilityText}
+                </p>
+              )}
+              <h1 className="font-display text-[clamp(44px,6.4vw,80px)] font-bold leading-none tracking-[-0.035em] text-balance">{hero.title}</h1>
+              <p className="font-display text-[clamp(20px,2.4vw,28px)] font-medium leading-[1.2] text-mint-light">{hero.subtitle}</p>
+              <p className="max-w-[56ch] whitespace-pre-line text-[21px] leading-[1.6] text-on-ink-soft">{hero.description}</p>
+              <div className="flex flex-wrap gap-3 pt-2">
+                <ButtonLink variant="mint" href={hero.primaryButtonUrl}>
+                  {hero.primaryButtonText}
+                </ButtonLink>
+                <ButtonLink variant="outlineOnInk" href={hero.secondaryButtonUrl}>
+                  {hero.secondaryButtonText}
+                </ButtonLink>
+              </div>
+            </div>
+
+            <div className="flex w-full min-w-0 max-w-[340px] flex-[0_1_340px] flex-col gap-5">
+              {/* eslint-disable-next-line @next/next/no-img-element -- static profile photo, already small */}
+              <img
+                src="/my_photo.jpeg"
+                alt="Photo de profil de Brahim Nachate"
+                width={340}
+                height={425}
+                className="aspect-[4/5] w-full rounded-2xl border border-ink-rule bg-night object-cover"
+              />
+              <dl className="flex flex-col font-display text-base">
+                {HERO_FACTS.map((fact, index) => (
+                  <div
+                    key={fact.label}
+                    className={`flex justify-between gap-4 border-t border-ink-rule py-3 ${index === HERO_FACTS.length - 1 ? "border-b" : ""}`}
+                  >
+                    <dt className="text-on-ink-muted">{fact.label}</dt>
+                    <dd className="text-right font-medium text-on-ink">{fact.value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <nav aria-label="Profils en ligne" className="flex gap-5 font-display text-base">
+                <a href={hero.githubUrl} target="_blank" rel="noopener noreferrer" className="text-line underline-offset-4 hover:text-mint-light hover:underline">
+                  GitHub
+                </a>
+                <a href={hero.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-line underline-offset-4 hover:text-mint-light hover:underline">
+                  LinkedIn
+                </a>
+              </nav>
+            </div>
+          </Container>
         </div>
-      </footer>
+
+        {/* Entry tiles towards the dedicated pages */}
+        <Section className="pt-[72px]" aria-label="Pages du portfolio">
+          <ul className="flex flex-wrap gap-5">
+            {tiles.map((tile) => (
+              <li key={tile.href} className="flex min-w-0 flex-[1_1_320px]">
+                <Link
+                  href={tile.href}
+                  className="group flex min-h-[280px] w-full flex-col justify-between gap-8 rounded-2xl border border-line bg-white p-8 text-ink transition-colors duration-150 hover:bg-ink hover:text-on-ink"
+                >
+                  <span className="flex flex-col gap-3.5">
+                    <span className="self-start rounded border border-current px-2.5 py-[5px] font-mono text-[13px]">{tile.meta}</span>
+                    <span className="font-display text-[44px] font-bold leading-[1.02] tracking-[-0.025em]">{tile.title}</span>
+                    <span className="text-lg leading-[1.55] text-slate transition-colors duration-150 group-hover:text-on-ink-soft">{tile.text}</span>
+                  </span>
+                  <ArrowIcon size={30} />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Section>
+
+        {/* Profile */}
+        <Section className="pt-28">
+          <div className="flex flex-wrap gap-x-[72px] gap-y-10">
+            <h2 className="min-w-0 flex-[1_1_320px] font-display text-[clamp(32px,4vw,44px)] font-bold leading-[1.08] tracking-[-0.025em] text-balance">
+              {PROFILE.title}
+            </h2>
+            <div className="flex min-w-0 max-w-[64ch] flex-[1.6_1_480px] flex-col gap-5 text-[19px] leading-[1.7] text-slate">
+              {PROFILE.paragraphs.map((paragraph) => (
+                <p key={paragraph.slice(0, 24)}>{paragraph}</p>
+              ))}
+              <Link href="/experience" className={underlineLink}>
+                Lire tout mon parcours
+              </Link>
+            </div>
+          </div>
+        </Section>
+
+        {/* Most recent position */}
+        {latest && (
+          <Section className="pt-28">
+            <div className="flex flex-wrap items-end justify-between gap-x-14 gap-y-8 rounded-2xl bg-mist p-[clamp(28px,4vw,48px)]">
+              <div className="flex min-w-0 flex-[1_1_480px] flex-col gap-4">
+                <span className="font-mono text-sm text-slate">
+                  {latest.company}, {formatPeriod(latest.startDate, latest.endDate)}
+                </span>
+                <h2 className="font-display text-[clamp(28px,3.4vw,38px)] font-bold leading-[1.1] tracking-[-0.02em]">{latest.job}</h2>
+                <p className="max-w-[60ch] text-lg leading-[1.65] text-slate">{toBulletPoints(latest.description)[0]}</p>
+                <div className="pt-1">
+                  {/* White tags on mist, as in the design */}
+                  <ul aria-label={`Technologies chez ${latest.company}`} className="flex flex-wrap gap-2">
+                    {latest.tags.slice(0, 8).map((tag) => (
+                      <li key={tag.id} className="rounded border border-line bg-white px-2.5 py-1.5 font-mono text-[13px]">
+                        {tag.name}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              <ButtonLink variant="ink" href="/experience">
+                Voir mon parcours
+              </ButtonLink>
+            </div>
+          </Section>
+        )}
+      </main>
+
+      <SiteFooter links={hero} large />
     </div>
   );
 }

@@ -16,7 +16,7 @@ const apiError = (status: number, message: string) =>
 async function submit(email = 'admin@example.com', password = 'secret-password') {
   const user = userEvent.setup();
   render(<LoginPage />);
-  await user.type(screen.getByLabelText('Email'), email);
+  await user.type(screen.getByLabelText('E-mail'), email);
   await user.type(screen.getByLabelText('Mot de passe'), password);
   await user.click(screen.getByRole('button', { name: 'Se connecter' }));
   return user;

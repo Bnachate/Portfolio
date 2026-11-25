@@ -12,3 +12,6 @@ export const updateProject = (id: number, payload: Partial<ProjectPayload>) =>
   unwrap<Project>(apiClient.patch(`/projects/${id}`, payload));
 
 export const deleteProject = (id: number) => apiClient.delete(`/projects/${id}`);
+
+/** Saves a new display order (every project id, in order) and returns the reordered list. */
+export const reorderProjects = (ids: number[]) => unwrap<Project[]>(apiClient.put('/projects/order', { ids }));

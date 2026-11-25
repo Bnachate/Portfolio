@@ -1,0 +1,60 @@
+/**
+ * Static public content of the site (texts from the design that are not edited from the admin).
+ * Everything edited from the admin (hero, experiences, projects, tags) lives in the database.
+ */
+
+export const CV_URL = "/CV_Brahim_Nachate_Developpeur_Full-Stack.pdf";
+
+/** Key facts next to the profile photo on the home page. */
+export const HERO_FACTS = [
+  { label: "Expérience", value: "7 ans" },
+  { label: "Spécialité", value: "Vue.js, Nuxt, TypeScript" },
+  { label: "Basé à", value: "Paris" },
+];
+
+/** "Profil" section of the home page. */
+export const PROFILE = {
+  title: "Du marketing digital au développement",
+  paragraphs: [
+    "J'ai d'abord travaillé dans le marketing digital : un Master à l'INSEEC, puis la gestion de projets CRM et de marketing automation chez Octelio Conseil, avec une équipe de deux personnes. Ce passé m'aide à relier une interface à son objectif : conversion, engagement, lisibilité des données.",
+    "Après le bootcamp d'Epitech Coding Academy, j'ai développé en React et Node.js chez Ipocamp, puis en Vue.js, Nuxt et Java chez Weborama. Je travaille avec les équipes UX/UI, back-end et produit.",
+  ],
+};
+
+/** Short texts of the home page tiles leading to each page. */
+export const TILE_TEXTS = {
+  projects: "Ce que j'ai construit de bout en bout, avec le code source et une étude de cas pour chaque projet.",
+  experience: "Du marketing automation chez Octelio à Vue.js et Java chez Weborama, en passant par React et Node.js.",
+  skills: "Front-end, tests, API, outils de livraison, et le marketing technique dont je viens.",
+};
+
+export const EDUCATION = [
+  { period: "2020 – 2021", title: "Code & Go, bootcamp de développement", school: "Coding Academy by Epitech Paris" },
+  { period: "2014 – 2017", title: "Master Digital Marketing", school: "INSEEC Business School" },
+  { period: "2010 – 2014", title: "Licence Sciences Économiques et Gestion", school: "Université Paris-Est Marne-la-Vallée" },
+];
+
+export const LANGUAGES = [
+  { name: "Français", level: "langue maternelle" },
+  { name: "Anglais", level: "professionnel (B2)" },
+  { name: "Arabe", level: "débutant (A1-A2)" },
+];
+
+/**
+ * Placeholder texts shown while a case study field is still empty in the admin.
+ * TODO(content): remove once every project has its case study written.
+ */
+export const LOREM = {
+  kind: "Lorem ipsum",
+  scope: "Dolor sit amet",
+  role: "Lorem ipsum dolor",
+  context:
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus, posuere velit aliquet. Donec ullamcorper nulla non metus auctor fringilla, sed posuere consectetur est at lobortis.",
+  achievements: [
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    "Vestibulum id ligula porta felis euismod semper.",
+    "Cras mattis consectetur purus sit amet fermentum.",
+  ],
+  results:
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas faucibus mollis interdum, nullam quis risus eget urna mollis ornare vel eu leo.",
+};

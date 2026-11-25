@@ -15,6 +15,27 @@
       "when": 1795513276440,
       "tag": "0001_kind_exodus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795602322222,
+      "tag": "0002_magical_stephen_strange",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795614077286,
+      "tag": "0003_skill_domains",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795614088856,
+      "tag": "0004_drop_tags_domain",
+      "breakpoints": true
     }
   ]
 }

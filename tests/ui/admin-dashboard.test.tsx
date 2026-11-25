@@ -7,12 +7,14 @@ import { AdminDashboard } from '@/app/admin/AdminDashboard';
 import * as experiencesService from '@/app/services/admin/experiences.service';
 import * as contactsService from '@/app/services/admin/contacts.service';
 import { logout } from '@/app/services/auth.service';
+import type { ContactMessage } from '@/app/types/api';
 
 vi.mock('@/app/services/admin/experiences.service', () => ({
   getExperiences: vi.fn(),
   createExperience: vi.fn(),
   updateExperience: vi.fn(),
   deleteExperience: vi.fn(),
+  reorderExperiences: vi.fn(),
   getTags: vi.fn(),
   createTag: vi.fn(),
 }));
@@ -23,6 +25,16 @@ vi.mock('@/app/services/admin/contacts.service', () => ({
   sendContactMessage: vi.fn(),
 }));
 vi.mock('@/app/services/auth.service', () => ({ login: vi.fn(), logout: vi.fn() }));
+
+const message = (id: number, status: ContactMessage['status']): ContactMessage => ({
+  id,
+  name: `Visiteur ${id}`,
+  email: `v${id}@example.com`,
+  subject: 'Sujet',
+  message: 'Bonjour',
+  status,
+  createdAt: '2026-11-20T10:00:00.000Z',
+});
 
 beforeEach(() => {
   vi.mocked(experiencesService.getExperiences).mockResolvedValue([]);
@@ -36,12 +48,13 @@ describe('AdminDashboard (read-only visitor)', () => {
     expect(screen.getByText(/Mode lecture seule/)).toBeInTheDocument();
     expect(screen.getByText('Consultation en lecture seule')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Connexion' })).toHaveAttribute('href', '/auth/login');
+    expect(screen.getByRole('link', { name: 'Voir le site' })).toHaveAttribute('href', '/');
     expect(screen.queryByRole('button', { name: /déconnexion/i })).not.toBeInTheDocument();
 
     const tabs = screen.getAllByRole('tab').map((tab) => tab.textContent);
-    expect(tabs).toEqual(['Expériences', 'Projets', 'Tags', 'Hero']);
+    expect(tabs).toEqual(['Expériences', 'Projets', 'Tags', 'Domaines', 'Hero']);
     // Contact messages are never even requested
-    await screen.findByText('Gestion des Expériences');
+    await screen.findByRole('heading', { level: 2, name: 'Expériences' });
     expect(contactsService.getContacts).not.toHaveBeenCalled();
   });
 });
@@ -52,11 +65,23 @@ describe('AdminDashboard (admin)', () => {
     render(<AdminDashboard readOnly={false} />);
 
     expect(screen.queryByText(/Mode lecture seule/)).not.toBeInTheDocument();
-    expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual(['Expériences', 'Messages', 'Projets', 'Tags', 'Hero']);
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual(['Expériences', 'Messages', 'Projets', 'Tags', 'Domaines', 'Hero']);
 
     await user.click(screen.getByRole('tab', { name: 'Messages' }));
-    expect(await screen.findByText('Messages de Contact')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 2, name: 'Messages' })).toBeInTheDocument();
     expect(contactsService.getContacts).toHaveBeenCalled();
+  });
+
+  it('shows the number of unread messages on the Messages tab, and updates it when one is read', async () => {
+    vi.mocked(contactsService.getContacts).mockResolvedValue([message(1, 'new'), message(2, 'new'), message(3, 'done')]);
+    vi.mocked(contactsService.updateContactStatus).mockImplementation(async (id, status) => message(id, status));
+    const user = userEvent.setup();
+    render(<AdminDashboard readOnly={false} />);
+
+    const tab = await screen.findByRole('tab', { name: 'Messages 2 non lus' });
+    await user.click(tab);
+    await user.click(await screen.findByRole('button', { name: /Visiteur 1/ }));
+    expect(await screen.findByRole('tab', { name: 'Messages 1 non lu' })).toBeInTheDocument();
   });
 
   it('logs out and returns to the site', async () => {

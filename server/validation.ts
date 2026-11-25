@@ -39,6 +39,27 @@ const shortText = (max: number) =>
     .max(max, `${max} caractères maximum`)
     .refine((value) => !CONTROL_CHARS_EXCEPT_LINE_BREAKS.test(value), 'Caractères invalides');
 
+// Optional text (case study fields...): trimmed, empty or missing -> null
+const optionalText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max, `${max} caractères maximum`)
+    .refine((value) => !CONTROL_CHARS_EXCEPT_LINE_BREAKS.test(value), 'Caractères invalides')
+    .nullish()
+    .transform((value) => value || null);
+
+/* ---------- Ordering ---------- */
+
+// Full new order of a list (experiences or projects): every id, once
+export const reorderSchema = z.object({
+  ids: z
+    .array(z.number().int().positive())
+    .min(1)
+    .max(500)
+    .refine((ids) => new Set(ids).size === ids.length, 'Identifiants en double'),
+});
+
 /* ---------- Auth ---------- */
 
 export const loginSchema = z.object({
@@ -56,6 +77,13 @@ const projectFields = {
   demoUrl: optionalHttpUrl,
   position,
   tags: tagIds,
+  // Case study
+  kind: optionalText(100),
+  scope: optionalText(100),
+  role: optionalText(200),
+  context: optionalText(5000),
+  achievements: optionalText(5000),
+  results: optionalText(5000),
 };
 
 export const createProjectSchema = z.object({
@@ -93,8 +121,20 @@ export const updateExperienceSchema = z.object(experienceFields).partial();
 
 /* ---------- Tags ---------- */
 
-// Used to create and to rename a tag
-export const tagSchema = z.object({ name: shortText(50) });
+// Id of a skill domain; null = "Autres". Existence is checked by the service.
+const domainId = z.number({ error: 'Domaine inconnu' }).int().positive().nullable();
+
+export const tagSchema = z.object({ name: shortText(50), domainId: domainId.optional().transform((value) => value ?? null) });
+
+// Rename and / or change the domain
+export const updateTagSchema = z
+  .object({ name: shortText(50), domainId })
+  .partial()
+  .refine((tag) => tag.name !== undefined || tag.domainId !== undefined, 'Rien à modifier');
+
+/* ---------- Skill domains ---------- */
+
+export const skillDomainSchema = z.object({ name: shortText(60) });
 
 /* ---------- Contact messages ---------- */
 
@@ -124,4 +164,6 @@ export const heroSchema = z.object({
   githubUrl: httpUrl,
   linkedinUrl: httpUrl,
   email: z.email('Email invalide').max(200),
+  availabilityEnabled: z.boolean({ error: 'Valeur attendue : vrai ou faux' }),
+  availabilityText: shortText(120),
 });

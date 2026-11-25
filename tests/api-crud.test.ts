@@ -150,6 +150,8 @@ describe('hero', () => {
     githubUrl: 'https://github.com/someone',
     linkedinUrl: 'https://www.linkedin.com/in/someone/',
     email: 'private@example.com',
+    availabilityEnabled: false,
+    availabilityText: 'Disponible en janvier',
   };
 
   it('saves the hero, and only the admin gets the email back', async () => {

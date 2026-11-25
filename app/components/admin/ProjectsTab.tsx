@@ -1,16 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plus, Pencil, ExternalLink } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "../common/Button";
-import { TagChip } from "./common/TagChip";
-import { TruncateWithTooltip } from "./common/TruncateWithTooltip";
 import { ErrorBanner } from "./common/ErrorBanner";
+import { AdminPanel, DeleteButton, EditButton, InlineDeleteConfirm, ReorderButtons, ViewLink, movedIds, nextPosition } from "./common/AdminUi";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../common/table";
-import { getProjects, createProject, updateProject, deleteProject, type ProjectPayload } from "@/app/services/admin/projects.service";
+import {
+  getProjects,
+  createProject,
+  updateProject,
+  deleteProject,
+  reorderProjects,
+  type ProjectPayload,
+} from "@/app/services/admin/projects.service";
 import { createTag, getTags } from "@/app/services/admin/experiences.service";
 import { getErrorMessage } from "@/app/config/api.config";
-import { DeleteProjectDialog } from "./projects-tab/modal/DeleteProjectDialog";
 import { ProjectDialog, type ProjectFormData } from "./projects-tab/modal/ProjectDialog";
 import type { Project, Tag } from "@/app/types/api";
 import { useReadOnly } from "@/app/admin/ReadOnlyContext";
@@ -23,14 +28,31 @@ const EMPTY_FORM: ProjectFormData = {
   demoUrl: "",
   tags: [],
   position: 0,
+  kind: "",
+  scope: "",
+  role: "",
+  context: "",
+  achievements: "",
+  results: "",
 };
+
+// Empty optional fields are stored as null (the case study then shows its placeholders)
+const orNull = (value: string) => value.trim() || null;
 
 const toPayload = (form: ProjectFormData): ProjectPayload => ({
   ...form,
-  githubUrl: form.githubUrl || null,
-  demoUrl: form.demoUrl || null,
+  githubUrl: orNull(form.githubUrl),
+  demoUrl: orNull(form.demoUrl),
+  kind: orNull(form.kind),
+  scope: orNull(form.scope),
+  role: orNull(form.role),
+  context: orNull(form.context),
+  achievements: orNull(form.achievements),
+  results: orNull(form.results),
   tags: form.tags.map((tag) => tag.id),
 });
+
+const VISIBLE_TAGS = 4;
 
 export function ProjectsTab() {
   const readOnly = useReadOnly();
@@ -43,6 +65,7 @@ export function ProjectsTab() {
   const [error, setError] = useState("");
   const [formError, setFormError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isBusy, setIsBusy] = useState(false);
 
   const fetchProjects = useCallback(async () => setProjects(await getProjects()), []);
 
@@ -64,6 +87,7 @@ export function ProjectsTab() {
   };
 
   const handleEdit = (project: Project) => {
+    setDeleteTargetId(null);
     setEditingProject(project);
     setFormData({
       title: project.title,
@@ -73,18 +97,38 @@ export function ProjectsTab() {
       demoUrl: project.demoUrl ?? "",
       tags: project.tags,
       position: project.position,
+      kind: project.kind ?? "",
+      scope: project.scope ?? "",
+      role: project.role ?? "",
+      context: project.context ?? "",
+      achievements: project.achievements ?? "",
+      results: project.results ?? "",
     });
     setFormError("");
     setIsDialogOpen(true);
   };
 
   const handleDelete = async (id: number) => {
+    setIsBusy(true);
     try {
       await deleteProject(id);
       await fetchProjects();
       setDeleteTargetId(null);
     } catch (err) {
       setError(getErrorMessage(err, "Impossible de supprimer le projet"));
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const handleMove = async (index: number, direction: -1 | 1) => {
+    setIsBusy(true);
+    try {
+      setProjects(await reorderProjects(movedIds(projects, index, direction)));
+    } catch (err) {
+      setError(getErrorMessage(err, "Impossible de changer l'ordre"));
+    } finally {
+      setIsBusy(false);
     }
   };
 
@@ -101,7 +145,8 @@ export function ProjectsTab() {
       if (editingProject) {
         await updateProject(editingProject.id, payload);
       } else {
-        await createProject(payload);
+        // Computed on submit (the list may still be loading when the form opens)
+        await createProject({ ...payload, position: nextPosition(projects) });
       }
       await fetchProjects();
       resetForm();
@@ -118,28 +163,26 @@ export function ProjectsTab() {
     return tag;
   };
 
+  const count = projects.length;
+
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">Gestion des Projets</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {projects.length} projet{projects.length > 1 ? "s" : ""} au total
-          </p>
-        </div>
-        {!readOnly && (
+    <AdminPanel
+      title="Projets"
+      summary={`${count} projet${count > 1 ? "s" : ""} au total`}
+      action={
+        !readOnly && (
           <Button
             onClick={() => {
               resetForm();
               setIsDialogOpen(true);
             }}
-            className="w-auto px-5"
           >
-            <Plus size={20} className="mr-2" />
+            <Plus size={20} aria-hidden="true" />
             Nouveau projet
           </Button>
-        )}
-      </div>
+        )
+      }
+    >
       <ErrorBanner message={error} onClose={() => setError("")} />
       {!readOnly && (
         <ProjectDialog
@@ -157,102 +200,97 @@ export function ProjectsTab() {
           onReset={resetForm}
         />
       )}
-      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-        <Table className="w-full">
-          <TableHeader className="bg-gray-50/50">
-            <TableRow className="hover:bg-transparent border-b border-gray-100">
-              <TableHead className="py-5 font-semibold text-gray-900">Position</TableHead>
-              <TableHead className="py-5 px-6 font-semibold text-gray-900">Projet</TableHead>
-              <TableHead className="py-5 font-semibold text-gray-900">Description</TableHead>
-              <TableHead className="py-5 font-semibold text-gray-900">GitHub</TableHead>
-              <TableHead className="py-5 font-semibold text-gray-900">Image</TableHead>
-              <TableHead className="py-5 font-semibold text-gray-900">Tags</TableHead>
-              <TableHead className="py-5 text-right px-6 font-semibold text-gray-900">Actions</TableHead>
+      {count === 0 ? (
+        <p className="p-6 font-display text-base text-slate">Aucun projet. Ajoutez le premier avec le bouton « Nouveau projet ».</p>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead>Ordre</TableHead>
+              <TableHead>Projet</TableHead>
+              <TableHead>GitHub</TableHead>
+              <TableHead>Image</TableHead>
+              <TableHead>Tags</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
-
           <TableBody>
-            {projects.map((project) => (
-              <TableRow
-                key={project.id}
-                className="group transition-all hover:bg-cyan-50/20 border-b border-gray-50 last:border-0"
-              >
-                <TableCell className="max-w-10">
-                  <p className="text-sm text-gray-600">{project.position}</p>
-                </TableCell>
-
-                {/* PROJECT TITLE */}
-                <TableCell className="py-5 px-6">
-                  <span className="font-bold text-gray-800 text-base group-hover:text-cyan-800 transition-colors">
-                    {project.title}
-                  </span>
-                </TableCell>
-
-                {/* DESCRIPTION */}
-                <TableCell className="max-w-md">
-                  <TruncateWithTooltip text={project.description} className="block max-w-70 truncate text-sm text-gray-600" />
-                </TableCell>
-
-                {/* GITHUB */}
-                <TableCell className="max-w-md">
-                  <TruncateWithTooltip text={project.githubUrl ?? "—"} className="block max-w-55 truncate text-sm text-gray-600" />
-                </TableCell>
-
-                {/* IMAGE */}
-                <TableCell className="max-w-md">
-                  <TruncateWithTooltip text={project.projectImageUrl} className="block max-w-55 truncate text-sm text-gray-600" />
-                </TableCell>
-
-                {/* TAGS */}
-                <TableCell className="w-auto max-w-55">
-                  {/* Scrollable: focusable so keyboard users can scroll it */}
-                  <div
-                    tabIndex={0}
-                    role="group"
-                    aria-label={`Tags de ${project.title}`}
-                    className="inline-flex flex-wrap gap-2 overflow-x-auto max-h-24 rounded-md focus-visible:outline-2 focus-visible:outline-cyan-700"
-                  >
-                    {project.tags.map((tag) => (
-                      <TagChip key={tag.id} label={tag.name} />
-                    ))}
-                  </div>
-                </TableCell>
-
-                {/* ACTIONS */}
-                <TableCell className="text-right px-5">
-                  <div className="flex justify-end gap-2">
-                    {project.githubUrl && (
-                      <a
-                        href={project.githubUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="Ouvrir sur GitHub"
-                        className="inline-flex items-center justify-center h-12 px-3 text-gray-700 hover:text-cyan-700"
-                      >
-                        <ExternalLink size={18} />
-                      </a>
-                    )}
+            {projects.map((project, index) => (
+              <TableRow key={project.id}>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <span className="w-5 font-mono text-sm text-slate">{index + 1}</span>
                     {!readOnly && (
-                      <>
-                        <Button variant="ghost" className="w-auto" aria-label="Modifier" onClick={() => handleEdit(project)}>
-                          <Pencil size={18} />
-                        </Button>
-                        <DeleteProjectDialog
-                          isOpen={deleteTargetId === project.id}
-                          onOpenChange={(open) => setDeleteTargetId(open ? project.id : null)}
-                          projectId={project.id}
-                          onSubmit={() => handleDelete(project.id)}
-                          onReset={() => setDeleteTargetId(null)}
-                        />
-                      </>
+                      <ReorderButtons
+                        name={project.title}
+                        onUp={() => handleMove(index, -1)}
+                        onDown={() => handleMove(index, 1)}
+                        isFirst={index === 0}
+                        isLast={index === count - 1}
+                        disabled={isBusy}
+                      />
                     )}
                   </div>
+                </TableCell>
+                <TableCell className="min-w-56">
+                  <div className="flex flex-col gap-1">
+                    <span className="font-bold">{project.title}</span>
+                    <span className="line-clamp-2 max-w-md text-sm text-slate">{project.description}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="max-w-48 truncate font-mono text-[13px]">
+                  {project.githubUrl ? (
+                    <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-mint">
+                      {project.githubUrl.replace(/^https?:\/\/(www\.)?/, "")}
+                    </a>
+                  ) : (
+                    <span className="text-slate">Aucun</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- admin thumbnail of a URL typed by the admin */}
+                  <img src={project.projectImageUrl} alt={`Capture de ${project.title}`} className="h-12 w-20 rounded border border-line bg-mist object-cover" />
+                </TableCell>
+                <TableCell>
+                  <ul aria-label={`Tags de ${project.title}`} className="flex flex-wrap gap-1.5">
+                    {project.tags.slice(0, VISIBLE_TAGS).map((tag) => (
+                      <li key={tag.id} className="rounded bg-mist px-2 py-1 font-mono text-xs">
+                        {tag.name}
+                      </li>
+                    ))}
+                    {project.tags.length > VISIBLE_TAGS && (
+                      <li className="px-1 py-1 font-mono text-xs text-slate">
+                        +{project.tags.length - VISIBLE_TAGS}
+                        {" "}<span className="sr-only">autres tags</span>
+                      </li>
+                    )}
+                  </ul>
+                </TableCell>
+                <TableCell className="text-right">
+                  {deleteTargetId === project.id ? (
+                    <InlineDeleteConfirm
+                      question={`Supprimer « ${project.title} » ?`}
+                      onConfirm={() => handleDelete(project.id)}
+                      onCancel={() => setDeleteTargetId(null)}
+                      busy={isBusy}
+                    />
+                  ) : (
+                    <div className="flex justify-end gap-2">
+                      <ViewLink label={`Voir ${project.title} sur le site`} href={`/projets/${project.id}`} />
+                      {!readOnly && (
+                        <>
+                          <EditButton label={`Modifier ${project.title}`} onClick={() => handleEdit(project)} />
+                          <DeleteButton label={`Supprimer ${project.title}`} onClick={() => setDeleteTargetId(project.id)} />
+                        </>
+                      )}
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      </div>
-    </div>
+      )}
+    </AdminPanel>
   );
 }

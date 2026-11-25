@@ -19,9 +19,9 @@ test.describe('Input safety (visitor)', () => {
     page.on('request', (request) => {
       if (request.method() === 'POST' && request.url().endsWith('/api/contacts')) posted = true;
     });
-    await page.goto('/#contact');
+    await page.goto('/contact');
     await page.getByLabel('Nom').fill('   ');
-    await page.getByLabel('Email').fill('ada@example.com');
+    await page.getByLabel('E-mail').fill('ada@example.com');
     await page.getByLabel('Sujet').fill('   ');
     await page.getByLabel('Message').fill('   ');
     await page.getByRole('button', { name: /Envoyer le message/ }).click();
@@ -36,7 +36,7 @@ test.describe('Input safety (visitor)', () => {
       if (request.url().endsWith('/api/auth/login')) posted = true;
     });
     await page.goto('/auth/login');
-    await page.getByLabel('Email').fill('admin@example.com');
+    await page.getByLabel('E-mail').fill('admin@example.com');
     await page.getByLabel('Mot de passe', { exact: true }).fill('   ');
     await page.getByRole('button', { name: 'Se connecter' }).click();
 
@@ -51,9 +51,9 @@ test.describe('Input safety (admin)', () => {
   test('a hostile contact message is shown as plain text in the admin (I3)', async ({ page, browser }) => {
     const visitor = await browser.newContext();
     const visitorPage = await visitor.newPage();
-    await visitorPage.goto('/#contact');
+    await visitorPage.goto('/contact');
     await visitorPage.getByLabel('Nom').fill('Mallory');
-    await visitorPage.getByLabel('Email').fill('mallory@example.com');
+    await visitorPage.getByLabel('E-mail').fill('mallory@example.com');
     await visitorPage.getByLabel('Sujet').fill(XSS);
     await visitorPage.getByLabel('Message').fill(XSS);
     await visitorPage.getByRole('button', { name: /Envoyer le message/ }).click();
@@ -63,19 +63,18 @@ test.describe('Input safety (admin)', () => {
     failOnDialog(page);
     await page.goto('/admin');
     await page.getByRole('tab', { name: 'Messages' }).click();
-    const row = page.getByRole('row').filter({ hasText: 'Mallory' });
-    await expect(row).toContainText(XSS);
+    const item = page.getByRole('list', { name: 'Messages reçus' }).getByRole('button', { name: /Mallory/ });
+    await expect(item).toContainText(XSS);
 
-    await row.getByRole('button', { name: /^Voir le message de / }).click();
-    await expect(page.getByRole('dialog')).toContainText(XSS);
+    await item.click();
+    const message = page.getByRole('article', { name: 'Message de Mallory' });
+    await expect(message).toContainText(XSS);
     expect(await xssRan(page)).toBe(false);
-    await page.keyboard.press('Escape');
 
     // Clean up
-    page.removeAllListeners('dialog');
-    page.once('dialog', (confirm) => confirm.accept());
-    await row.getByRole('button', { name: /^Supprimer le message de / }).click();
-    await expect(row).toHaveCount(0);
+    await message.getByRole('button', { name: 'Supprimer' }).click();
+    await confirmDeletion(page, 'Supprimer ce message ?');
+    await expect(item).toHaveCount(0);
   });
 
   test('a tag named with HTML is shown literally (I4)', async ({ page }) => {
@@ -90,15 +89,15 @@ test.describe('Input safety (admin)', () => {
     expect(await xssRan(page)).toBe(false);
 
     await page.getByRole('button', { name: `Supprimer ${name}` }).click();
-    await confirmDeletion(page);
+    await confirmDeletion(page, `Supprimer « ${name} » ?`);
     await expect(page.getByRole('cell', { name, exact: true })).toHaveCount(0);
   });
 
   test('a hero link leading to another site is refused (I5)', async ({ page }) => {
     await page.goto('/admin');
     await page.getByRole('tab', { name: 'Hero' }).click();
-    await page.getByLabel('Lien bouton principal').fill('/\\evil.example');
-    await page.getByRole('button', { name: /Sauvegarder les modifications/ }).click();
+    await page.getByLabel('Lien du bouton principal').fill('/\\evil.example');
+    await page.getByRole('button', { name: 'Enregistrer' }).click();
 
     // Scoped to the tab: Next.js adds its own role="alert" route announcer to every page
     await expect(page.getByRole('tabpanel', { name: 'Hero' }).getByRole('alert')).toContainText('Lien invalide');

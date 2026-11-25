@@ -1,4 +1,5 @@
 import {
+  boolean,
   date,
   index,
   integer,
@@ -26,9 +27,19 @@ export const users = pgTable('users', {
   ...timestamps,
 });
 
+// Groups of skills on the "Compétences" page, in display order
+export const skillDomains = pgTable('skill_domains', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull().unique(),
+  position: integer('position').notNull().default(0),
+  ...timestamps,
+});
+
 export const tags = pgTable('tags', {
   id: serial('id').primaryKey(),
   name: text('name').notNull().unique(),
+  // Group on the "Compétences" page; null = "Autres". Deleting a domain moves its tags to "Autres".
+  domainId: integer('domain_id').references(() => skillDomains.id, { onDelete: 'set null' }),
   ...timestamps,
 });
 
@@ -40,6 +51,13 @@ export const projects = pgTable('projects', {
   githubUrl: text('github_url'),
   demoUrl: text('demo_url'),
   position: integer('position').notNull().default(0),
+  // Case study (optional): shown on /projets/[id]; placeholders are displayed while empty
+  kind: text('kind'), // e.g. "Projet personnel"
+  scope: text('scope'), // e.g. "Full-stack"
+  role: text('role'), // e.g. "Conception et développement"
+  context: text('context'),
+  achievements: text('achievements'), // one achievement per line
+  results: text('results'),
   ...timestamps,
 });
 
@@ -111,6 +129,9 @@ export const hero = pgTable('hero', {
   githubUrl: text('github_url').notNull(),
   linkedinUrl: text('linkedin_url').notNull(),
   email: text('email').notNull(),
+  // Availability indicator above the hero title (amber dot + short sentence)
+  availabilityEnabled: boolean('availability_enabled').notNull().default(true),
+  availabilityText: text('availability_text').notNull().default('Ouvert aux opportunités, Paris'),
   ...timestamps,
 });
 
