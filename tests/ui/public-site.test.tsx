@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { SiteHeader } from '@/app/components/site/SiteHeader';
 import { SiteFooter } from '@/app/components/site/SiteFooter';
 import { buildSkillGroups, currentExperience, experienceSummary, toBulletPoints } from '@/app/components/site/data';
@@ -131,6 +132,45 @@ describe('SiteHeader', () => {
     expect(hrefs).toEqual(['/', '/projets', '/experience', '/competences', '/contact', '/admin', '/CV_Brahim_Nachate_Developpeur_Full-Stack.pdf']);
     expect(within(nav).getByRole('link', { name: 'Expérience' })).toHaveAttribute('aria-current', 'page');
     expect(within(nav).getByRole('link', { name: 'Accueil' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('folds the navigation behind a "Menu" button that controls it', async () => {
+    render(<SiteHeader current="home" />);
+    const menu = screen.getByRole('button', { name: 'Menu' });
+    const nav = screen.getByRole('navigation', { name: 'Navigation principale' });
+    expect(menu).toHaveAttribute('aria-controls', nav.id);
+    expect(menu).toHaveAttribute('aria-expanded', 'false');
+
+    const user = userEvent.setup();
+    await user.click(menu);
+    expect(menu).toHaveAttribute('aria-expanded', 'true');
+    await user.click(menu);
+    expect(menu).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('closes the menu with Escape (focus back on the button), a link or a click outside', async () => {
+    render(
+      <>
+        <SiteHeader current="home" />
+        <p>Contenu de la page</p>
+      </>,
+    );
+    const menu = screen.getByRole('button', { name: 'Menu' });
+    const user = userEvent.setup();
+
+    await user.click(menu);
+    await user.tab();
+    await user.keyboard('{Escape}');
+    expect(menu).toHaveAttribute('aria-expanded', 'false');
+    expect(menu).toHaveFocus();
+
+    await user.click(menu);
+    await user.click(screen.getByRole('link', { name: 'Projets' }));
+    expect(menu).toHaveAttribute('aria-expanded', 'false');
+
+    await user.click(menu);
+    await user.click(screen.getByText('Contenu de la page'));
+    expect(menu).toHaveAttribute('aria-expanded', 'false');
   });
 });
 
