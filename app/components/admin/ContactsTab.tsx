@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { Mail } from "lucide-react";
-import { Button } from "../common/Button";
-import { ErrorBanner } from "./common/ErrorBanner";
-import { AdminPanel, InlineDeleteConfirm, StatusBadge } from "./common/AdminUi";
+import { Button, ButtonLink } from "../common/Button";
+import { TextLink } from "../common/AppLink";
+import { ErrorBanner } from "../common/ErrorBanner";
+import { StatusBadge } from "../common/StatusBadge";
+import { AdminPanel, InlineDeleteConfirm } from "./common/AdminUi";
 import { getContacts, updateContactStatus, deleteContact } from "@/app/services/admin/contacts.service";
 import { getErrorMessage } from "@/app/config/api.config";
 import type { ContactMessage, ContactStatus } from "@/app/types/api";
@@ -84,16 +86,9 @@ export function ContactsTab({ onUnreadCountChange }: { onUnreadCountChange?: (co
 
   const count = contacts.length;
   const filterButton = (value: Filter, label: string) => (
-    <button
-      type="button"
-      aria-pressed={filter === value}
-      onClick={() => setFilter(value)}
-      className={`min-h-11 rounded-lg px-4 font-display text-[15px] font-semibold transition-colors duration-150 ${
-        filter === value ? "bg-ink text-on-ink" : "text-ink hover:bg-mist"
-      }`}
-    >
+    <Button variant="ghost" aria-pressed={filter === value} onClick={() => setFilter(value)} className="px-4 text-[15px]">
       {label}
-    </button>
+    </Button>
   );
 
   return (
@@ -106,7 +101,7 @@ export function ContactsTab({ onUnreadCountChange }: { onUnreadCountChange?: (co
         </>
       }
     >
-      <ErrorBanner message={error} onClose={() => setError("")} />
+      <ErrorBanner message={error} onClose={() => setError("")} className="m-4" />
       <div className="grid min-h-[420px] md:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
         {/* List */}
         <div className="border-b border-line md:border-r md:border-b-0">
@@ -167,9 +162,9 @@ export function ContactsTab({ onUnreadCountChange }: { onUnreadCountChange?: (co
                 <p className="font-display text-base">
                   <span className="font-semibold">{selected.name}</span>
                   {" · "}
-                  <a href={`mailto:${selected.email}`} className="underline underline-offset-2 hover:text-mint">
+                  <TextLink href={`mailto:${selected.email}`}>
                     {selected.email}
-                  </a>
+                  </TextLink>
                 </p>
                 <p className="font-mono text-sm text-slate">
                   {new Date(selected.createdAt).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
@@ -181,13 +176,10 @@ export function ContactsTab({ onUnreadCountChange }: { onUnreadCountChange?: (co
                 <InlineDeleteConfirm question="Supprimer ce message ?" onConfirm={() => handleDelete(selected.id)} onCancel={() => setConfirmingDelete(false)} busy={isBusy} />
               ) : (
                 <div className="flex flex-wrap gap-3">
-                  <a
-                    href={`mailto:${selected.email}?subject=${encodeURIComponent(`Re: ${selected.subject ?? ""}`)}`}
-                    className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-ink px-5 font-display text-base font-semibold text-on-ink transition-colors duration-150 hover:bg-mint"
-                  >
+                  <ButtonLink href={`mailto:${selected.email}?subject=${encodeURIComponent(`Re: ${selected.subject ?? ""}`)}`}>
                     <Mail size={18} aria-hidden="true" />
                     Répondre par e-mail
-                  </a>
+                  </ButtonLink>
                   {selected.status !== "done" && (
                     <Button variant="outline" onClick={() => handleStatusChange(selected.id, "done")}>
                       Marquer comme traité
@@ -198,7 +190,7 @@ export function ContactsTab({ onUnreadCountChange }: { onUnreadCountChange?: (co
                       Marquer comme non lu
                     </Button>
                   )}
-                  <Button variant="outline" color="secondary" onClick={() => setConfirmingDelete(true)}>
+                  <Button variant="dangerOutline" onClick={() => setConfirmingDelete(true)}>
                     Supprimer
                   </Button>
                 </div>

@@ -4,9 +4,9 @@ import type { FormEvent } from "react";
 import { Button } from "@/app/components/common/Button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/common/dialog";
 import { Input } from "@/app/components/common/input";
-import { Label } from "@/app/components/common/label";
+import { Field, FieldGroup } from "@/app/components/common/Field";
 import { MultiSelectTags } from "@/app/components/admin/common/MultiSelectTags";
-import { ErrorBanner } from "@/app/components/admin/common/ErrorBanner";
+import { ErrorBanner } from "@/app/components/common/ErrorBanner";
 import { Textarea } from "@/app/components/common/textarea";
 import type { Tag } from "@/app/types/api";
 
@@ -42,8 +42,6 @@ interface ProjectDialogProps {
   onReset: () => void;
 }
 
-const sectionTitle = "font-display text-lg font-bold border-b border-line pb-2";
-
 export function ProjectDialog({
   isOpen,
   onOpenChange,
@@ -71,18 +69,14 @@ export function ProjectDialog({
         <form onSubmit={onSubmit} className="space-y-6">
           <ErrorBanner message={error} />
 
-          <fieldset className="space-y-4">
-            <legend className={sectionTitle}>Présentation</legend>
-            <div className="space-y-2">
-              <Label htmlFor="title">Titre du projet</Label>
+          <FieldGroup title="Présentation">
+            <Field id="title" label="Titre du projet">
               <Input id="title" value={formData.title} onChange={field("title")} maxLength={200} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+            </Field>
+            <Field id="description" label="Description">
               <Textarea id="description" rows={3} value={formData.description} onChange={field("description")} maxLength={5000} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="tags">Tags</Label>
+            </Field>
+            <Field id="tags" label="Tags">
               <MultiSelectTags
                 id="tags"
                 options={tags}
@@ -90,13 +84,11 @@ export function ProjectDialog({
                 onChange={(nextTags) => onFormChange({ ...formData, tags: nextTags })}
                 onCreate={onCreateTag}
               />
-            </div>
-          </fieldset>
+            </Field>
+          </FieldGroup>
 
-          <fieldset className="space-y-4">
-            <legend className={sectionTitle}>Liens et image</legend>
-            <div className="space-y-2">
-              <Label htmlFor="projectImageUrl">URL de l&apos;image</Label>
+          <FieldGroup title="Liens et image">
+            <Field id="projectImageUrl" label="URL de l'image">
               <Input
                 id="projectImageUrl"
                 type="url"
@@ -105,52 +97,43 @@ export function ProjectDialog({
                 placeholder="https://exemple.com/capture.png (1120 × 560 px idéalement)"
                 required
               />
-            </div>
+            </Field>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="githubUrl">URL GitHub</Label>
+              <Field id="githubUrl" label="URL GitHub">
                 <Input id="githubUrl" type="url" value={formData.githubUrl} onChange={field("githubUrl")} placeholder="https://github.com/..." />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="demoUrl">URL de démo</Label>
+              </Field>
+              <Field id="demoUrl" label="URL de démo">
                 <Input id="demoUrl" type="url" value={formData.demoUrl} onChange={field("demoUrl")} placeholder="https://..." />
-              </div>
+              </Field>
             </div>
-          </fieldset>
+          </FieldGroup>
 
-          <fieldset className="space-y-4">
-            <legend className={sectionTitle}>Étude de cas</legend>
+          <FieldGroup title="Étude de cas">
             <DialogDescription>Facultatif : tant qu&apos;un champ est vide, la page du projet affiche un texte provisoire.</DialogDescription>
             <div className="grid gap-4 sm:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="kind">Type</Label>
+              <Field id="kind" label="Type">
                 <Input id="kind" value={formData.kind} onChange={field("kind")} maxLength={100} placeholder="Projet personnel" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="scope">Périmètre</Label>
+              </Field>
+              <Field id="scope" label="Périmètre">
                 <Input id="scope" value={formData.scope} onChange={field("scope")} maxLength={100} placeholder="Full-stack" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="role">Rôle</Label>
+              </Field>
+              <Field id="role" label="Rôle">
                 <Input id="role" value={formData.role} onChange={field("role")} maxLength={200} placeholder="Conception et développement" />
-              </div>
+              </Field>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="context">Contexte</Label>
+            <Field id="context" label="Contexte">
               <Textarea id="context" rows={3} value={formData.context} onChange={field("context")} maxLength={5000} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="achievements">Ce que j&apos;ai fait (une réalisation par ligne)</Label>
+            </Field>
+            <Field id="achievements" label="Ce que j'ai fait (une réalisation par ligne)">
               <Textarea id="achievements" rows={4} value={formData.achievements} onChange={field("achievements")} maxLength={5000} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="results">Résultats</Label>
+            </Field>
+            <Field id="results" label="Résultats">
               <Textarea id="results" rows={3} value={formData.results} onChange={field("results")} maxLength={5000} />
-            </div>
-          </fieldset>
+            </Field>
+          </FieldGroup>
 
           <DialogFooter className="pt-2">
-            <Button type="button" variant="outline" onClick={onReset}>
+            <Button variant="outline" onClick={onReset}>
               Annuler
             </Button>
             <Button type="submit" disabled={submitDisabled}>

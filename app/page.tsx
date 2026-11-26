@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getPublicHero } from "@/server/services/hero";
 import { listProjects } from "@/server/services/projects";
 import { listExperiences } from "@/server/services/experiences";
@@ -8,7 +7,10 @@ import { personJsonLd } from "./config/structured-data";
 import { HERO_FACTS, PROFILE, TILE_TEXTS } from "./config/content";
 import { SiteHeader } from "./components/site/SiteHeader";
 import { SiteFooter } from "./components/site/SiteFooter";
-import { ArrowIcon, ButtonLink, Container, Section, underlineLink } from "./components/site/ui";
+import { ArrowIcon, Container, Section, TileLink, gutter } from "./components/site/ui";
+import { ButtonLink } from "./components/common/Button";
+import { TextLink } from "./components/common/AppLink";
+import { Tag, TagList } from "./components/common/Tag";
 import { buildSkillGroups, currentExperience, experienceSummary, toBulletPoints } from "./components/site/data";
 import { formatPeriod } from "./components/experience/format";
 
@@ -36,11 +38,11 @@ export default async function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: personJsonLd(hero) }} />
 
       {/* Opening band: header and hero on ink */}
-      <div className="bg-ink px-[clamp(20px,6vw,80px)] text-on-ink">
+      <div className={`bg-ink ${gutter} text-on-ink`}>
         <SiteHeader current="home" tone="dark" />
       </div>
       <main>
-        <div className="bg-ink px-[clamp(20px,6vw,80px)] pb-24 text-on-ink">
+        <div className={`bg-ink ${gutter} pb-24 text-on-ink`}>
           <Container className="flex flex-wrap items-end gap-x-[72px] gap-y-14 pt-[88px]">
             <div className="flex min-w-0 flex-[1_1_520px] flex-col gap-7">
               {hero.availabilityEnabled && (
@@ -53,10 +55,10 @@ export default async function Home() {
               <p className="font-display text-[clamp(20px,2.4vw,28px)] font-medium leading-[1.2] text-mint-light">{hero.subtitle}</p>
               <p className="max-w-[56ch] whitespace-pre-line text-[21px] leading-[1.6] text-on-ink-soft">{hero.description}</p>
               <div className="flex flex-wrap gap-3 pt-2">
-                <ButtonLink variant="mint" href={hero.primaryButtonUrl}>
+                <ButtonLink variant="mint" size="lg" href={hero.primaryButtonUrl}>
                   {hero.primaryButtonText}
                 </ButtonLink>
-                <ButtonLink variant="outlineOnInk" href={hero.secondaryButtonUrl}>
+                <ButtonLink variant="outlineOnInk" size="lg" href={hero.secondaryButtonUrl}>
                   {hero.secondaryButtonText}
                 </ButtonLink>
               </div>
@@ -83,12 +85,12 @@ export default async function Home() {
                 ))}
               </dl>
               <nav aria-label="Profils en ligne" className="flex gap-5 font-display text-base">
-                <a href={hero.githubUrl} target="_blank" rel="noopener noreferrer" className="text-line underline-offset-4 hover:text-mint-light hover:underline">
+                <TextLink variant="onInk" href={hero.githubUrl} newTab>
                   GitHub
-                </a>
-                <a href={hero.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-line underline-offset-4 hover:text-mint-light hover:underline">
+                </TextLink>
+                <TextLink variant="onInk" href={hero.linkedinUrl} newTab>
                   LinkedIn
-                </a>
+                </TextLink>
               </nav>
             </div>
           </Container>
@@ -99,17 +101,14 @@ export default async function Home() {
           <ul className="flex flex-wrap gap-5">
             {tiles.map((tile) => (
               <li key={tile.href} className="flex min-w-0 flex-[1_1_320px]">
-                <Link
-                  href={tile.href}
-                  className="group flex min-h-[280px] w-full flex-col justify-between gap-8 rounded-2xl border border-line bg-white p-8 text-ink transition-colors duration-150 hover:bg-ink hover:text-on-ink"
-                >
+                <TileLink href={tile.href} className="group flex min-h-[280px] w-full flex-col justify-between gap-8 p-8">
                   <span className="flex flex-col gap-3.5">
-                    <span className="self-start rounded border border-current px-2.5 py-[5px] font-mono text-[13px]">{tile.meta}</span>
+                    <Tag name={tile.meta} variant="outline" className="self-start" />
                     <span className="font-display text-[44px] font-bold leading-[1.02] tracking-[-0.025em]">{tile.title}</span>
                     <span className="text-lg leading-[1.55] text-slate transition-colors duration-150 group-hover:text-on-ink-soft">{tile.text}</span>
                   </span>
                   <ArrowIcon size={30} />
-                </Link>
+                </TileLink>
               </li>
             ))}
           </ul>
@@ -125,9 +124,9 @@ export default async function Home() {
               {PROFILE.paragraphs.map((paragraph) => (
                 <p key={paragraph.slice(0, 24)}>{paragraph}</p>
               ))}
-              <Link href="/experience" className={underlineLink}>
+              <TextLink variant="underline" href="/experience">
                 Lire tout mon parcours
-              </Link>
+              </TextLink>
             </div>
           </div>
         </Section>
@@ -144,16 +143,10 @@ export default async function Home() {
                 <p className="max-w-[60ch] text-lg leading-[1.65] text-slate">{toBulletPoints(latest.description)[0]}</p>
                 <div className="pt-1">
                   {/* White tags on mist, as in the design */}
-                  <ul aria-label={`Technologies chez ${latest.company}`} className="flex flex-wrap gap-2">
-                    {latest.tags.slice(0, 8).map((tag) => (
-                      <li key={tag.id} className="rounded border border-line bg-white px-2.5 py-1.5 font-mono text-[13px]">
-                        {tag.name}
-                      </li>
-                    ))}
-                  </ul>
+                  <TagList names={latest.tags.slice(0, 8).map((tag) => tag.name)} label={`Technologies chez ${latest.company}`} variant="onMist" />
                 </div>
               </div>
-              <ButtonLink variant="ink" href="/experience">
+              <ButtonLink variant="primary" size="lg" href="/experience">
                 Voir mon parcours
               </ButtonLink>
             </div>

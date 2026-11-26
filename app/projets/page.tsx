@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getPublicHero } from "@/server/services/hero";
 import { listProjects } from "@/server/services/projects";
 import { CASE_STUDIES_ENABLED, LOREM } from "@/app/config/content";
 import { SiteHeader } from "@/app/components/site/SiteHeader";
 import { SiteFooter } from "@/app/components/site/SiteFooter";
-import { ArrowIcon, PageTitle, Section, TechTagList, buttonStyles, underlineLink } from "@/app/components/site/ui";
+import { ArrowIcon, PageTitle, Section } from "@/app/components/site/ui";
+import { ButtonLink } from "@/app/components/common/Button";
+import { TextLink } from "@/app/components/common/AppLink";
+import { TagList } from "@/app/components/common/Tag";
 import { ImageWithFallback } from "@/app/components/common/ImageWithFallback";
 
 export const dynamic = "force-dynamic";
@@ -44,24 +46,24 @@ export default async function ProjectsPage() {
                     />
                     <h2 className="font-display text-[clamp(28px,3.4vw,38px)] font-bold leading-[1.1] tracking-[-0.02em]">{project.title}</h2>
                     <p className="max-w-[58ch] whitespace-pre-line text-[19px] leading-[1.65] text-slate">{project.description}</p>
-                    <TechTagList names={project.tags.map((tag) => tag.name)} label={`Technologies de ${project.title}`} />
+                    <TagList names={project.tags.map((tag) => tag.name)} label={`Technologies de ${project.title}`} />
                     <div className="flex flex-wrap items-center gap-x-7 gap-y-3 pt-2">
                       {/* Hidden while the case studies are being written (CASE_STUDIES_ENABLED) */}
                       {CASE_STUDIES_ENABLED && (
-                        <Link href={`/projets/${project.id}`} className={buttonStyles.ink}>
+                        <ButtonLink href={`/projets/${project.id}`} size="lg">
                           Lire l&apos;étude de cas
                           <ArrowIcon />
-                        </Link>
+                        </ButtonLink>
                       )}
                       {project.githubUrl && (
-                        <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className={underlineLink}>
+                        <TextLink variant="underline" href={project.githubUrl} newTab>
                           Code source sur GitHub
-                        </a>
+                        </TextLink>
                       )}
                       {project.demoUrl && (
-                        <a href={project.demoUrl} target="_blank" rel="noopener noreferrer" className={underlineLink}>
+                        <TextLink variant="underline" href={project.demoUrl} newTab>
                           Voir la démo
-                        </a>
+                        </TextLink>
                       )}
                     </div>
                   </div>

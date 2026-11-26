@@ -5,9 +5,9 @@ import { Button } from "@/app/components/common/Button";
 import { DatePicker } from "@/app/components/common/DatePicker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/app/components/common/dialog";
 import { Input } from "@/app/components/common/input";
-import { Label } from "@/app/components/common/label";
+import { Field } from "@/app/components/common/Field";
 import { MultiSelectTags } from "@/app/components/admin/common/MultiSelectTags";
-import { ErrorBanner } from "@/app/components/admin/common/ErrorBanner";
+import { ErrorBanner } from "@/app/components/common/ErrorBanner";
 import { Textarea } from "@/app/components/common/textarea";
 import type { Tag } from "@/app/types/api";
 
@@ -74,8 +74,7 @@ export function ExperienceDialog({
 
         <form onSubmit={onSubmit} className="space-y-4">
           <ErrorBanner message={error} />
-          <div className="space-y-2">
-            <Label htmlFor="job">Titre du poste</Label>
+          <Field id="job" label="Titre du poste">
             <Input
               id="job"
               value={formData.job}
@@ -83,10 +82,9 @@ export function ExperienceDialog({
               maxLength={200}
               required
             />
-          </div>
+          </Field>
 
-          <div className="space-y-2">
-            <Label htmlFor="company">Entreprise</Label>
+          <Field id="company" label="Entreprise">
             <Input
               id="company"
               value={formData.company}
@@ -94,32 +92,29 @@ export function ExperienceDialog({
               maxLength={200}
               required
             />
-          </div>
+          </Field>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="startDate">Date de début</Label>
+            <Field id="startDate" label="Date de début">
               <DatePicker
                 id="startDate"
                 value={formData.startDate}
                 onChange={(value) => onFormChange({ ...formData, startDate: value })}
                 required
               />
-            </div>
+            </Field>
 
-            <div className="space-y-2">
-              <Label htmlFor="endDate">Date de fin (vide = poste actuel)</Label>
+            <Field id="endDate" label="Date de fin (vide = poste actuel)">
               <DatePicker
                 id="endDate"
                 value={formData.endDate ?? ""}
                 min={formData.startDate || undefined}
                 onChange={(value) => onFormChange({ ...formData, endDate: value || null })}
               />
-            </div>
+            </Field>
           </div>
 
-          <div className="space-y-2 col-span-2">
-            <Label htmlFor="tags">Tags</Label>
+          <Field id="tags" label="Tags">
             <MultiSelectTags
               id="tags"
               options={tags}
@@ -127,27 +122,31 @@ export function ExperienceDialog({
               onChange={(nextTags) => onFormChange({ ...formData, tags: nextTags })}
               onCreate={onCreateTag}
             />
-          </div>
+          </Field>
 
-          <div className="space-y-2 col-span-2">
-            <Label htmlFor="description">Description</Label>
+          <Field
+            id="description"
+            label="Description"
+            hint="Une ligne par point : chaque ligne devient une puce sur la page Expérience."
+            footer={
+              <p className="text-right font-mono text-xs text-slate">
+                {formData.description.length}/{DESCRIPTION_MAX_LENGTH}
+              </p>
+            }
+          >
             <Textarea
               id="description"
               rows={4}
-              className="field-sizing-fixed resize-y whitespace-pre-wrap wrap-break-word"
+              className="field-sizing-fixed whitespace-pre-wrap wrap-break-word"
               value={formData.description}
               onChange={(e) => onFormChange({ ...formData, description: e.target.value })}
               maxLength={DESCRIPTION_MAX_LENGTH}
               required
             />
-            <p className="font-display text-sm text-slate">Une ligne par point : chaque ligne devient une puce sur la page Expérience.</p>
-            <p className="text-right font-mono text-xs text-slate">
-              {formData.description.length}/{DESCRIPTION_MAX_LENGTH}
-            </p>
-          </div>
+          </Field>
 
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onReset}>
+            <Button variant="outline" onClick={onReset}>
               Annuler
             </Button>
             <Button type="submit" disabled={submitDisabled}>

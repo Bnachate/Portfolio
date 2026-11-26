@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { CV_URL } from "@/app/config/content";
-import { Container } from "./ui";
+import { ButtonLink } from "@/app/components/common/Button";
+import { LogoMark } from "@/app/components/common/LogoMark";
+import { Container, gutter } from "./ui";
 
 export type PageKey = "home" | "projets" | "experience" | "competences" | "contact";
 
@@ -24,15 +26,10 @@ const NAV: { key: NavKey; href: string; label: string }[] = [
 export function SiteHeader({ current, tone = "light" }: { current: PageKey; tone?: "dark" | "light" }) {
   const dark = tone === "dark";
   return (
-    <header className={dark ? "" : "px-[clamp(20px,6vw,80px)]"}>
+    <header className={dark ? "" : gutter}>
       <Container className="flex flex-wrap items-center justify-between gap-x-8 gap-y-4 py-7">
         <Link href="/" className={`flex items-center gap-3 font-display text-lg font-semibold ${dark ? "text-on-ink" : "text-ink"}`}>
-          <span
-            aria-hidden="true"
-            className={`flex h-[38px] w-[38px] items-center justify-center rounded-lg text-base font-bold tracking-[-0.02em] ${dark ? "bg-mint-light text-ink" : "bg-ink text-on-ink"}`}
-          >
-            BN
-          </span>
+          <LogoMark onInk={dark} />
           <span>Brahim Nachate</span>
         </Link>
         <nav aria-label="Navigation principale" className="flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-base font-medium">
@@ -51,16 +48,9 @@ export function SiteHeader({ current, tone = "light" }: { current: PageKey; tone
               </Link>
             );
           })}
-          <a
-            href={CV_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`ml-2 rounded-lg border-[1.5px] px-4 py-2.5 transition-colors duration-150 ${
-              dark ? "border-line text-on-ink hover:border-mint-light hover:text-mint-light" : "border-ink text-ink hover:border-mint hover:text-mint"
-            }`}
-          >
+          <ButtonLink href={CV_URL} newTab variant={dark ? "outlineOnInk" : "outline"} className="ml-2 px-4 font-medium">
             CV en PDF
-          </a>
+          </ButtonLink>
         </nav>
       </Container>
     </header>

@@ -1,35 +1,24 @@
-import Link from "next/link";
 import type { ComponentProps } from "react";
+import { AppLink } from "@/app/components/common/AppLink";
+import { cn } from "@/app/components/common/utils";
 
 /**
- * Shared building blocks of the public site ("Encre et menthe" design system).
+ * Layout building blocks of the public site ("Encre et menthe" design system).
+ * Buttons, links and tags are shared with the admin: see `app/components/common/`.
  * Radii: 4 px tags, 8 px buttons and fields, 16 px tiles and cards. Hover transitions only.
  */
 
-const buttonBase =
-  "inline-flex min-h-[52px] items-center justify-center gap-2 rounded-lg px-[26px] font-display text-[17px] font-semibold transition-colors duration-150";
+/** Side margins of a full-width band: 20 to 80 px. */
+export const gutter = "px-[clamp(20px,6vw,80px)]";
 
-export const buttonStyles = {
-  // On light backgrounds
-  ink: `${buttonBase} bg-ink text-on-ink hover:bg-mint`,
-  outline: `${buttonBase} border-[1.5px] border-ink text-ink hover:border-mint hover:text-mint`,
-  // On ink backgrounds
-  mint: `${buttonBase} bg-mint-light text-ink hover:bg-white`,
-  outlineOnInk: `${buttonBase} border-[1.5px] border-line text-on-ink hover:border-mint-light hover:text-mint-light`,
-};
-
-/** Underlined text link (mint rule), on light backgrounds. */
-export const underlineLink =
-  "self-start border-b-2 border-mint pb-0.5 font-display text-[17px] font-semibold text-ink transition-colors duration-150 hover:text-mint";
-
-/** Centered content column: max 1120 px, 20 to 80 px side margins. */
-export function Container({ className = "", ...props }: ComponentProps<"div">) {
-  return <div className={`mx-auto w-full max-w-[1120px] ${className}`} {...props} />;
+/** Centered content column: max 1120 px. */
+export function Container({ className, ...props }: ComponentProps<"div">) {
+  return <div className={cn("mx-auto w-full max-w-[1120px]", className)} {...props} />;
 }
 
-export function Section({ className = "", children, ...props }: ComponentProps<"section">) {
+export function Section({ className, children, ...props }: ComponentProps<"section">) {
   return (
-    <section className={`px-[clamp(20px,6vw,80px)] ${className}`} {...props}>
+    <section className={cn(gutter, className)} {...props}>
       <Container>{children}</Container>
     </section>
   );
@@ -47,34 +36,9 @@ export function PageTitle({ title, lead }: { title: string; lead: string }) {
   );
 }
 
-type TechTagVariant = "label" | "now" | "before";
-
-const techTagStyles: Record<TechTagVariant, string> = {
-  // Plain label
-  label: "bg-mist px-2.5 py-1.5 text-[13px] text-ink",
-  // Used in the current position
-  now: "border-[1.5px] border-ink bg-ink px-3 py-2 text-sm font-semibold text-on-ink",
-  // Used in a previous position or a project
-  before: "border-[1.5px] border-slate px-3 py-2 text-sm font-semibold text-ink",
-};
-
-/** Technology name (monospace, 4 px radius). */
-export function TechTag({ name, variant = "label" }: { name: string; variant?: TechTagVariant }) {
-  // inline-block so the vertical padding takes up room and wrapped rows keep their gap
-  return <span className={`inline-block rounded font-mono leading-tight ${techTagStyles[variant]}`}>{name}</span>;
-}
-
-export function TechTagList({ names, label }: { names: string[]; label?: string }) {
-  if (names.length === 0) return null;
-  return (
-    <ul aria-label={label} className="flex flex-wrap gap-2">
-      {names.map((name) => (
-        <li key={name}>
-          <TechTag name={name} />
-        </li>
-      ))}
-    </ul>
-  );
+/** White tile that turns ink on hover, used as a whole-card link. */
+export function TileLink({ className, ...props }: ComponentProps<typeof AppLink>) {
+  return <AppLink className={cn("rounded-2xl border border-line bg-white text-ink transition-colors duration-150 hover:bg-ink hover:text-on-ink", className)} {...props} />;
 }
 
 export function ArrowIcon({ size = 20 }: { size?: number }) {
@@ -83,9 +47,4 @@ export function ArrowIcon({ size = 20 }: { size?: number }) {
       <path d="M5 12h14M13 6l6 6-6 6" />
     </svg>
   );
-}
-
-/** Next.js link with the given button style. */
-export function ButtonLink({ variant, className = "", ...props }: ComponentProps<typeof Link> & { variant: keyof typeof buttonStyles }) {
-  return <Link className={`${buttonStyles[variant]} ${className}`} {...props} />;
 }

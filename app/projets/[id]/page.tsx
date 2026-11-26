@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getPublicHero } from "@/server/services/hero";
 import { findProject } from "@/server/services/projects";
 import { CASE_STUDIES_ENABLED, LOREM } from "@/app/config/content";
 import { SiteHeader } from "@/app/components/site/SiteHeader";
 import { SiteFooter } from "@/app/components/site/SiteFooter";
-import { Section, TechTag, underlineLink } from "@/app/components/site/ui";
+import { Section, TileLink } from "@/app/components/site/ui";
+import { TextLink } from "@/app/components/common/AppLink";
+import { TagList } from "@/app/components/common/Tag";
 import { toBulletPoints } from "@/app/components/site/data";
 import { ImageWithFallback } from "@/app/components/common/ImageWithFallback";
 
@@ -57,9 +58,9 @@ export default async function ProjectPage({ params }: Props) {
         <Section className="pt-14">
           <div className="flex flex-col gap-7">
             <nav aria-label="Fil d'Ariane" className="flex flex-wrap gap-2 font-display text-[15px] font-medium text-slate">
-              <Link href="/projets" className="underline underline-offset-[3px] hover:text-mint">
+              <TextLink href="/projets">
                 Projets
-              </Link>
+              </TextLink>
               <span aria-hidden="true">/</span>
               <span aria-current="page" className="text-ink">
                 {project.title}
@@ -93,14 +94,14 @@ export default async function ProjectPage({ params }: Props) {
                 <dt className="text-[15px] text-slate">Liens</dt>
                 <dd className="flex flex-wrap gap-x-5 text-lg font-semibold">
                   {project.githubUrl && (
-                    <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className={underlineLink}>
+                    <TextLink variant="underline" href={project.githubUrl} newTab>
                       Code source
-                    </a>
+                    </TextLink>
                   )}
                   {project.demoUrl && (
-                    <a href={project.demoUrl} target="_blank" rel="noopener noreferrer" className={underlineLink}>
+                    <TextLink variant="underline" href={project.demoUrl} newTab>
                       Démo en ligne
-                    </a>
+                    </TextLink>
                   )}
                 </dd>
               </div>
@@ -132,13 +133,7 @@ export default async function ProjectPage({ params }: Props) {
             </CaseSection>
             {project.tags.length > 0 && (
               <CaseSection title="Technologies">
-                <ul aria-label="Technologies" className="flex flex-wrap gap-2">
-                  {project.tags.map((tag) => (
-                    <li key={tag.id}>
-                      <TechTag name={tag.name} />
-                    </li>
-                  ))}
-                </ul>
+                <TagList names={project.tags.map((tag) => tag.name)} label="Technologies" />
               </CaseSection>
             )}
             <CaseSection title="Résultats">
@@ -149,20 +144,14 @@ export default async function ProjectPage({ params }: Props) {
 
         <Section className="pt-24">
           <nav aria-label="Pages suivantes" className="flex flex-wrap gap-5">
-            <Link
-              href="/projets"
-              className="flex min-w-0 flex-[1_1_320px] flex-col gap-2 rounded-2xl border border-line bg-white px-8 py-7 transition-colors duration-150 hover:bg-ink hover:text-on-ink"
-            >
+            <TileLink href="/projets" className="flex min-w-0 flex-[1_1_320px] flex-col gap-2 px-8 py-7">
               <span className="font-display text-[15px]">Toutes les études de cas</span>
               <span className="font-display text-2xl font-bold tracking-[-0.01em]">Retour aux projets</span>
-            </Link>
-            <Link
-              href="/experience"
-              className="flex min-w-0 flex-[1_1_320px] flex-col gap-2 rounded-2xl border border-line bg-white px-8 py-7 text-right transition-colors duration-150 hover:bg-ink hover:text-on-ink"
-            >
+            </TileLink>
+            <TileLink href="/experience" className="flex min-w-0 flex-[1_1_320px] flex-col gap-2 px-8 py-7 text-right">
               <span className="font-display text-[15px]">Parcours</span>
               <span className="font-display text-2xl font-bold tracking-[-0.01em]">Voir mes expériences</span>
-            </Link>
+            </TileLink>
           </nav>
         </Section>
       </main>

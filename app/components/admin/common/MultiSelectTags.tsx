@@ -3,7 +3,10 @@
 import { useState } from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Check, ChevronDown, Plus } from "lucide-react";
-import { TagChip } from "./TagChip";
+import { fieldClass } from "@/app/components/common/fieldStyles";
+import { IconButton } from "@/app/components/common/IconButton";
+import { Input } from "@/app/components/common/input";
+import { Tag as TagLabel } from "@/app/components/common/Tag";
 import { getErrorMessage } from "@/app/config/api.config";
 import type { Tag } from "@/app/types/api";
 
@@ -75,7 +78,7 @@ export function MultiSelectTags({
         <ul aria-label="Tags sélectionnés" className="flex flex-wrap gap-1.5">
           {selectedValues.map((value) => (
             <li key={value.id}>
-              <TagChip label={value.name} onRemove={() => removeTag(value)} />
+              <TagLabel name={value.name} onRemove={() => removeTag(value)} />
             </li>
           ))}
         </ul>
@@ -83,26 +86,18 @@ export function MultiSelectTags({
 
       <DropdownMenu.Root open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenu.Trigger asChild>
-          <button
-            type="button"
-            id={id}
-            className="w-full min-h-10 rounded-md border border-input bg-(--input-background) px-3 py-1.5 text-sm shadow-xs flex items-center justify-between focus-visible:outline-2 focus-visible:outline-cyan-700"
-          >
-            <span className={count > 0 ? "text-gray-900" : "text-gray-600"}>
+          <button type="button" id={id} className={fieldClass("md", "flex w-full cursor-pointer items-center justify-between text-left")}>
+            <span className={count > 0 ? "text-ink" : "text-slate"}>
               {count > 0 ? `${count} tag${count > 1 ? "s" : ""} sélectionné${count > 1 ? "s" : ""}` : placeholder}
             </span>
-            <ChevronDown
-              size={16}
-              aria-hidden="true"
-              className={`text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
-            />
+            <ChevronDown size={18} aria-hidden="true" className={`text-slate transition-transform duration-150 ${isOpen ? "rotate-180" : ""}`} />
           </button>
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content
             sideOffset={8}
             align="start"
-            className="z-50 max-h-72 w-(--radix-dropdown-menu-trigger-width) overflow-y-auto rounded-md border border-gray-200 bg-white p-1 shadow-md"
+            className="z-50 max-h-72 w-(--radix-dropdown-menu-trigger-width) overflow-y-auto rounded-lg border border-line bg-white p-1 font-display shadow-md"
           >
             {options.map((option) => (
               <DropdownMenu.CheckboxItem
@@ -110,10 +105,10 @@ export function MultiSelectTags({
                 checked={selectedIds.has(option.id)}
                 onSelect={(e) => e.preventDefault()}
                 onCheckedChange={() => toggleTag(option)}
-                className="relative flex cursor-pointer select-none items-center rounded-sm py-2 pr-8 pl-3 text-sm font-semibold text-blue-700 outline-none data-highlighted:bg-gray-100"
+                className="relative flex min-h-10 cursor-pointer select-none items-center rounded py-2 pr-8 pl-3 text-base text-ink outline-none data-highlighted:bg-mist data-[state=checked]:font-semibold"
               >
                 <DropdownMenu.ItemIndicator className="absolute right-2 inline-flex items-center">
-                  <Check size={14} aria-hidden="true" className="text-blue-700" />
+                  <Check size={16} aria-hidden="true" className="text-mint" />
                 </DropdownMenu.ItemIndicator>
                 {option.name}
               </DropdownMenu.CheckboxItem>
@@ -125,7 +120,7 @@ export function MultiSelectTags({
       {onCreate && (
         <div>
           <div className="flex gap-2">
-            <input
+            <Input
               aria-label="Nom du nouveau tag"
               value={newTagName}
               onChange={(e) => setNewTagName(e.target.value)}
@@ -138,19 +133,16 @@ export function MultiSelectTags({
               }}
               placeholder="Nouveau tag"
               maxLength={50}
-              className="flex-1 rounded-md border border-gray-300 px-2 py-1 text-sm outline-none focus:ring-2 focus:ring-cyan-600"
             />
-            <button
-              type="button"
-              onClick={handleCreate}
-              disabled={isCreating || !newTagName.trim()}
-              aria-label="Créer le tag"
-              className="inline-flex items-center rounded-md bg-cyan-700 px-2 text-white disabled:opacity-50"
-            >
-              <Plus size={16} aria-hidden="true" />
-            </button>
+            <IconButton label="Créer le tag" tone="neutral" onClick={handleCreate} disabled={isCreating || !newTagName.trim()}>
+              <Plus size={20} aria-hidden="true" />
+            </IconButton>
           </div>
-          {createError && <p role="alert" className="mt-1 text-xs text-red-700">{createError}</p>}
+          {createError && (
+            <p role="alert" className="mt-1 font-display text-sm text-danger">
+              {createError}
+            </p>
+          )}
         </div>
       )}
     </div>

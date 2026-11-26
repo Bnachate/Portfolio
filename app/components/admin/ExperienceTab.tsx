@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import isEqual from "lodash/isEqual";
-import { ErrorBanner } from "./common/ErrorBanner";
-import { AdminPanel, DeleteButton, EditButton, DeleteConfirmDialog, ReorderButtons, StatusBadge, movedIds, nextPosition } from "./common/AdminUi";
+import { ErrorBanner } from "../common/ErrorBanner";
+import { TagList } from "../common/Tag";
+import { StatusBadge } from "../common/StatusBadge";
+import { AdminPanel, DeleteButton, EditButton, DeleteConfirmDialog, ReorderButtons, movedIds, nextPosition } from "./common/AdminUi";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../common/table";
 import { ExperienceDialog, type ExperienceFormData } from "./experiences-tab/modal/ExperienceDialog";
 import {
@@ -196,7 +198,7 @@ export function ExperienceTab() {
         )
       }
     >
-      <ErrorBanner message={error} onClose={() => setError("")} />
+      <ErrorBanner message={error} onClose={() => setError("")} className="m-4" />
       {count === 0 ? (
         <p className="p-6 font-display text-base text-slate">Aucune expérience. Ajoutez la première avec le bouton « Nouvelle expérience ».</p>
       ) : (
@@ -243,19 +245,7 @@ export function ExperienceTab() {
                   {formatPeriod(experience.startDate, experience.endDate)}
                 </TableCell>
                 <TableCell>
-                  <ul aria-label={`Tags de ${experience.job}`} className="flex flex-wrap gap-1.5">
-                    {experience.tags.slice(0, VISIBLE_TAGS).map((tag) => (
-                      <li key={tag.id} className="rounded bg-mist px-2 py-1 font-mono text-xs">
-                        {tag.name}
-                      </li>
-                    ))}
-                    {experience.tags.length > VISIBLE_TAGS && (
-                      <li className="px-1 py-1 font-mono text-xs text-slate">
-                        +{experience.tags.length - VISIBLE_TAGS}
-                        {" "}<span className="sr-only">autres tags</span>
-                      </li>
-                    )}
-                  </ul>
+                  <TagList names={experience.tags.map((tag) => tag.name)} label={`Tags de ${experience.job}`} variant="compact" limit={VISIBLE_TAGS} className="gap-1.5" />
                 </TableCell>
                 {!readOnly && (
                   <TableCell className="text-right">

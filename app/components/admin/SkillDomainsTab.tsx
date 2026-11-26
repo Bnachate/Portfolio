@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "../common/Button";
 import { Input } from "../common/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../common/table";
-import { ErrorBanner } from "./common/ErrorBanner";
-import { AdminPanel, DeleteButton, DeleteConfirmDialog, EditButton, ReorderButtons, movedIds } from "./common/AdminUi";
+import { ErrorBanner } from "../common/ErrorBanner";
+import { AdminPanel, DeleteButton, DeleteConfirmDialog, EditButton, InlineEditActions, ReorderButtons, movedIds } from "./common/AdminUi";
 import {
   createSkillDomain,
   deleteSkillDomain,
@@ -127,7 +127,7 @@ export function SkillDomainsTab() {
         )
       }
     >
-      <ErrorBanner message={error} onClose={() => setError("")} />
+      <ErrorBanner message={error} onClose={() => setError("")} className="m-4" />
 
       <div className="p-6">
         <Table>
@@ -180,14 +180,7 @@ export function SkillDomainsTab() {
                   {!readOnly && (
                     <TableCell className="text-right">
                       {isEditing ? (
-                        <div className="flex justify-end gap-2">
-                          <Button variant="ghost" className="w-11 px-0" aria-label="Enregistrer" disabled={isBusy || !editingName.trim()} onClick={() => handleRename(domain)}>
-                            <Check size={20} aria-hidden="true" />
-                          </Button>
-                          <Button variant="ghost" color="secondary" className="w-11 px-0" aria-label="Annuler" disabled={isBusy} onClick={cancelEditing}>
-                            <X size={20} aria-hidden="true" />
-                          </Button>
-                        </div>
+                        <InlineEditActions name={domain.name} onSave={() => handleRename(domain)} onCancel={cancelEditing} canSave={Boolean(editingName.trim())} busy={isBusy} />
                       ) : (
                         <div className="flex justify-end gap-2">
                           <EditButton label={`Renommer ${domain.name}`} onClick={() => startEditing(domain)} />

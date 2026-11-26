@@ -1,19 +1,32 @@
-import * as React from "react";
-
+import type { ComponentProps, ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
+import { fieldClass, type FieldSize } from "./fieldStyles";
 import { cn } from "./utils";
 
-// Design system field: slate border, 8 px radius, 44 px high; disabled = mist background (read-only admin)
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
-  return (
+type InputProps = ComponentProps<"input"> & {
+  fieldSize?: FieldSize;
+  /** Decorative icon at the start of the field (hidden from assistive technologies). */
+  icon?: LucideIcon;
+  /** Element at the end of the field, such as a show / hide password `IconButton`. */
+  end?: ReactNode;
+};
+
+/** Text field. With `icon` or `end`, it is wrapped in a relative box that holds them. */
+function Input({ className, fieldSize = "md", icon: Icon, end, ...props }: InputProps) {
+  const input = (
     <input
-      type={type}
       data-slot="input"
-      className={cn(
-        "flex min-h-11 w-full min-w-0 rounded-lg border-[1.5px] border-slate bg-white px-3.5 font-display text-base text-ink transition-colors duration-150 focus:border-mint focus:shadow-[0_0_0_1px_var(--color-mint)] focus-visible:outline-none disabled:cursor-not-allowed disabled:border-line disabled:bg-mist disabled:text-slate aria-invalid:border-danger",
-        className,
-      )}
+      className={fieldClass(fieldSize, cn("flex w-full min-w-0", Icon && "pl-11", end && "pr-12", className))}
       {...props}
     />
+  );
+  if (!Icon && !end) return input;
+  return (
+    <div className="relative w-full">
+      {Icon && <Icon size={20} aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-slate" />}
+      {input}
+      {end && <div className="absolute top-1/2 right-1 -translate-y-1/2">{end}</div>}
+    </div>
   );
 }
 

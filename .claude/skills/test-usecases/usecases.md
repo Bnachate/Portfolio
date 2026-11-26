@@ -134,6 +134,8 @@ Levels: API (Vitest + route handlers), Unit, UI (Testing Library, `tests/ui/`), 
 | X3 | Read-only admin: every tab | E2E | `e2e/accessibility.spec.ts` | ✅ |
 | X4 | Admin: every tab, experience / project dialogs, tags menu with selected tags, open message, deletion modals, tag renaming; icon buttons named after their target ("Modifier …", "Monter …") | UI, E2E | `tests/ui/hero-and-messages-tabs.test.tsx`, `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/accessibility.spec.ts` | ✅ |
 | X5 | Selected tags are removable with a visible, named button outside the menu trigger; the tag creation field is labelled and outside the menu | UI, E2E | `tests/ui/experiences-projects-tabs.test.tsx`, `e2e/accessibility.spec.ts` | ✅ |
+| X6 | Shared components: buttons never submit a form unless `type="submit"`, caller classes win, new-tab links get `rel="noopener noreferrer"`, icon buttons are named by their label, fields are labelled with their help text, the switch exposes `aria-checked`, the error banner is an alert (nothing when empty), tag lists announce hidden tags ("+N autres tags") | UI | `tests/ui/common-components.test.tsx` | ✅ |
+| X7 | Admin compositions: inline rename save is disabled while the name is empty and cancel works; the in-place deletion question focuses "Non" and Escape cancels; "Voir … sur le site" opens an external URL in a new tab and a site page in the same tab; the dialog "Fermer" button closes it | UI | `tests/ui/admin-common.test.tsx` | ✅ |
 
 ## Platform
 
