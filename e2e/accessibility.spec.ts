@@ -40,6 +40,10 @@ test.describe('Accessibility (visitor)', () => {
     for (const path of ['/', '/contact']) {
       await page.goto(path);
       await expectNoViolations(page, `${path} on a phone`);
+      // Open menu: the dark (home) and light (other pages) versions
+      await page.getByRole('button', { name: 'Menu' }).click();
+      await expect(page.getByRole('navigation', { name: 'Navigation principale' })).toBeVisible();
+      await expectNoViolations(page, `${path} on a phone, menu open`);
     }
   });
 

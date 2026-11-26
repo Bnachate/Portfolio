@@ -54,13 +54,36 @@ test.describe('Public site (visitor)', () => {
     await expect(page.getByRole('form', { name: 'Formulaire de contact' })).toBeVisible();
   });
 
-  test('the navigation wraps on a phone, without horizontal scroll (V2)', async ({ page }) => {
+  test('on a phone the navigation folds behind a "Menu" button, without horizontal scroll (V2)', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 800 });
     for (const path of ['/', '/experience', '/contact']) {
       await page.goto(path);
-      await expect(page.getByRole('navigation', { name: 'Navigation principale' }).getByRole('link', { name: 'Contact' })).toBeVisible();
+      const menu = page.getByRole('button', { name: 'Menu' });
+      const nav = page.getByRole('navigation', { name: 'Navigation principale' });
+      // Closed by default: only the logo and the button
+      await expect(menu).toHaveAttribute('aria-expanded', 'false');
+      await expect(nav).toBeHidden();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+
+      await menu.click();
+      await expect(nav.getByRole('link', { name: 'Contact' })).toBeVisible();
+      await expect(nav.getByRole('link', { name: 'CV en PDF' })).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+      await page.keyboard.press('Escape');
+      await expect(nav).toBeHidden();
+      await expect(menu).toBeFocused();
     }
+    // Choosing a link navigates and closes the menu
+    await page.getByRole('button', { name: 'Menu' }).click();
+    await page.getByRole('navigation', { name: 'Navigation principale' }).getByRole('link', { name: 'Compétences' }).click();
+    await expect(page).toHaveURL('/competences');
+    await expect(page.getByRole('navigation', { name: 'Navigation principale' })).toBeHidden();
+  });
+
+  test('on a desktop the navigation is one row, without the "Menu" button (V2)', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByRole('button', { name: 'Menu' })).toBeHidden();
+    await expect(page.getByRole('navigation', { name: 'Navigation principale' }).getByRole('link', { name: 'Contact' })).toBeVisible();
   });
 
   test('the experience page shows the timeline and the education (V3)', async ({ page }) => {
