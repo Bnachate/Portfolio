@@ -18,6 +18,7 @@ import { findProject, listProjects } from '@/server/services/projects';
 import { listExperiences } from '@/server/services/experiences';
 import { listTags } from '@/server/services/tags';
 import { listSkillDomains } from '@/server/services/skill-domains';
+import { getContentDates, getProjectDates } from '@/server/services/sitemap';
 import type { Experience, Project, SkillDomain, TagWithDomain } from '@/app/types/api';
 
 // Pages are server components reading the database through these services
@@ -26,6 +27,10 @@ vi.mock('@/server/services/projects', () => ({ listProjects: vi.fn(), findProjec
 vi.mock('@/server/services/experiences', () => ({ listExperiences: vi.fn() }));
 vi.mock('@/server/services/tags', () => ({ listTags: vi.fn() }));
 vi.mock('@/server/services/skill-domains', () => ({ listSkillDomains: vi.fn() }));
+vi.mock('@/server/services/sitemap', () => ({
+  getContentDates: vi.fn(async () => ({ hero: null, experiences: null, projects: null, tags: null, skillDomains: null })),
+  getProjectDates: vi.fn(async () => [{ id: 7, updatedAt: new Date('2026-11-01T10:00:00Z') }]),
+}));
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
   notFound: () => {
@@ -283,6 +288,27 @@ describe('sitemap', () => {
     expect(await urls()).toContain('/projets/7');
     flags.caseStudies = false;
     expect(await urls()).toEqual(['/', '/projets', '/experience', '/competences', '/contact']);
+  });
+
+  it('dates each page with the latest change of what it shows', async () => {
+    const day = (d: number) => new Date(`2026-11-${String(d).padStart(2, '0')}T10:00:00Z`);
+    vi.mocked(getContentDates).mockResolvedValueOnce({ hero: day(1), experiences: day(5), projects: day(3), tags: day(2), skillDomains: day(9) });
+    const entries = await sitemap();
+    const lastmod = (path: string) => entries.find((e) => new URL(e.url).pathname === path)?.lastModified;
+    expect(lastmod('/')).toEqual(day(9));
+    expect(lastmod('/projets')).toEqual(day(3));
+    expect(lastmod('/experience')).toEqual(day(5));
+    expect(lastmod('/competences')).toEqual(day(9));
+    expect(lastmod('/contact')).toBeUndefined();
+    expect(lastmod('/projets/7')).toEqual(new Date('2026-11-01T10:00:00Z'));
+  });
+
+  it('still lists every page, without dates, when the database fails', async () => {
+    vi.mocked(getContentDates).mockRejectedValueOnce(new Error('down'));
+    vi.mocked(getProjectDates).mockRejectedValueOnce(new Error('down'));
+    const entries = await sitemap();
+    expect(entries.map((e) => new URL(e.url).pathname)).toEqual(['/', '/projets', '/experience', '/competences', '/contact']);
+    expect(entries.every((e) => e.lastModified === undefined)).toBe(true);
   });
 });
 

@@ -78,8 +78,9 @@ export async function createProject({ tags = [], ...fields }: CreateInput) {
 export async function updateProject(id: number, { tags, ...fields }: UpdateInput) {
   return db.transaction(async (tx) => {
     await getProject(tx, id);
-    if (Object.keys(fields).length > 0) {
-      await tx.update(projects).set(fields).where(eq(projects.id, id));
+    // Always touch the row, so a change of tags alone also moves updated_at (sitemap lastmod)
+    if (Object.keys(fields).length > 0 || tags) {
+      await tx.update(projects).set({ ...fields, updatedAt: new Date() }).where(eq(projects.id, id));
     }
     if (tags) await setTags(tx, id, tags);
     return getProject(tx, id);
