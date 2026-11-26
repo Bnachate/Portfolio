@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Button } from "../common/Button";
+import { TextLink } from "../common/AppLink";
+import { Field, FieldGroup } from "../common/Field";
 import { Input } from "../common/input";
-import { Label } from "../common/label";
+import { Switch } from "../common/Switch";
 import { Textarea } from "../common/textarea";
-import { ErrorBanner } from "./common/ErrorBanner";
+import { ErrorBanner } from "../common/ErrorBanner";
 import { AdminPanel } from "./common/AdminUi";
 import { getHero, saveHero } from "@/app/services/admin/hero.service";
 import { getErrorMessage } from "@/app/config/api.config";
@@ -30,25 +31,6 @@ const REQUIRED_FIELDS: { field: TextField; label: string }[] = [
   { field: "email", label: "E-mail de contact" },
 ];
 
-const sectionTitle = "border-b border-line pb-2 font-display text-lg font-bold";
-
-/** Accessible on / off switch (mint when on, slate when off). */
-function Switch({ id, checked, onChange, disabled }: { id: string; checked: boolean; onChange: (checked: boolean) => void; disabled?: boolean }) {
-  return (
-    <button
-      id={id}
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      disabled={disabled}
-      onClick={() => onChange(!checked)}
-      className={`relative h-[34px] w-[60px] shrink-0 rounded-full transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-60 ${checked ? "bg-mint" : "bg-slate"}`}
-    >
-      <span aria-hidden="true" className={`absolute top-1 h-[26px] w-[26px] rounded-full bg-white transition-[left] duration-150 ${checked ? "left-[30px]" : "left-1"}`} />
-    </button>
-  );
-}
-
 export function HeroTab() {
   const readOnly = useReadOnly();
   // Last saved version, used by "Annuler les modifications"
@@ -70,7 +52,7 @@ export function HeroTab() {
   if (!formData) {
     return (
       <AdminPanel title="Section Hero">
-        {error ? <ErrorBanner message={error} /> : <p className="p-6 font-display text-slate">Chargement...</p>}
+        {error ? <ErrorBanner message={error} className="m-4" /> : <p className="p-6 font-display text-slate">Chargement...</p>}
       </AdminPanel>
     );
   }
@@ -111,90 +93,69 @@ export function HeroTab() {
 
   return (
     <AdminPanel title="Section Hero" summary="Le premier écran de la page d'accueil. L'aperçu suit vos modifications.">
-      <ErrorBanner message={error} onClose={() => setError("")} />
+      <ErrorBanner message={error} onClose={() => setError("")} className="m-4" />
       <div className="grid gap-8 p-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
         <form onSubmit={handleSubmit} className="flex min-w-0 flex-col gap-8">
           {/* A disabled fieldset makes every field read-only for visitors */}
           <fieldset disabled={readOnly} className="flex min-w-0 flex-col gap-8">
-            <div className="space-y-4">
-              <h3 className={sectionTitle}>Contenu principal</h3>
-              <div className="space-y-2">
-                <Label htmlFor="title">Titre principal</Label>
+            <FieldGroup title="Contenu principal">
+              <Field id="title" label="Titre principal">
                 <Input id="title" value={formData.title} onChange={update("title")} placeholder="Ex : Développeur Full-Stack" maxLength={200} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="subtitle">Sous-titre</Label>
+              </Field>
+              <Field id="subtitle" label="Sous-titre">
                 <Input id="subtitle" value={formData.subtitle} onChange={update("subtitle")} maxLength={300} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+              </Field>
+              <Field id="description" label="Description">
                 <Textarea id="description" rows={4} value={formData.description} onChange={update("description")} maxLength={2000} required />
-              </div>
-            </div>
+              </Field>
+            </FieldGroup>
 
-            <div className="space-y-4">
-              <h3 className={sectionTitle}>Boutons d&apos;action</h3>
+            <FieldGroup title="Boutons d'action">
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="primaryButtonText">Texte du bouton principal</Label>
+                <Field id="primaryButtonText" label="Texte du bouton principal">
                   <Input id="primaryButtonText" value={formData.primaryButtonText} onChange={update("primaryButtonText")} maxLength={50} required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="primaryButtonUrl">Lien du bouton principal</Label>
+                </Field>
+                <Field id="primaryButtonUrl" label="Lien du bouton principal">
                   <Input id="primaryButtonUrl" value={formData.primaryButtonUrl} onChange={update("primaryButtonUrl")} placeholder="/contact" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="secondaryButtonText">Texte du bouton secondaire</Label>
+                </Field>
+                <Field id="secondaryButtonText" label="Texte du bouton secondaire">
                   <Input id="secondaryButtonText" value={formData.secondaryButtonText} onChange={update("secondaryButtonText")} maxLength={50} required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="secondaryButtonUrl">Lien du bouton secondaire</Label>
+                </Field>
+                <Field id="secondaryButtonUrl" label="Lien du bouton secondaire">
                   <Input id="secondaryButtonUrl" value={formData.secondaryButtonUrl} onChange={update("secondaryButtonUrl")} placeholder="/projets" required />
-                </div>
+                </Field>
               </div>
               <p className="font-display text-sm text-slate">Chaque section a sa propre page : utilisez /projets, /experience, /competences ou /contact.</p>
-            </div>
+            </FieldGroup>
 
-            <div className="space-y-4">
-              <h3 className={sectionTitle}>Disponibilité</h3>
-              <div className="flex items-center gap-4">
-                <Switch
-                  id="availabilityEnabled"
-                  checked={formData.availabilityEnabled}
-                  onChange={(checked) => {
-                    setIsSaved(false);
-                    setFormData({ ...formData, availabilityEnabled: checked });
-                  }}
-                  disabled={readOnly}
-                />
-                <div className="flex flex-col">
-                  <label htmlFor="availabilityEnabled" className="font-display text-base font-semibold">
-                    Afficher le voyant de disponibilité
-                  </label>
-                  <span className="font-display text-sm text-slate">Un point ambre et une courte phrase au-dessus du titre.</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="availabilityText">Texte du voyant</Label>
+            <FieldGroup title="Disponibilité">
+              <Switch
+                id="availabilityEnabled"
+                label="Afficher le voyant de disponibilité"
+                description="Un point ambre et une courte phrase au-dessus du titre."
+                checked={formData.availabilityEnabled}
+                onChange={(checked) => {
+                  setIsSaved(false);
+                  setFormData({ ...formData, availabilityEnabled: checked });
+                }}
+                disabled={readOnly}
+              />
+              <Field id="availabilityText" label="Texte du voyant">
                 <Input id="availabilityText" value={formData.availabilityText} onChange={update("availabilityText")} maxLength={120} required />
-              </div>
-            </div>
+              </Field>
+            </FieldGroup>
 
-            <div className="space-y-4">
-              <h3 className={sectionTitle}>Liens sociaux</h3>
+            <FieldGroup title="Liens sociaux">
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="githubUrl">GitHub</Label>
+                <Field id="githubUrl" label="GitHub">
                   <Input id="githubUrl" type="url" value={formData.githubUrl} onChange={update("githubUrl")} placeholder="https://github.com/username" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="linkedinUrl">LinkedIn</Label>
+                </Field>
+                <Field id="linkedinUrl" label="LinkedIn">
                   <Input id="linkedinUrl" type="url" value={formData.linkedinUrl} onChange={update("linkedinUrl")} placeholder="https://linkedin.com/in/username" required />
-                </div>
+                </Field>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">E-mail de contact</Label>
-                {/* Never published: it receives the contact form notifications. Visitors don't get it from the API. */}
+              {/* Never published: it receives the contact form notifications. Visitors don't get it from the API. */}
+              <Field id="email" label="E-mail de contact" hint={!readOnly && "Jamais affiché sur le site : il reçoit les notifications de messages."}>
                 <Input
                   id="email"
                   type="email"
@@ -203,9 +164,8 @@ export function HeroTab() {
                   placeholder={readOnly ? "Masqué en lecture seule" : "contact@email.com"}
                   required
                 />
-                {!readOnly && <p className="font-display text-sm text-slate">Jamais affiché sur le site : il reçoit les notifications de messages.</p>}
-              </div>
-            </div>
+              </Field>
+            </FieldGroup>
           </fieldset>
 
           {!readOnly && (
@@ -213,12 +173,12 @@ export function HeroTab() {
               <Button type="submit" disabled={isSaving}>
                 {isSaving ? "Enregistrement..." : "Enregistrer"}
               </Button>
-              <Button type="button" variant="outline" onClick={handleReset}>
+              <Button variant="outline" onClick={handleReset}>
                 Annuler les modifications
               </Button>
-              <Link href="/" className="font-display text-base font-semibold text-ink underline underline-offset-4 hover:text-mint">
+              <TextLink href="/" className="font-display text-base font-semibold text-ink underline-offset-4">
                 Voir l&apos;accueil
-              </Link>
+              </TextLink>
               {isSaved && (
                 <p role="status" className="font-display text-base font-semibold text-mint">
                   Enregistré : les modifications sont en ligne.

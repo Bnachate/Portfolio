@@ -3,14 +3,13 @@
 import { useState } from "react";
 import { sendContactMessage } from "@/app/services/admin/contacts.service";
 import { getErrorMessage } from "@/app/config/api.config";
-import { buttonStyles } from "@/app/components/site/ui";
+import { Button } from "@/app/components/common/Button";
+import { ErrorBanner } from "@/app/components/common/ErrorBanner";
+import { Field } from "@/app/components/common/Field";
+import { Input } from "@/app/components/common/input";
+import { Textarea } from "@/app/components/common/textarea";
 
 const EMPTY_FORM = { name: "", email: "", subject: "", message: "", website: "" };
-
-// Design system field: label always visible above, slate border, 48 px high
-const fieldClass =
-  "min-h-12 w-full rounded-lg border-[1.5px] border-slate bg-white px-3.5 font-display text-[17px] text-ink transition-colors duration-150 focus:border-mint focus:shadow-[0_0_0_1px_var(--color-mint)] focus-visible:outline-none";
-const labelClass = "font-display text-base font-semibold";
 
 export function ContactForm() {
   const [formData, setFormData] = useState(EMPTY_FORM);
@@ -51,40 +50,32 @@ export function ContactForm() {
       <div className={card} role="status">
         <h2 className="font-display text-[28px] font-bold tracking-[-0.02em]">Message envoyé !</h2>
         <p className="text-lg leading-[1.6] text-slate">Merci. Je vous répondrai par e-mail dans les plus brefs délais.</p>
-        <button type="button" onClick={() => setSubmitted(false)} className={`${buttonStyles.outline} self-start`}>
+        <Button variant="outline" size="lg" onClick={() => setSubmitted(false)} className="self-start">
           Envoyer un autre message
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
     <form onSubmit={handleSubmit} className={card} aria-label="Formulaire de contact">
-      {error && (
-        <p role="alert" className="rounded-lg border border-danger bg-danger-pale px-4 py-3 font-display text-base font-medium text-danger">
-          {error}
-        </p>
-      )}
+      <ErrorBanner message={error} />
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="name" className={labelClass}>Nom</label>
-        <input id="name" name="name" type="text" required maxLength={100} autoComplete="name" value={formData.name} onChange={handleChange} className={fieldClass} placeholder="Votre nom" />
-      </div>
+      <Field id="name" label="Nom">
+        <Input id="name" name="name" fieldSize="lg" required maxLength={100} autoComplete="name" value={formData.name} onChange={handleChange} placeholder="Votre nom" />
+      </Field>
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="email" className={labelClass}>E-mail</label>
-        <input id="email" name="email" type="email" required maxLength={200} autoComplete="email" value={formData.email} onChange={handleChange} className={fieldClass} placeholder="vous@entreprise.fr" />
-      </div>
+      <Field id="email" label="E-mail">
+        <Input id="email" name="email" type="email" fieldSize="lg" required maxLength={200} autoComplete="email" value={formData.email} onChange={handleChange} placeholder="vous@entreprise.fr" />
+      </Field>
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="subject" className={labelClass}>Sujet</label>
-        <input id="subject" name="subject" type="text" required maxLength={200} value={formData.subject} onChange={handleChange} className={fieldClass} placeholder="Un poste, une mission, une question" />
-      </div>
+      <Field id="subject" label="Sujet">
+        <Input id="subject" name="subject" fieldSize="lg" required maxLength={200} value={formData.subject} onChange={handleChange} placeholder="Un poste, une mission, une question" />
+      </Field>
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="message" className={labelClass}>Message</label>
-        <textarea id="message" name="message" required rows={6} maxLength={5000} value={formData.message} onChange={handleChange} className={`${fieldClass} min-h-40 resize-y py-3 leading-normal`} placeholder="Le poste ou le projet, le contexte, vos délais" />
-      </div>
+      <Field id="message" label="Message">
+        <Textarea id="message" name="message" fieldSize="lg" required rows={6} maxLength={5000} value={formData.message} onChange={handleChange} className="min-h-40" placeholder="Le poste ou le projet, le contexte, vos délais" />
+      </Field>
 
       {/* Honeypot: hidden from humans, bots tend to fill it in */}
       <div className="hidden" aria-hidden="true">
@@ -92,9 +83,9 @@ export function ContactForm() {
         <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" value={formData.website} onChange={handleChange} />
       </div>
 
-      <button type="submit" disabled={isSubmitting} className={`${buttonStyles.ink} cursor-pointer self-start disabled:cursor-not-allowed disabled:opacity-50`}>
+      <Button type="submit" size="lg" disabled={isSubmitting} className="self-start">
         {isSubmitting ? "Envoi en cours..." : "Envoyer le message"}
-      </button>
+      </Button>
     </form>
   );
 }

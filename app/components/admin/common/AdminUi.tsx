@@ -1,46 +1,38 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import Link from "next/link";
-import { ArrowDown, ArrowUp, ExternalLink, Pencil, Trash2 } from "lucide-react";
+import { useEffect, useRef, type ReactNode } from "react";
+import { ArrowDown, ArrowUp, Check, ExternalLink, Pencil, Trash2, X } from "lucide-react";
+import { Button } from "../../common/Button";
+import { IconButton, IconLink } from "../../common/IconButton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../common/dialog";
 
 /**
- * Admin building blocks ("Encre et menthe"): 44 px icon buttons with accessible names,
- * in-row deletion confirmation, move up / down buttons and state badges.
+ * Admin building blocks ("Encre et menthe"): named icon buttons, deletion confirmations,
+ * move up / down buttons and the section panel. Generic pieces live in `app/components/common/`.
  */
-
-const iconButtonBase =
-  "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40";
 
 export function EditButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button type="button" aria-label={label} onClick={onClick} className={`${iconButtonBase} bg-mist text-ink hover:bg-ink hover:text-on-ink`}>
+    <IconButton label={label} onClick={onClick}>
       <Pencil size={20} aria-hidden="true" />
-    </button>
+    </IconButton>
   );
 }
 
 export function DeleteButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button type="button" aria-label={label} onClick={onClick} className={`${iconButtonBase} bg-danger-pale text-danger hover:bg-danger hover:text-on-ink`}>
+    <IconButton label={label} tone="danger" onClick={onClick}>
       <Trash2 size={20} aria-hidden="true" />
-    </button>
+    </IconButton>
   );
 }
 
+/** Opens a page of the site (or an external URL, in a new tab). */
 export function ViewLink({ label, href }: { label: string; href: string }) {
-  const external = /^https?:\/\//.test(href);
-  const className = `${iconButtonBase} bg-mist text-ink hover:bg-ink hover:text-on-ink`;
-  const icon = <ExternalLink size={20} aria-hidden="true" />;
-  return external ? (
-    <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className={className}>
-      {icon}
-    </a>
-  ) : (
-    <Link href={href} aria-label={label} className={className}>
-      {icon}
-    </Link>
+  return (
+    <IconLink label={label} href={href} newTab={/^https?:\/\//.test(href)}>
+      <ExternalLink size={20} aria-hidden="true" />
+    </IconLink>
   );
 }
 
@@ -66,29 +58,18 @@ export function InlineDeleteConfirm({
     <div
       role="group"
       aria-label={question}
-      className="flex flex-wrap items-center justify-end gap-2 font-display"
+      className="flex flex-wrap items-center justify-end gap-2"
       onKeyDown={(event) => {
         if (event.key === "Escape") onCancel();
       }}
     >
-      <span className="text-[15px] font-semibold text-danger">{question}</span>
-      <button
-        type="button"
-        onClick={onConfirm}
-        disabled={busy}
-        className="inline-flex min-h-11 items-center rounded-lg bg-danger px-3.5 text-[15px] font-semibold text-on-ink transition-colors duration-150 hover:bg-ink disabled:opacity-50"
-      >
+      <span className="font-display text-[15px] font-semibold text-danger">{question}</span>
+      <Button variant="danger" onClick={onConfirm} disabled={busy}>
         Oui
-      </button>
-      <button
-        ref={cancelRef}
-        type="button"
-        onClick={onCancel}
-        disabled={busy}
-        className="inline-flex min-h-11 items-center rounded-lg border-[1.5px] border-slate px-3.5 text-[15px] font-semibold text-ink transition-colors duration-150 hover:border-ink disabled:opacity-50"
-      >
+      </Button>
+      <Button ref={cancelRef} variant="outline" onClick={onCancel} disabled={busy}>
         Non
-      </button>
+      </Button>
     </div>
   );
 }
@@ -126,27 +107,43 @@ export function DeleteConfirmDialog({
           <DialogTitle>{question}</DialogTitle>
           <DialogDescription>{detail}</DialogDescription>
         </DialogHeader>
-        <DialogFooter className="font-display">
-          <button
-            ref={cancelRef}
-            type="button"
-            onClick={onCancel}
-            disabled={busy}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg border-[1.5px] border-slate px-5 text-[15px] font-semibold text-ink transition-colors duration-150 hover:border-ink disabled:opacity-50"
-          >
+        <DialogFooter>
+          <Button ref={cancelRef} variant="outline" onClick={onCancel} disabled={busy}>
             Non
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={busy}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-danger px-5 text-[15px] font-semibold text-on-ink transition-colors duration-150 hover:bg-ink disabled:opacity-50"
-          >
+          </Button>
+          <Button variant="danger" onClick={onConfirm} disabled={busy}>
             {busy ? "Suppression..." : "Oui"}
-          </button>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Save / cancel icon buttons of an inline edit (rename in a table row). */
+export function InlineEditActions({
+  name,
+  onSave,
+  onCancel,
+  canSave,
+  busy = false,
+}: {
+  /** Current name of the item being renamed, used in the accessible names. */
+  name: string;
+  onSave: () => void;
+  onCancel: () => void;
+  canSave: boolean;
+  busy?: boolean;
+}) {
+  return (
+    <div className="flex justify-end gap-2">
+      <IconButton label={`Enregistrer le nouveau nom de ${name}`} tone="ghost" onClick={onSave} disabled={busy || !canSave} className="text-ink">
+        <Check size={20} aria-hidden="true" />
+      </IconButton>
+      <IconButton label={`Annuler le renommage de ${name}`} tone="ghostDanger" onClick={onCancel} disabled={busy}>
+        <X size={20} aria-hidden="true" />
+      </IconButton>
+    </div>
   );
 }
 
@@ -166,30 +163,16 @@ export function ReorderButtons({
   isLast: boolean;
   disabled?: boolean;
 }) {
-  const className = `${iconButtonBase} h-9 w-9 border border-line bg-white text-ink hover:bg-mist`;
   return (
     <div className="flex gap-1">
-      <button type="button" aria-label={`Monter ${name}`} onClick={onUp} disabled={disabled || isFirst} className={className}>
+      <IconButton label={`Monter ${name}`} tone="outline" size="sm" onClick={onUp} disabled={disabled || isFirst}>
         <ArrowUp size={18} aria-hidden="true" />
-      </button>
-      <button type="button" aria-label={`Descendre ${name}`} onClick={onDown} disabled={disabled || isLast} className={className}>
+      </IconButton>
+      <IconButton label={`Descendre ${name}`} tone="outline" size="sm" onClick={onDown} disabled={disabled || isLast}>
         <ArrowDown size={18} aria-hidden="true" />
-      </button>
+      </IconButton>
     </div>
   );
-}
-
-type BadgeTone = "current" | "warning" | "muted";
-
-const badgeTones: Record<BadgeTone, string> = {
-  current: "bg-mint-pale text-mint",
-  warning: "bg-amber text-ink",
-  muted: "bg-mist text-slate",
-};
-
-/** A badge always names a state, it is never decorative (13 px minimum). */
-export function StatusBadge({ tone, children }: { tone: BadgeTone; children: React.ReactNode }) {
-  return <span className={`inline-flex items-center rounded px-2 py-[3px] font-display text-[13px] font-semibold ${badgeTones[tone]}`}>{children}</span>;
 }
 
 /** White panel holding one admin section: title, count line, primary action. */
@@ -200,9 +183,9 @@ export function AdminPanel({
   children,
 }: {
   title: string;
-  summary?: React.ReactNode;
-  action?: React.ReactNode;
-  children: React.ReactNode;
+  summary?: ReactNode;
+  action?: ReactNode;
+  children: ReactNode;
 }) {
   return (
     <section className="rounded-2xl border border-line bg-white">

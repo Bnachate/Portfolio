@@ -7,7 +7,8 @@ import { listSkillDomains } from "@/server/services/skill-domains";
 import { LANGUAGES } from "@/app/config/content";
 import { SiteHeader } from "@/app/components/site/SiteHeader";
 import { SiteFooter } from "@/app/components/site/SiteFooter";
-import { PageTitle, Section, TechTag } from "@/app/components/site/ui";
+import { PageTitle, Section } from "@/app/components/site/ui";
+import { Tag } from "@/app/components/common/Tag";
 import { buildSkillGroups } from "@/app/components/site/data";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +38,7 @@ export default async function SkillsPage() {
                   {/* Same style for every skill until current and past ones get a new visual distinction */}
                   {group.skills.map((skill) => (
                     <li key={skill.name}>
-                      <TechTag name={skill.name} variant="now" />
+                      <Tag name={skill.name} variant="now" />
                     </li>
                   ))}
                 </ul>

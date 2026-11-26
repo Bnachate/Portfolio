@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, Plus, Search, X } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Button } from "../common/Button";
 import { Input } from "../common/input";
+import { Select } from "../common/Select";
+import { Tag } from "../common/Tag";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../common/table";
-import { ErrorBanner } from "./common/ErrorBanner";
-import { AdminPanel, DeleteButton, DeleteConfirmDialog, EditButton, StatusBadge } from "./common/AdminUi";
+import { ErrorBanner } from "../common/ErrorBanner";
+import { StatusBadge } from "../common/StatusBadge";
+import { AdminPanel, DeleteButton, DeleteConfirmDialog, EditButton, InlineEditActions } from "./common/AdminUi";
 import { createTag, deleteTag, getTagsWithUsage, updateTag } from "@/app/services/admin/tags.service";
 import { getErrorMessage } from "@/app/config/api.config";
 import { getSkillDomains } from "@/app/services/admin/skill-domains.service";
@@ -30,22 +33,19 @@ function formatUsage(tag: TagWithUsage) {
 
 const isUnused = (tag: TagWithUsage) => tag.experienceCount + tag.projectCount === 0;
 
-const selectClass =
-  "min-h-11 rounded-lg border-[1.5px] border-slate bg-white px-3 font-display text-[15px] text-ink transition-colors duration-150 focus:border-mint focus:shadow-[0_0_0_1px_var(--color-mint)] focus-visible:outline-none disabled:cursor-not-allowed disabled:border-line disabled:bg-mist disabled:text-slate";
-
 type DomainSelectProps = { id: string; domains: SkillDomain[]; value: number | null; onChange: (domainId: number | null) => void; label: string; disabled?: boolean };
 
 /** Domains of the database, plus "Autres" (no domain). */
 function DomainSelect({ id, domains, value, onChange, label, disabled }: DomainSelectProps) {
   return (
-    <select id={id} aria-label={label} value={value ?? ""} onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)} disabled={disabled} className={selectClass}>
+    <Select id={id} aria-label={label} value={value ?? ""} onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)} disabled={disabled} className="text-[15px]">
       <option value="">{OTHER_DOMAIN_LABEL}</option>
       {domains.map((domain) => (
         <option key={domain.id} value={domain.id}>
           {domain.name}
         </option>
       ))}
-    </select>
+    </Select>
   );
 }
 
@@ -181,12 +181,11 @@ export function TagsTab() {
         )
       }
     >
-      <ErrorBanner message={error} onClose={() => setError("")} />
+      <ErrorBanner message={error} onClose={() => setError("")} className="m-4" />
 
       <div className="px-6 pt-5">
-        <div className="relative max-w-sm">
-          <Search size={18} aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-slate" />
-          <Input aria-label="Rechercher un tag" placeholder="Rechercher un tag..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
+        <div className="max-w-sm">
+          <Input aria-label="Rechercher un tag" placeholder="Rechercher un tag..." value={search} onChange={(e) => setSearch(e.target.value)} icon={Search} />
         </div>
       </div>
 
@@ -221,7 +220,7 @@ export function TagsTab() {
                         className="max-w-xs"
                       />
                     ) : (
-                      <span className="rounded bg-mist px-2.5 py-1 font-mono text-sm">{tag.name}</span>
+                      <Tag name={tag.name} />
                     )}
                   </TableCell>
                   <TableCell>
@@ -235,14 +234,7 @@ export function TagsTab() {
                   {!readOnly && (
                     <TableCell className="text-right">
                       {isEditing ? (
-                        <div className="flex justify-end gap-2">
-                          <Button variant="ghost" className="w-11 px-0" aria-label="Enregistrer" disabled={isRenaming || !editingName.trim()} onClick={() => handleRename(tag)}>
-                            <Check size={20} aria-hidden="true" />
-                          </Button>
-                          <Button variant="ghost" color="secondary" className="w-11 px-0" aria-label="Annuler" disabled={isRenaming} onClick={cancelEditing}>
-                            <X size={20} aria-hidden="true" />
-                          </Button>
-                        </div>
+                        <InlineEditActions name={tag.name} onSave={() => handleRename(tag)} onCancel={cancelEditing} canSave={Boolean(editingName.trim())} busy={isRenaming} />
                       ) : (
                         <div className="flex justify-end gap-2">
                           <EditButton label={`Renommer ${tag.name}`} onClick={() => startEditing(tag)} />

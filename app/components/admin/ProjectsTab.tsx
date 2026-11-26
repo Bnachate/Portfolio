@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "../common/Button";
-import { ErrorBanner } from "./common/ErrorBanner";
+import { ErrorBanner } from "../common/ErrorBanner";
+import { TextLink } from "../common/AppLink";
+import { ImageWithFallback } from "../common/ImageWithFallback";
+import { TagList } from "../common/Tag";
 import { AdminPanel, DeleteButton, EditButton, DeleteConfirmDialog, ReorderButtons, ViewLink, movedIds, nextPosition } from "./common/AdminUi";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../common/table";
 import {
@@ -185,7 +188,7 @@ export function ProjectsTab() {
         )
       }
     >
-      <ErrorBanner message={error} onClose={() => setError("")} />
+      <ErrorBanner message={error} onClose={() => setError("")} className="m-4" />
       {!readOnly && (
         <ProjectDialog
           isOpen={isDialogOpen}
@@ -242,31 +245,18 @@ export function ProjectsTab() {
                 </TableCell>
                 <TableCell className="max-w-48 truncate font-mono text-[13px]">
                   {project.githubUrl ? (
-                    <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-mint">
+                    <TextLink href={project.githubUrl} newTab>
                       {project.githubUrl.replace(/^https?:\/\/(www\.)?/, "")}
-                    </a>
+                    </TextLink>
                   ) : (
                     <span className="text-slate">Aucun</span>
                   )}
                 </TableCell>
                 <TableCell>
-                  {/* eslint-disable-next-line @next/next/no-img-element -- admin thumbnail of a URL typed by the admin */}
-                  <img src={project.projectImageUrl} alt={`Capture de ${project.title}`} className="h-12 w-20 rounded border border-line bg-mist object-cover" />
+                  <ImageWithFallback src={project.projectImageUrl} alt={`Capture de ${project.title}`} className="h-12 w-20 rounded border border-line bg-mist object-cover" />
                 </TableCell>
                 <TableCell>
-                  <ul aria-label={`Tags de ${project.title}`} className="flex flex-wrap gap-1.5">
-                    {project.tags.slice(0, VISIBLE_TAGS).map((tag) => (
-                      <li key={tag.id} className="rounded bg-mist px-2 py-1 font-mono text-xs">
-                        {tag.name}
-                      </li>
-                    ))}
-                    {project.tags.length > VISIBLE_TAGS && (
-                      <li className="px-1 py-1 font-mono text-xs text-slate">
-                        +{project.tags.length - VISIBLE_TAGS}
-                        {" "}<span className="sr-only">autres tags</span>
-                      </li>
-                    )}
-                  </ul>
+                  <TagList names={project.tags.map((tag) => tag.name)} label={`Tags de ${project.title}`} variant="compact" limit={VISIBLE_TAGS} className="gap-1.5" />
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">

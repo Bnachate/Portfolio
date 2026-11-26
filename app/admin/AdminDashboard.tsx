@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut, LogIn, FolderKanban, Briefcase, Mail, Home, Tags, Eye, Layers } from "lucide-react";
+import { Button, ButtonLink } from "../components/common/Button";
+import { LogoMark } from "../components/common/LogoMark";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/common/tabs";
 import { ProjectsTab } from "../components/admin/ProjectsTab";
 import { ExperienceTab } from "../components/admin/ExperienceTab";
@@ -14,6 +15,9 @@ import { SkillDomainsTab } from "../components/admin/SkillDomainsTab";
 import { logout } from "../services/auth.service";
 import { getContacts } from "../services/admin/contacts.service";
 import { ReadOnlyProvider } from "./ReadOnlyContext";
+
+// Side margins of the admin bands: 16 to 48 px
+const adminGutter = "px-[clamp(16px,4vw,48px)]";
 
 export function AdminDashboard({ readOnly }: { readOnly: boolean }) {
   const router = useRouter();
@@ -41,48 +45,40 @@ export function AdminDashboard({ readOnly }: { readOnly: boolean }) {
     }
   };
 
-  const headerLink = "inline-flex min-h-11 items-center gap-2 rounded-lg px-4 font-display text-base font-semibold transition-colors duration-150";
-
   return (
     <ReadOnlyProvider value={readOnly}>
       <div className="min-h-screen bg-paper">
-        <header className="bg-ink px-[clamp(16px,4vw,48px)] text-on-ink">
+        <header className={`bg-ink ${adminGutter} text-on-ink`}>
           <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-4 py-4">
             <div className="flex items-center gap-3">
-              <span aria-hidden="true" className="flex h-[38px] w-[38px] items-center justify-center rounded-lg bg-mint-light font-display text-base font-bold text-ink">
-                BN
-              </span>
+              <LogoMark onInk />
               <div>
                 <h1 className="font-display text-xl font-bold">Panneau d&apos;administration</h1>
                 <p className="font-display text-sm text-on-ink-muted">{readOnly ? "Consultation en lecture seule" : "Gérez votre portfolio"}</p>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Link href="/" className={`${headerLink} text-line hover:text-mint-light`}>
+              <ButtonLink href="/" variant="ghostOnInk" className="px-4">
                 <Home size={20} aria-hidden="true" />
                 Voir le site
-              </Link>
+              </ButtonLink>
               {readOnly ? (
-                <Link href="/auth/login" className={`${headerLink} border-[1.5px] border-line text-on-ink hover:border-mint-light hover:text-mint-light`}>
+                <ButtonLink href="/auth/login" variant="outlineOnInk" className="px-4">
                   <LogIn size={20} aria-hidden="true" />
                   Connexion
-                </Link>
+                </ButtonLink>
               ) : (
-                <button
-                  onClick={handleLogout}
-                  disabled={isLoggingOut}
-                  className={`${headerLink} border-[1.5px] border-line text-on-ink hover:border-mint-light hover:text-mint-light disabled:opacity-50`}
-                >
+                <Button variant="outlineOnInk" onClick={handleLogout} disabled={isLoggingOut} className="px-4">
                   <LogOut size={20} aria-hidden="true" />
                   {isLoggingOut ? "Déconnexion..." : "Déconnexion"}
-                </button>
+                </Button>
               )}
             </div>
           </div>
         </header>
 
         {readOnly && (
-          <div className="border-b border-line bg-mint-pale px-[clamp(16px,4vw,48px)] font-display text-base text-ink">
+          <div className={`border-b border-line bg-mint-pale ${adminGutter} font-display text-base text-ink`}>
             <p className="mx-auto flex max-w-[1280px] items-center gap-2 py-3">
               <Eye size={18} aria-hidden="true" className="shrink-0" />
               Mode lecture seule : vous pouvez parcourir le panneau d&apos;administration, mais aucune modification n&apos;est possible.
@@ -90,7 +86,7 @@ export function AdminDashboard({ readOnly }: { readOnly: boolean }) {
           </div>
         )}
 
-        <main className="mx-auto max-w-[1280px] px-[clamp(16px,4vw,48px)] py-8">
+        <main className={`mx-auto max-w-[1280px] ${adminGutter} py-8`}>
           <Tabs defaultValue="experiences" className="gap-6">
             <TabsList className="rounded-2xl border">
               <TabsTrigger value="experiences">

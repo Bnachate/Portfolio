@@ -4,6 +4,7 @@ import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
 
+import { IconButton } from "./IconButton";
 import { cn } from "./utils";
 
 function Dialog({
@@ -63,9 +64,10 @@ function DialogContent({
         {...props}
       >
         {children}
-        <DialogPrimitive.Close className="absolute top-4 right-4 flex h-11 w-11 items-center justify-center rounded-lg text-slate transition-colors duration-150 hover:bg-mist hover:text-ink [&_svg]:size-5">
-          <XIcon aria-hidden="true" />
-          <span className="sr-only">Fermer</span>
+        <DialogPrimitive.Close asChild>
+          <IconButton label="Fermer" tone="ghost" className="absolute top-4 right-4">
+            <XIcon size={20} aria-hidden="true" />
+          </IconButton>
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>
     </DialogPortal>

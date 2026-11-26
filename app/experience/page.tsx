@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getPublicHero } from "@/server/services/hero";
 import { listExperiences } from "@/server/services/experiences";
 import { CV_URL, EDUCATION } from "@/app/config/content";
 import { SiteHeader } from "@/app/components/site/SiteHeader";
 import { SiteFooter } from "@/app/components/site/SiteFooter";
-import { PageTitle, Section, TechTagList, buttonStyles, underlineLink } from "@/app/components/site/ui";
+import { PageTitle, Section } from "@/app/components/site/ui";
+import { ButtonLink } from "@/app/components/common/Button";
+import { TextLink } from "@/app/components/common/AppLink";
+import { TagList } from "@/app/components/common/Tag";
 import { toBulletPoints } from "@/app/components/site/data";
 import { formatDuration, formatPeriod } from "@/app/components/experience/format";
 
@@ -65,7 +67,7 @@ export default async function ExperiencePage() {
                           </li>
                         ))}
                       </ul>
-                      <TechTagList names={experience.tags.map((tag) => tag.name)} label={`Technologies chez ${experience.company}`} />
+                      <TagList names={experience.tags.map((tag) => tag.name)} label={`Technologies chez ${experience.company}`} />
                     </div>
                   </li>
                 );
@@ -94,12 +96,12 @@ export default async function ExperiencePage() {
 
         <Section className="pt-20">
           <div className="flex flex-wrap items-center gap-4">
-            <a href={CV_URL} target="_blank" rel="noopener noreferrer" className={buttonStyles.ink}>
+            <ButtonLink href={CV_URL} newTab size="lg">
               Télécharger le CV en PDF
-            </a>
-            <Link href="/competences" className={`${underlineLink} self-center`}>
+            </ButtonLink>
+            <TextLink variant="underline" href="/competences" className="self-center">
               Voir mes compétences
-            </Link>
+            </TextLink>
           </div>
         </Section>
       </main>

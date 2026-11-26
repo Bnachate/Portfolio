@@ -1,6 +1,7 @@
-import Link from "next/link";
 import { SITE } from "@/app/config/site";
-import { Container, ButtonLink } from "./ui";
+import { TextLink } from "@/app/components/common/AppLink";
+import { ButtonLink } from "@/app/components/common/Button";
+import { Container, gutter } from "./ui";
 
 type FooterLinks = { githubUrl: string; linkedinUrl: string };
 
@@ -11,7 +12,7 @@ type FooterLinks = { githubUrl: string; linkedinUrl: string };
 export function SiteFooter({ links, large = false }: { links: FooterLinks; large?: boolean }) {
   const year = new Date().getFullYear();
   return (
-    <footer className={`bg-ink px-[clamp(20px,6vw,80px)] text-on-ink ${large ? "mt-28 pb-10 pt-24" : "mt-24 pb-10 pt-14"}`}>
+    <footer className={`bg-ink ${gutter} text-on-ink ${large ? "mt-28 pb-10 pt-24" : "mt-24 pb-10 pt-14"}`}>
       <Container className={`flex flex-col ${large ? "gap-[72px]" : "gap-10"}`}>
         <div className="flex flex-wrap items-end justify-between gap-x-14 gap-y-8">
           <div className="flex min-w-0 flex-[1_1_480px] flex-col gap-5">
@@ -26,7 +27,7 @@ export function SiteFooter({ links, large = false }: { links: FooterLinks; large
               Je réponds à chaque message par e-mail.
             </p>
           </div>
-          <ButtonLink variant="mint" href="/contact">
+          <ButtonLink variant="mint" size="lg" href="/contact">
             Écrire à Brahim
           </ButtonLink>
         </div>
@@ -35,18 +36,18 @@ export function SiteFooter({ links, large = false }: { links: FooterLinks; large
             © {year} {SITE.name}
           </span>
           <nav aria-label="Liens du pied de page" className="flex flex-wrap gap-x-6 gap-y-2">
-            <Link href="/contact" className="text-line transition-colors duration-150 hover:text-mint-light">
+            <TextLink variant="onInk" href="/contact">
               Contact
-            </Link>
-            <a href={links.githubUrl} target="_blank" rel="noopener noreferrer" className="text-line transition-colors duration-150 hover:text-mint-light">
+            </TextLink>
+            <TextLink variant="onInk" href={links.githubUrl} newTab>
               GitHub
-            </a>
-            <a href={links.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-line transition-colors duration-150 hover:text-mint-light">
+            </TextLink>
+            <TextLink variant="onInk" href={links.linkedinUrl} newTab>
               LinkedIn
-            </a>
-            <Link href="/admin" className="text-line transition-colors duration-150 hover:text-mint-light">
+            </TextLink>
+            <TextLink variant="onInk" href="/admin">
               Admin
-            </Link>
+            </TextLink>
           </nav>
         </div>
       </Container>
