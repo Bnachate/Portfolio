@@ -1,6 +1,7 @@
 import { asc, desc, eq } from 'drizzle-orm';
 import type { z } from 'zod';
-import { db, type Executor } from '../db';
+import { db, type Executor, type Transaction } from '../db';
+import { onlyRow } from '../db/rows';
 import { companies, experiences, experienceTags } from '../db/schema';
 import { HttpError } from '../http';
 import type { createExperienceSchema, updateExperienceSchema } from '../validation';
@@ -38,55 +39,58 @@ async function findExperiences(tx: Executor, where?: { id?: number; companyId?: 
     },
   });
 
-  return rows.map(({ experienceTags: links, companyRef, ...experience }) => ({
+  return rows.map(({ experienceTags: links, companyRef, ...experience }: (typeof rows)[number]) => ({
     ...experience,
     company: companyRef.name,
     companySlug: companyRef.slug,
-    tags: links.map((link) => link.tag),
+    tags: links.map((link: { tag: TagDTO }) => link.tag),
   }));
 }
 
-export const listExperiences = () => findExperiences(db);
+export const listExperiences = (): Promise<ExperienceDTO[]> => findExperiences(db);
 
 /** Positions held at one employer, in display order. */
-export const listCompanyExperiences = (companyId: number) => findExperiences(db, { companyId });
+export const listCompanyExperiences = (companyId: number): Promise<ExperienceDTO[]> => findExperiences(db, { companyId });
 
 /** Saves a new display order: `ids` must list every experience exactly once. */
-export const reorderExperiences = (ids: number[]) => reorder(experiences, ids);
+export const reorderExperiences = (ids: number[]): Promise<void> => reorder(experiences, ids);
 
-async function getExperience(tx: Executor, id: number) {
+async function getExperience(tx: Executor, id: number): Promise<ExperienceDTO> {
   const [experience] = await findExperiences(tx, { id });
   if (!experience) throw new HttpError(404, 'Expérience introuvable');
   return experience;
 }
 
-async function setTags(tx: Executor, experienceId: number, tagIds: number[]) {
+async function setTags(tx: Executor, experienceId: number, tagIds: number[]): Promise<void> {
   const ids = await assertTagsExist(tx, tagIds);
   await tx.delete(experienceTags).where(eq(experienceTags.experienceId, experienceId));
   if (ids.length > 0) {
-    await tx.insert(experienceTags).values(ids.map((tagId) => ({ experienceId, tagId })));
+    await tx.insert(experienceTags).values(ids.map((tagId: number) => ({ experienceId, tagId })));
   }
 }
 
 /** The typed company name becomes a link to its employer (found whatever the case, or created). */
-async function companyFields(tx: Executor, name: string) {
+async function companyFields(tx: Executor, name: string): Promise<{ companyId: number; company: string }> {
   const company = await findOrCreateCompany(tx, name);
   return { companyId: company.id, company: company.name };
 }
 
-export async function createExperience({ tags = [], company, ...fields }: CreateInput) {
-  return db.transaction(async (tx) => {
-    const [{ id }] = await tx
-      .insert(experiences)
-      .values({ ...fields, ...(await companyFields(tx, company)) })
-      .returning({ id: experiences.id });
+export async function createExperience({ tags = [], company, ...fields }: CreateInput): Promise<ExperienceDTO> {
+  return db.transaction(async (tx: Transaction) => {
+    const { id } = onlyRow(
+      await tx
+        .insert(experiences)
+        .values({ ...fields, ...(await companyFields(tx, company)) })
+        .returning({ id: experiences.id }),
+      'insert experience',
+    );
     await setTags(tx, id, tags);
     return getExperience(tx, id);
   });
 }
 
-export async function updateExperience(id: number, { tags, company, ...fields }: UpdateInput) {
-  return db.transaction(async (tx) => {
+export async function updateExperience(id: number, { tags, company, ...fields }: UpdateInput): Promise<ExperienceDTO> {
+  return db.transaction(async (tx: Transaction) => {
     const current = await getExperience(tx, id);
 
     const startDate = fields.startDate ?? current.startDate;
@@ -105,7 +109,7 @@ export async function updateExperience(id: number, { tags, company, ...fields }:
   });
 }
 
-export async function deleteExperience(id: number) {
+export async function deleteExperience(id: number): Promise<void> {
   const deleted = await db.delete(experiences).where(eq(experiences.id, id)).returning({ id: experiences.id });
   if (deleted.length === 0) throw new HttpError(404, 'Expérience introuvable');
 }
@@ -126,7 +130,7 @@ export type EmployerDTO = {
 };
 
 function toEmployers(rows: (typeof companies.$inferSelect)[], positions: ExperienceDTO[]): EmployerDTO[] {
-  const byId = new Map(rows.map((company) => [company.id, company]));
+  const byId = new Map(rows.map((company: typeof companies.$inferSelect) => [company.id, company]));
   const employers = new Map<number, EmployerDTO>();
   // Positions come in display order: an employer takes the place of its first position
   for (const experience of positions) {

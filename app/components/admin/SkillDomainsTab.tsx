@@ -18,11 +18,12 @@ import { getErrorMessage } from "@/app/config/api.config";
 import { OTHER_DOMAIN_LABEL } from "@/app/config/tag-domains";
 import type { SkillDomain } from "@/app/types/api";
 import { useReadOnly } from "@/app/admin/ReadOnlyContext";
+import type { ChangeEvent, JSX, KeyboardEvent as ReactKeyboardEvent } from "react";
 
 const MAX_LENGTH = 60;
 
 /** Sections of the "Compétences" page: name and display order. Tags are assigned in the Tags tab. */
-export function SkillDomainsTab() {
+export function SkillDomainsTab(): JSX.Element {
   const readOnly = useReadOnly();
   const [domains, setDomains] = useState<SkillDomain[]>([]);
   const [newName, setNewName] = useState("");
@@ -35,11 +36,11 @@ export function SkillDomainsTab() {
   useEffect(() => {
     getSkillDomains()
       .then(setDomains)
-      .catch((err) => setError(getErrorMessage(err, "Impossible de charger les domaines")));
+      .catch((err: unknown) => setError(getErrorMessage(err, "Impossible de charger les domaines")));
   }, []);
 
   // Runs one write at a time and shows its error, if any
-  const run = async (action: () => Promise<void>, fallback: string) => {
+  const run = async (action: () => Promise<void>, fallback: string): Promise<void> => {
     setIsBusy(true);
     setError("");
     try {
@@ -51,51 +52,51 @@ export function SkillDomainsTab() {
     }
   };
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = (e: React.FormEvent): Promise<void> | undefined => {
     e.preventDefault();
     const name = newName.trim();
     if (!name) return;
     return run(async () => {
       const domain = await createSkillDomain(name);
-      setDomains((current) => [...current, domain]);
+      setDomains((current: SkillDomain[]) => [...current, domain]);
       setNewName("");
     }, "Impossible de créer le domaine");
   };
 
-  const startEditing = (domain: SkillDomain) => {
+  const startEditing = (domain: SkillDomain): void => {
     setDeleteTargetId(null);
     setEditingId(domain.id);
     setEditingName(domain.name);
     setError("");
   };
 
-  const cancelEditing = () => {
+  const cancelEditing = (): void => {
     setEditingId(null);
     setEditingName("");
   };
 
-  const handleRename = (domain: SkillDomain) => {
+  const handleRename = (domain: SkillDomain): void | Promise<void> => {
     const name = editingName.trim();
     if (!name || name === domain.name) return cancelEditing();
     return run(async () => {
       const renamed = await renameSkillDomain(domain.id, name);
-      setDomains((current) => current.map((d) => (d.id === renamed.id ? renamed : d)));
+      setDomains((current: SkillDomain[]) => current.map((d: SkillDomain) => (d.id === renamed.id ? renamed : d)));
       cancelEditing();
     }, "Impossible de renommer le domaine");
   };
 
-  const handleDelete = (domain: SkillDomain) =>
+  const handleDelete = (domain: SkillDomain): Promise<void> =>
     run(async () => {
       // The question stays until the server answers (E2E tests wait for it to disappear)
       try {
         await deleteSkillDomain(domain.id);
-        setDomains((current) => current.filter((d) => d.id !== domain.id));
+        setDomains((current: SkillDomain[]) => current.filter((d: SkillDomain) => d.id !== domain.id));
       } finally {
         setDeleteTargetId(null);
       }
     }, "Impossible de supprimer le domaine");
 
-  const handleMove = (index: number, direction: -1 | 1) =>
+  const handleMove = (index: number, direction: -1 | 1): Promise<void> =>
     run(async () => setDomains(await reorderSkillDomains(movedIds(domains, index, direction))), "Impossible de changer l'ordre");
 
   const count = domains.length;
@@ -115,7 +116,7 @@ export function SkillDomainsTab() {
               aria-label="Nom du nouveau domaine"
               placeholder="Nouveau domaine (ex : Mobile)"
               value={newName}
-              onChange={(e) => setNewName(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setNewName(e.target.value)}
               maxLength={MAX_LENGTH}
               className="sm:w-64"
             />
@@ -139,7 +140,7 @@ export function SkillDomainsTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {domains.map((domain, index) => {
+            {domains.map((domain: SkillDomain, index: number) => {
               const isEditing = editingId === domain.id;
               return (
                 <TableRow key={domain.id}>
@@ -166,8 +167,8 @@ export function SkillDomainsTab() {
                         value={editingName}
                         maxLength={MAX_LENGTH}
                         disabled={isBusy}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        onKeyDown={(e) => {
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => setEditingName(e.target.value)}
+                        onKeyDown={(e: ReactKeyboardEvent<HTMLInputElement>) => {
                           if (e.key === "Enter") handleRename(domain);
                           if (e.key === "Escape") cancelEditing();
                         }}

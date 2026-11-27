@@ -10,4 +10,4 @@ const ReadOnlyContext = createContext(true);
 
 export const ReadOnlyProvider = ReadOnlyContext.Provider;
 
-export const useReadOnly = () => useContext(ReadOnlyContext);
+export const useReadOnly = (): boolean => useContext(ReadOnlyContext);

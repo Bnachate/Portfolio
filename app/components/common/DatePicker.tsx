@@ -1,4 +1,5 @@
 import { Input } from "./input";
+import type { ChangeEvent, JSX } from "react";
 
 interface DatePickerProps {
   id: string;
@@ -18,14 +19,14 @@ export function DatePicker({
   min,
   max,
   disabled,
-}: DatePickerProps) {
+}: DatePickerProps): JSX.Element {
   return (
     <Input
       id={id}
       type="date"
       className="field-sizing-fixed pr-10 scheme-light [&::-webkit-calendar-picker-indicator]:ml-20 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
       value={value ?? ""}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
       required={required}
       min={min}
       max={max}

@@ -33,7 +33,7 @@ async function heroWith(availabilityText: string | null) {
   await run(pg, '0006_hero_availability_default');
   const { rows } = await pg.query<{ availability_text: string }>('SELECT availability_text FROM hero');
   await pg.close();
-  return rows[0].availability_text;
+  return rows[0]!.availability_text;
 }
 
 describe('migration 0006 (availability in Île-de-France)', () => {

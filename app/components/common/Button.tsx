@@ -1,6 +1,7 @@
 import type { ComponentProps } from "react";
 import { AppLink } from "./AppLink";
 import { cn } from "./utils";
+import type { JSX } from "react";
 
 /**
  * Buttons of the "Encre et menthe" design system, shared by the public site and the admin.
@@ -44,16 +45,16 @@ const variants: Record<ButtonVariant, string> = {
 type StyleProps = { variant?: ButtonVariant; size?: ButtonSize };
 
 /** Class names of a button, for elements that cannot be a `Button` or a `ButtonLink`. */
-export function buttonClass({ variant = "primary", size = "md" }: StyleProps = {}, className?: string) {
+export function buttonClass({ variant = "primary", size = "md" }: StyleProps = {}, className?: string): string {
   return cn(base, sizes[size], variants[variant], className);
 }
 
 /** Native button. `type` defaults to "button": submit buttons say so explicitly. */
-export function Button({ variant, size, className, type = "button", ...props }: ComponentProps<"button"> & StyleProps) {
+export function Button({ variant, size, className, type = "button", ...props }: ComponentProps<"button"> & StyleProps): JSX.Element {
   return <button type={type} className={buttonClass({ variant, size }, className)} {...props} />;
 }
 
 /** Link styled as a button (internal routes, external URLs, mailto:). */
-export function ButtonLink({ variant, size, className, ...props }: ComponentProps<typeof AppLink> & StyleProps) {
+export function ButtonLink({ variant, size, className, ...props }: ComponentProps<typeof AppLink> & StyleProps): JSX.Element {
   return <AppLink className={buttonClass({ variant, size }, className)} {...props} />;
 }

@@ -15,7 +15,7 @@ afterEach(() => {
 });
 
 type Rejected = (error: AxiosError) => Promise<never>;
-const onError = (apiClient.interceptors.response as unknown as { handlers: { rejected: Rejected }[] }).handlers[0].rejected;
+const onError = (apiClient.interceptors.response as unknown as { handlers: { rejected: Rejected }[] }).handlers[0]!.rejected;
 
 const errorFor = (url: string, status: number, message = 'Non authentifié') =>
   new AxiosError('Request failed', String(status), { url } as InternalAxiosRequestConfig, undefined, {

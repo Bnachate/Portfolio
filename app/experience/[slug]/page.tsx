@@ -10,19 +10,23 @@ import { TagList } from "@/app/components/common/Tag";
 import { toBulletPoints, toTextBlocks } from "@/app/components/site/data";
 import { TextBlocks } from "@/app/components/experience/TextBlocks";
 import { formatDuration, formatPeriod } from "@/app/components/experience/format";
+import type { EmployerDTO, ExperienceDTO } from "@/server/services/experiences";
+import type { TextBlock } from "@/app/components/site/data";
+import type { JSX } from "react";
+import type { TagDTO } from "@/server/services/tags";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ slug: string }> };
 
 // Slugs are lowercase letters, digits and dashes: anything else never reaches the database
-const loadEmployer = (slug: string) => (/^[a-z0-9-]{1,120}$/.test(slug) ? findEmployer(slug) : Promise.resolve(null));
+const loadEmployer = (slug: string): Promise<EmployerDTO | null> => (/^[a-z0-9-]{1,120}$/.test(slug) ? findEmployer(slug) : Promise.resolve(null));
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const employer = await loadEmployer((await params).slug);
   if (!employer) return { title: "Expérience introuvable" };
-  const firstParagraph = employer.context ? toTextBlocks(employer.context).find((block) => block.type === "paragraph") : undefined;
-  const jobs = employer.experiences.map((experience) => experience.job).join(", ");
+  const firstParagraph = employer.context ? toTextBlocks(employer.context).find((block: TextBlock) => block.type === "paragraph") : undefined;
+  const jobs = employer.experiences.map((experience: ExperienceDTO) => experience.job).join(", ");
   return {
     title: `${employer.name} : contexte et missions`,
     description: (firstParagraph?.type === "paragraph" ? firstParagraph.text : `${jobs} chez ${employer.name}.`).slice(0, 160),
@@ -30,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-function PageSection({ title, children }: { title: string; children: React.ReactNode }) {
+function PageSection({ title, children }: { title: string; children: React.ReactNode }): JSX.Element {
   return (
     <section className="flex flex-wrap gap-x-[72px] gap-y-6">
       <h2 className="min-w-0 flex-[1_1_260px] font-display text-[32px] font-bold leading-[1.1] tracking-[-0.02em]">{title}</h2>
@@ -39,7 +43,7 @@ function PageSection({ title, children }: { title: string; children: React.React
   );
 }
 
-export default async function EmployerPage({ params }: Props) {
+export default async function EmployerPage({ params }: Props): Promise<JSX.Element> {
   const [employer, hero] = await Promise.all([loadEmployer((await params).slug), getPublicHero()]);
   if (!employer) notFound();
 
@@ -73,7 +77,7 @@ export default async function EmployerPage({ params }: Props) {
             </div>
             <div className="flex min-w-0 flex-col gap-1.5">
               <dt className="text-[15px] text-slate">{employer.experiences.length > 1 ? "Postes" : "Poste"}</dt>
-              <dd className="text-lg font-semibold">{employer.experiences.map((experience) => experience.job).join(", puis ")}</dd>
+              <dd className="text-lg font-semibold">{employer.experiences.map((experience: ExperienceDTO) => experience.job).join(", puis ")}</dd>
             </div>
             {employer.websiteUrl && (
               <div className="flex min-w-0 flex-col gap-1.5">
@@ -96,7 +100,7 @@ export default async function EmployerPage({ params }: Props) {
               </PageSection>
             )}
 
-            {employer.experiences.map((experience) => {
+            {employer.experiences.map((experience: ExperienceDTO) => {
               const current = experience.endDate === null;
               return (
                 <section key={experience.id} className="flex flex-wrap gap-x-[72px] gap-y-6">
@@ -114,13 +118,13 @@ export default async function EmployerPage({ params }: Props) {
                   </div>
                   <div className="flex min-w-0 max-w-[64ch] flex-[2_1_480px] flex-col gap-6">
                     <ul className="flex flex-col text-[19px] leading-[1.65]">
-                      {toBulletPoints(experience.description).map((point, index) => (
+                      {toBulletPoints(experience.description).map((point: string, index: number) => (
                         <li key={`${index}-${point}`} className="border-t border-line py-4">
                           {point}
                         </li>
                       ))}
                     </ul>
-                    <TagList names={experience.tags.map((tag) => tag.name)} label={`Technologies : ${experience.job}`} />
+                    <TagList names={experience.tags.map((tag: TagDTO) => tag.name)} label={`Technologies : ${experience.job}`} />
                   </div>
                 </section>
               );

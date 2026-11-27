@@ -4,9 +4,9 @@ import { getCurrentUser } from './auth';
 
 /** Uniform JSON responses: `{ data }` on success, `{ message }` on error. */
 
-export const ok = <T>(data: T, status = 200) => NextResponse.json({ data }, { status });
+export const ok = <T>(data: T, status: number = 200): NextResponse<{ data: T }> => NextResponse.json({ data }, { status });
 
-export const fail = (message: string, status: number) =>
+export const fail = (message: string, status: number): NextResponse<{ message: string }> =>
   NextResponse.json({ message }, { status });
 
 export class HttpError extends Error {
@@ -19,7 +19,7 @@ export class HttpError extends Error {
  * Rejects cross-site state-changing requests (CSRF defence in depth on top of SameSite cookies).
  * Browsers always send Origin on POST/PATCH/PUT/DELETE.
  */
-function assertSameOrigin(request: Request) {
+function assertSameOrigin(request: Request): void {
   if (request.method === 'GET' || request.method === 'HEAD') return;
   const origin = request.headers.get('origin');
   if (!origin) return; // Non-browser clients (curl, scripts)
@@ -30,7 +30,7 @@ function assertSameOrigin(request: Request) {
   }
 }
 
-export async function requireAdmin() {
+export async function requireAdmin(): Promise<{ id: number; email: string; name: string }> {
   const user = await getCurrentUser();
   if (!user) throw new HttpError(401, 'Non authentifié');
   return user;
@@ -46,13 +46,14 @@ export async function parseBody<S extends z.ZodType>(request: Request, schema: S
   const result = schema.safeParse(json);
   if (!result.success) {
     const issue = result.error.issues[0];
+    if (!issue) throw new HttpError(400, 'Données invalides');
     const field = issue.path.join('.');
     throw new HttpError(400, field ? `${field}: ${issue.message}` : issue.message);
   }
   return result.data;
 }
 
-export function parseId(raw: string) {
+export function parseId(raw: string): number {
   const id = Number(raw);
   if (!Number.isInteger(id) || id <= 0) throw new HttpError(400, 'Identifiant invalide');
   return id;
@@ -67,7 +68,7 @@ type RouteContext = { params: Promise<object> };
 export function handler<C extends RouteContext = RouteContext>(
   fn: (request: Request, context: C) => Promise<Response>,
 ) {
-  return async (request: Request, context: C) => {
+  return async (request: Request, context: C): Promise<Response> => {
     try {
       assertSameOrigin(request);
       return await fn(request, context);

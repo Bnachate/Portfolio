@@ -8,8 +8,9 @@ import {
   serial,
   text,
   timestamp,
+  type ExtraConfigColumn,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { relations, type TableRelationsHelpers } from 'drizzle-orm';
 
 const timestamps = {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -67,7 +68,7 @@ export const projectTags = pgTable(
     projectId: integer('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
     tagId: integer('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }),
   },
-  (t) => [primaryKey({ columns: [t.projectId, t.tagId] })],
+  (t: { projectId: ExtraConfigColumn; tagId: ExtraConfigColumn }) => [primaryKey({ columns: [t.projectId, t.tagId] })],
 );
 
 // Employers: one card on the "Expérience" page, and a page with their context and the positions held there
@@ -107,7 +108,7 @@ export const experienceTags = pgTable(
     experienceId: integer('experience_id').notNull().references(() => experiences.id, { onDelete: 'cascade' }),
     tagId: integer('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }),
   },
-  (t) => [primaryKey({ columns: [t.experienceId, t.tagId] })],
+  (t: { experienceId: ExtraConfigColumn; tagId: ExtraConfigColumn }) => [primaryKey({ columns: [t.experienceId, t.tagId] })],
 );
 
 export const CONTACT_STATUSES = ['new', 'read', 'done'] as const;
@@ -132,7 +133,7 @@ export const rateLimitHits = pgTable(
     key: text('key').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index('rate_limit_hits_key_created_at_idx').on(table.key, table.createdAt)],
+  (table: { key: ExtraConfigColumn; createdAt: ExtraConfigColumn }) => [index('rate_limit_hits_key_created_at_idx').on(table.key, table.createdAt)],
 );
 
 // Single-row table holding the editable hero section (id is always 1)
@@ -154,30 +155,30 @@ export const hero = pgTable('hero', {
   ...timestamps,
 });
 
-export const projectsRelations = relations(projects, ({ many }) => ({
+export const projectsRelations = relations(projects, ({ many }: TableRelationsHelpers<'projects'>) => ({
   projectTags: many(projectTags),
 }));
 
-export const companiesRelations = relations(companies, ({ many }) => ({
+export const companiesRelations = relations(companies, ({ many }: TableRelationsHelpers<'companies'>) => ({
   experiences: many(experiences),
 }));
 
-export const experiencesRelations = relations(experiences, ({ one, many }) => ({
+export const experiencesRelations = relations(experiences, ({ one, many }: TableRelationsHelpers<'experiences'>) => ({
   companyRef: one(companies, { fields: [experiences.companyId], references: [companies.id] }),
   experienceTags: many(experienceTags),
 }));
 
-export const tagsRelations = relations(tags, ({ many }) => ({
+export const tagsRelations = relations(tags, ({ many }: TableRelationsHelpers<'tags'>) => ({
   projectTags: many(projectTags),
   experienceTags: many(experienceTags),
 }));
 
-export const projectTagsRelations = relations(projectTags, ({ one }) => ({
+export const projectTagsRelations = relations(projectTags, ({ one }: TableRelationsHelpers<'project_tags'>) => ({
   project: one(projects, { fields: [projectTags.projectId], references: [projects.id] }),
   tag: one(tags, { fields: [projectTags.tagId], references: [tags.id] }),
 }));
 
-export const experienceTagsRelations = relations(experienceTags, ({ one }) => ({
+export const experienceTagsRelations = relations(experienceTags, ({ one }: TableRelationsHelpers<'experience_tags'>) => ({
   experience: one(experiences, { fields: [experienceTags.experienceId], references: [experiences.id] }),
   tag: one(tags, { fields: [experienceTags.tagId], references: [tags.id] }),
 }));

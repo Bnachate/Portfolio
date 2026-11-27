@@ -2,6 +2,7 @@ import type { ComponentProps, ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { fieldClass, type FieldSize } from "./fieldStyles";
 import { cn } from "./utils";
+import type { JSX } from "react";
 
 type InputProps = ComponentProps<"input"> & {
   fieldSize?: FieldSize;
@@ -12,7 +13,7 @@ type InputProps = ComponentProps<"input"> & {
 };
 
 /** Text field. With `icon` or `end`, it is wrapped in a relative box that holds them. */
-function Input({ className, fieldSize = "md", icon: Icon, end, ...props }: InputProps) {
+function Input({ className, fieldSize = "md", icon: Icon, end, ...props }: InputProps): JSX.Element {
   const input = (
     <input
       data-slot="input"

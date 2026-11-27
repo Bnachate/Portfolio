@@ -22,6 +22,8 @@ import { getErrorMessage } from "@/app/config/api.config";
 import { formatPeriod } from "@/app/components/experience/format";
 import type { Experience, Tag } from "@/app/types/api";
 import { useReadOnly } from "@/app/admin/ReadOnlyContext";
+import type { JSX } from "react";
+import type { TagWithDomain } from "@/app/types/api";
 
 const EMPTY_FORM: ExperienceFormData = {
   job: "",
@@ -36,13 +38,13 @@ const EMPTY_FORM: ExperienceFormData = {
 const toPayload = (form: ExperienceFormData): ExperiencePayload => ({
   ...form,
   endDate: form.endDate || null,
-  tags: form.tags.map((tag) => tag.id).sort((a, b) => a - b),
+  tags: form.tags.map((tag: Tag) => tag.id).sort((a: number, b: number) => a - b),
 });
 
 const VISIBLE_TAGS = 4;
 
 /** Ids of the experiences whose period overlaps another one (shown as a warning badge). */
-function overlappingIds(experiences: Experience[], today = new Date().toISOString().slice(0, 10)) {
+function overlappingIds(experiences: Experience[], today: string = new Date().toISOString().slice(0, 10)): Set<number> {
   const ids = new Set<number>();
   for (const a of experiences) {
     for (const b of experiences) {
@@ -58,7 +60,7 @@ function overlappingIds(experiences: Experience[], today = new Date().toISOStrin
   return ids;
 }
 
-export function ExperienceTab() {
+export function ExperienceTab(): JSX.Element {
   const readOnly = useReadOnly();
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -76,14 +78,14 @@ export function ExperienceTab() {
   // Initial load: state is only set once the requests resolve
   useEffect(() => {
     Promise.all([getExperiences(), getTags()])
-      .then(([loadedExperiences, loadedTags]) => {
+      .then(([loadedExperiences, loadedTags]: [Experience[], TagWithDomain[]]) => {
         setExperiences(loadedExperiences);
         setTags(loadedTags);
       })
-      .catch((err) => setError(getErrorMessage(err, "Impossible de charger les expériences")));
+      .catch((err: unknown) => setError(getErrorMessage(err, "Impossible de charger les expériences")));
   }, []);
 
-  const resetForm = () => {
+  const resetForm = (): void => {
     setFormData(EMPTY_FORM);
     setEditingExperience(null);
     setFormError("");
@@ -100,7 +102,7 @@ export function ExperienceTab() {
     tags: experience.tags,
   });
 
-  const handleEdit = (experience: Experience) => {
+  const handleEdit = (experience: Experience): void => {
     setDeleteTargetId(null);
     setEditingExperience(experience);
     setFormData(toForm(experience));
@@ -118,7 +120,7 @@ export function ExperienceTab() {
 
   const hasEditChanges = editingExperience ? !isEqual(toPayload(formData), toPayload(toForm(editingExperience))) : true;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     // The submit button is already disabled; this also covers submitting with the Enter key
     if (!isFormValid) return;
@@ -141,7 +143,7 @@ export function ExperienceTab() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number): Promise<void> => {
     setIsBusy(true);
     try {
       await deleteExperience(id);
@@ -155,7 +157,7 @@ export function ExperienceTab() {
     }
   };
 
-  const handleMove = async (index: number, direction: -1 | 1) => {
+  const handleMove = async (index: number, direction: -1 | 1): Promise<void> => {
     setIsBusy(true);
     try {
       setExperiences(await reorderExperiences(movedIds(experiences, index, direction)));
@@ -166,9 +168,9 @@ export function ExperienceTab() {
     }
   };
 
-  const handleCreateTag = async (name: string) => {
+  const handleCreateTag = async (name: string): Promise<TagWithDomain> => {
     const tag = await createTag(name);
-    setTags((current) => [...current, tag].sort((a, b) => a.name.localeCompare(b.name)));
+    setTags((current: Tag[]) => [...current, tag].sort((a: Tag, b: Tag) => a.name.localeCompare(b.name)));
     return tag;
   };
 
@@ -183,14 +185,14 @@ export function ExperienceTab() {
         !readOnly && (
           <ExperienceDialog
             isOpen={isDialogOpen}
-            onOpenChange={(open) => (open ? setIsDialogOpen(true) : resetForm())}
+            onOpenChange={(open: boolean) => (open ? setIsDialogOpen(true) : resetForm())}
             isEditing={Boolean(editingExperience)}
             submitDisabled={isSaving || !isFormValid || !hasEditChanges}
             isSaving={isSaving}
             error={formError}
             formData={formData}
             tags={tags}
-            companyNames={[...new Set(experiences.map((experience) => experience.company))].sort((a, b) => a.localeCompare(b, "fr"))}
+            companyNames={[...new Set(experiences.map((experience: Experience) => experience.company))].sort((a: string, b: string) => a.localeCompare(b, "fr"))}
             onFormChange={setFormData}
             onCreateTag={handleCreateTag}
             onSubmit={handleSubmit}
@@ -215,7 +217,7 @@ export function ExperienceTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {experiences.map((experience, index) => (
+            {experiences.map((experience: Experience, index: number) => (
               <TableRow key={experience.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">
@@ -246,7 +248,7 @@ export function ExperienceTab() {
                   {formatPeriod(experience.startDate, experience.endDate)}
                 </TableCell>
                 <TableCell>
-                  <TagList names={experience.tags.map((tag) => tag.name)} label={`Tags de ${experience.job}`} variant="compact" limit={VISIBLE_TAGS} className="gap-1.5" />
+                  <TagList names={experience.tags.map((tag: Tag) => tag.name)} label={`Tags de ${experience.job}`} variant="compact" limit={VISIBLE_TAGS} className="gap-1.5" />
                 </TableCell>
                 {!readOnly && (
                   <TableCell className="text-right">

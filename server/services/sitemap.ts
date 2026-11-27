@@ -1,5 +1,6 @@
 import { eq, max, sql } from 'drizzle-orm';
 import { db } from '../db';
+import { onlyRow } from '../db/rows';
 import { companies, experiences, experienceTags, hero, projects, projectTags, skillDomains, tags } from '../db/schema';
 
 /** Last change of each kind of content shown on the public pages (null when the table is empty). */
@@ -12,17 +13,17 @@ export type ContentDates = {
   skillDomains: Date | null;
 };
 
-const toDate = (value: unknown) => (value === null || value === undefined ? null : new Date(value as string | Date));
+const toDate = (value: unknown): Date | null => (value === null || value === undefined ? null : new Date(value as string | Date));
 
-const latest = (...dates: (Date | null | undefined)[]) =>
-  dates.reduce<Date | null>((max, date) => (date && (!max || date > max) ? date : max), null);
+const latest = (...dates: (Date | null | undefined)[]): Date | null =>
+  dates.reduce<Date | null>((max: Date | null, date: Date | null | undefined) => (date && (!max || date > max) ? date : max), null);
 
 /**
  * Latest `updated_at` of every content table, in one query. Creations, edits, tag changes and
  * reordering move these dates; deletions do not (the row is gone), which only makes lastmod lag.
  */
 export async function getContentDates(): Promise<ContentDates> {
-  const [row] = await db
+  const rows = await db
     .select({
       hero: sql`(select max(${hero.updatedAt}) from ${hero})`,
       experiences: sql`(select max(${experiences.updatedAt}) from ${experiences})`,
@@ -32,6 +33,7 @@ export async function getContentDates(): Promise<ContentDates> {
       skillDomains: sql`(select max(${skillDomains.updatedAt}) from ${skillDomains})`,
     })
     .from(sql`(select 1) as one`);
+  const row = onlyRow(rows, 'content dates');
   return {
     hero: toDate(row.hero),
     experiences: toDate(row.experiences),
@@ -55,8 +57,8 @@ export async function getProjectDates(): Promise<{ id: number; updatedAt: Date }
       .innerJoin(tags, eq(tags.id, projectTags.tagId))
       .groupBy(projectTags.projectId),
   ]);
-  const latestTag = new Map(tagDates.map(({ projectId, latest: date }) => [projectId, toDate(date)]));
-  return rows.map(({ id, updatedAt }) => ({ id, updatedAt: latest(updatedAt, latestTag.get(id))! }));
+  const latestTag = new Map(tagDates.map(({ projectId, latest: date }: { projectId: number; latest: Date | null }) => [projectId, toDate(date)]));
+  return rows.map(({ id, updatedAt }: { id: number; updatedAt: Date }) => ({ id, updatedAt: latest(updatedAt, latestTag.get(id))! }));
 }
 
 /**
@@ -78,8 +80,8 @@ export async function getEmployerDates(): Promise<{ slug: string; updatedAt: Dat
       .innerJoin(tags, eq(tags.id, experienceTags.tagId))
       .groupBy(companies.slug),
   ]);
-  const latestTag = new Map(tagDates.map(({ slug, latest: date }) => [slug, toDate(date)]));
-  return positions.map(({ slug, company, position }) => ({
+  const latestTag = new Map(tagDates.map(({ slug, latest: date }: { slug: string; latest: Date | null }) => [slug, toDate(date)]));
+  return positions.map(({ slug, company, position }: { slug: string; company: Date; position: Date | null }) => ({
     slug,
     updatedAt: latest(company, toDate(position), latestTag.get(slug))!,
   }));

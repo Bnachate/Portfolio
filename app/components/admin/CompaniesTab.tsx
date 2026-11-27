@@ -14,6 +14,7 @@ import { deleteCompany, getCompanies, updateCompany } from "@/app/services/admin
 import { getErrorMessage } from "@/app/config/api.config";
 import type { Company } from "@/app/types/api";
 import { useReadOnly } from "@/app/admin/ReadOnlyContext";
+import type { JSX } from "react";
 
 const CONTEXT_MAX_LENGTH = 5000;
 
@@ -26,13 +27,13 @@ const toForm = (company: Company): FormData => ({
   context: company.context ?? "",
 });
 
-const plural = (count: number, word: string) => `${count} ${word}${count > 1 ? "s" : ""}`;
+const plural = (count: number, word: string): string => `${count} ${word}${count > 1 ? "s" : ""}`;
 
 /**
  * Employers shown on the "Expérience" page. A company is created by typing its name on a position;
  * here the admin writes its context (shown on /experience/[slug]) and deletes the unused ones.
  */
-export function CompaniesTab() {
+export function CompaniesTab(): JSX.Element {
   const readOnly = useReadOnly();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [editing, setEditing] = useState<Company | null>(null);
@@ -46,17 +47,17 @@ export function CompaniesTab() {
   useEffect(() => {
     getCompanies()
       .then(setCompanies)
-      .catch((err) => setError(getErrorMessage(err, "Impossible de charger les entreprises")));
+      .catch((err: unknown) => setError(getErrorMessage(err, "Impossible de charger les entreprises")));
   }, []);
 
-  const openEditor = (company: Company) => {
+  const openEditor = (company: Company): void => {
     setDeleteTargetId(null);
     setEditing(company);
     setForm(toForm(company));
     setFormError("");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (!editing) return;
     // `required` lets whitespace-only values through: check them before calling the API
@@ -73,10 +74,10 @@ export function CompaniesTab() {
         websiteUrl: form.websiteUrl.trim() || null,
         context: form.context.trim() || null,
       });
-      setCompanies((current) =>
+      setCompanies((current: Company[]) =>
         current
-          .map((company) => (company.id === saved.id ? { ...company, ...saved } : company))
-          .sort((a, b) => a.name.localeCompare(b.name, "fr", { sensitivity: "base" })),
+          .map((company: Company) => (company.id === saved.id ? { ...company, ...saved } : company))
+          .sort((a: Company, b: Company) => a.name.localeCompare(b.name, "fr", { sensitivity: "base" })),
       );
       setEditing(null);
     } catch (err) {
@@ -86,12 +87,12 @@ export function CompaniesTab() {
     }
   };
 
-  const handleDelete = async (company: Company) => {
+  const handleDelete = async (company: Company): Promise<void> => {
     setIsDeleting(true);
     setError("");
     try {
       await deleteCompany(company.id);
-      setCompanies((current) => current.filter((c) => c.id !== company.id));
+      setCompanies((current: Company[]) => current.filter((c: Company) => c.id !== company.id));
     } catch (err) {
       setError(getErrorMessage(err, "Impossible de supprimer l'entreprise"));
     } finally {
@@ -100,8 +101,8 @@ export function CompaniesTab() {
     }
   };
 
-  const unused = companies.filter((company) => company.experienceCount === 0).length;
-  const update = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+  const unused = companies.filter((company: Company) => company.experienceCount === 0).length;
+  const update = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void =>
     setForm({ ...form, [field]: e.target.value });
 
   return (
@@ -129,7 +130,7 @@ export function CompaniesTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {companies.map((company) => (
+            {companies.map((company: Company) => (
               <TableRow key={company.id}>
                 <TableCell className="font-bold">{company.name}</TableCell>
                 <TableCell className="text-slate">{company.sector ?? "Non renseigné"}</TableCell>
@@ -172,7 +173,7 @@ export function CompaniesTab() {
       )}
 
       {!readOnly && (
-        <Dialog open={editing !== null} onOpenChange={(open) => !open && !isSaving && setEditing(null)}>
+        <Dialog open={editing !== null} onOpenChange={(open: boolean) => !open && !isSaving && setEditing(null)}>
           <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle>Modifier {editing?.name}</DialogTitle>

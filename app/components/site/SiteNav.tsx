@@ -5,12 +5,15 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { Button, ButtonLink } from "@/app/components/common/Button";
 import { cn } from "@/app/components/common/utils";
+import type { JSX } from "react";
 
 export type PageKey = "home" | "projets" | "experience" | "competences" | "contact";
 
 type NavKey = PageKey | "admin";
 
-const NAV: { key: NavKey; href: string; label: string }[] = [
+type NavItem = { key: NavKey; href: string; label: string };
+
+const NAV: NavItem[] = [
   { key: "home", href: "/", label: "Accueil" },
   { key: "projets", href: "/projets", label: "Projets" },
   { key: "experience", href: "/experience", label: "Expérience" },
@@ -27,37 +30,37 @@ const NAV_ID = "site-navigation";
  * behind a "Menu" disclosure button (aria-expanded / aria-controls) and open as a vertical list
  * under the header. Escape, a click outside or choosing a link closes it.
  */
-export function SiteNav({ current, dark, cvUrl }: { current: PageKey; dark: boolean; cvUrl: string }) {
+export function SiteNav({ current, dark, cvUrl }: { current: PageKey; dark: boolean; cvUrl: string }): JSX.Element {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (!open) return;
-    const onKeyDown = (event: KeyboardEvent) => {
+    const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key === "Escape") {
         setOpen(false);
         buttonRef.current?.focus();
       }
     };
-    const onPointerDown = (event: PointerEvent) => {
+    const onPointerDown = (event: PointerEvent): void => {
       const target = event.target as Node;
       if (!navRef.current?.contains(target) && !buttonRef.current?.contains(target)) setOpen(false);
     };
     // Back to the desktop layout: the row is always shown, so forget the open state
     const desktop = window.matchMedia("(min-width: 1024px)");
-    const onBreakpoint = (event: MediaQueryListEvent) => event.matches && setOpen(false);
+    const onBreakpoint = (event: MediaQueryListEvent): false | void => event.matches && setOpen(false);
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("pointerdown", onPointerDown);
     desktop.addEventListener("change", onBreakpoint);
-    return () => {
+    return (): void => {
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("pointerdown", onPointerDown);
       desktop.removeEventListener("change", onBreakpoint);
     };
   }, [open]);
 
-  const close = () => setOpen(false);
+  const close = (): void => setOpen(false);
 
   return (
     <>
@@ -66,7 +69,7 @@ export function SiteNav({ current, dark, cvUrl }: { current: PageKey; dark: bool
         variant={dark ? "outlineOnInk" : "outline"}
         aria-expanded={open}
         aria-controls={NAV_ID}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => setOpen((value: boolean) => !value)}
         className="px-4 lg:hidden"
       >
         {open ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
@@ -84,7 +87,7 @@ export function SiteNav({ current, dark, cvUrl }: { current: PageKey; dark: bool
           "lg:basis-auto lg:flex-row lg:border-t-0 lg:pt-0",
         )}
       >
-        {NAV.map((item) => {
+        {NAV.map((item: NavItem) => {
           const active = item.key === current;
           return (
             <Link

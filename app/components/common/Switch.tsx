@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { JSX } from "react";
 
 /**
  * Accessible on / off switch (role="switch", mint when on, slate when off),
@@ -18,7 +19,7 @@ export function Switch({
   label: ReactNode;
   description?: ReactNode;
   disabled?: boolean;
-}) {
+}): JSX.Element {
   return (
     <div className="flex items-center gap-4">
       <button

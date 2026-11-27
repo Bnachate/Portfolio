@@ -2,6 +2,7 @@ import { SITE } from "@/app/config/site";
 import { TextLink } from "@/app/components/common/AppLink";
 import { ButtonLink } from "@/app/components/common/Button";
 import { Container, gutter } from "./ui";
+import type { JSX } from "react";
 
 type FooterLinks = { githubUrl: string; linkedinUrl: string };
 
@@ -9,7 +10,7 @@ type FooterLinks = { githubUrl: string; linkedinUrl: string };
  * Ink footer. `large` is the home page version with a big call to action.
  * No email address here on purpose: visitors reach out through the contact form.
  */
-export function SiteFooter({ links, large = false }: { links: FooterLinks; large?: boolean }) {
+export function SiteFooter({ links, large = false }: { links: FooterLinks; large?: boolean }): JSX.Element {
   const year = new Date().getFullYear();
   return (
     <footer className={`bg-ink ${gutter} text-on-ink ${large ? "mt-28 pb-10 pt-24" : "mt-24 pb-10 pt-14"}`}>

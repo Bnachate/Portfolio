@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getPublicHero } from "@/server/services/hero";
 import { listEmployers } from "@/server/services/experiences";
-import { CV_URL, EDUCATION } from "@/app/config/content";
+import { CV_URL, EDUCATION, type EducationItem } from "@/app/config/content";
 import { SiteHeader } from "@/app/components/site/SiteHeader";
 import { SiteFooter } from "@/app/components/site/SiteFooter";
 import { ArrowIcon, PageTitle, Section, TileLink } from "@/app/components/site/ui";
@@ -10,6 +10,8 @@ import { TextLink } from "@/app/components/common/AppLink";
 import { StatusBadge } from "@/app/components/common/StatusBadge";
 import { TruncatedTag } from "@/app/components/common/TruncatedTag";
 import { formatDuration, formatPeriod } from "@/app/components/experience/format";
+import type { JSX } from "react";
+import type { EmployerDTO, ExperienceDTO } from "@/server/services/experiences";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +21,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/experience" },
 };
 
-export default async function ExperiencePage() {
+export default async function ExperiencePage(): Promise<JSX.Element> {
   const [hero, employers] = await Promise.all([getPublicHero(), listEmployers()]);
 
   return (
@@ -34,7 +36,7 @@ export default async function ExperiencePage() {
             <p className="text-[19px] text-slate">Le parcours arrive bientôt.</p>
           ) : (
             <ul className="flex flex-wrap gap-5">
-              {employers.map((employer) => {
+              {employers.map((employer: EmployerDTO) => {
                 const current = employer.endDate === null;
                 return (
                   <li key={employer.id} className="flex min-w-0 flex-[1_1_320px]">
@@ -54,7 +56,7 @@ export default async function ExperiencePage() {
                           {formatPeriod(employer.startDate, employer.endDate)} · {formatDuration(employer.startDate, employer.endDate)}
                         </span>
                         <span className="flex flex-col gap-1 text-lg leading-[1.45]">
-                          {employer.experiences.map((experience) => (
+                          {employer.experiences.map((experience: ExperienceDTO) => (
                             <span key={experience.id}>{experience.job}</span>
                           ))}
                         </span>
@@ -76,7 +78,7 @@ export default async function ExperiencePage() {
           <div className="flex flex-wrap gap-x-[72px] gap-y-8">
             <h2 className="min-w-0 flex-[1_1_260px] font-display text-[clamp(32px,4vw,44px)] font-bold leading-[1.08] tracking-[-0.025em]">Formation</h2>
             <ul className="flex min-w-0 flex-[2_1_480px] flex-col">
-              {EDUCATION.map((item) => (
+              {EDUCATION.map((item: EducationItem) => (
                 <li key={item.title} className="flex flex-wrap gap-x-8 gap-y-1.5 border-t border-line py-[22px]">
                   <span className="flex-[0_0_120px] pt-1 font-mono text-sm text-slate">{item.period}</span>
                   <div className="flex min-w-0 flex-[1_1_280px] flex-col gap-1">

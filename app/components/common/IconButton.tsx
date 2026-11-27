@@ -1,6 +1,7 @@
 import type { ComponentProps, ReactNode } from "react";
 import { AppLink } from "./AppLink";
 import { cn } from "./utils";
+import type { JSX } from "react";
 
 /**
  * Icon-only button. `label` is required: it becomes the accessible name (aria-label),
@@ -30,7 +31,7 @@ const tones: Record<IconButtonTone, string> = {
 
 type StyleProps = { tone?: IconButtonTone; size?: IconButtonSize };
 
-export const iconButtonClass = ({ tone = "neutral", size = "md" }: StyleProps = {}, className?: string) => cn(base, sizes[size], tones[tone], className);
+export const iconButtonClass = ({ tone = "neutral", size = "md" }: StyleProps = {}, className?: string): string => cn(base, sizes[size], tones[tone], className);
 
 export function IconButton({
   label,
@@ -39,7 +40,7 @@ export function IconButton({
   className,
   type = "button",
   ...props
-}: Omit<ComponentProps<"button">, "aria-label"> & StyleProps & { label: string; children: ReactNode }) {
+}: Omit<ComponentProps<"button">, "aria-label"> & StyleProps & { label: string; children: ReactNode }): JSX.Element {
   return <button type={type} aria-label={label} className={iconButtonClass({ tone, size }, className)} {...props} />;
 }
 
@@ -50,6 +51,6 @@ export function IconLink({
   size,
   className,
   ...props
-}: Omit<ComponentProps<typeof AppLink>, "aria-label"> & StyleProps & { label: string; children: ReactNode }) {
+}: Omit<ComponentProps<typeof AppLink>, "aria-label"> & StyleProps & { label: string; children: ReactNode }): JSX.Element {
   return <AppLink aria-label={label} className={iconButtonClass({ tone, size }, className)} {...props} />;
 }

@@ -23,6 +23,8 @@ import { CASE_STUDIES_ENABLED } from "@/app/config/content";
 import { ProjectDialog, type ProjectFormData } from "./projects-tab/modal/ProjectDialog";
 import type { Project, Tag } from "@/app/types/api";
 import { useReadOnly } from "@/app/admin/ReadOnlyContext";
+import type { JSX } from "react";
+import type { TagWithDomain } from "@/app/types/api";
 
 const EMPTY_FORM: ProjectFormData = {
   title: "",
@@ -41,7 +43,7 @@ const EMPTY_FORM: ProjectFormData = {
 };
 
 // Empty optional fields are stored as null (the case study then shows its placeholders)
-const orNull = (value: string) => value.trim() || null;
+const orNull = (value: string): string | null => value.trim() || null;
 
 const toPayload = (form: ProjectFormData): ProjectPayload => ({
   ...form,
@@ -53,12 +55,12 @@ const toPayload = (form: ProjectFormData): ProjectPayload => ({
   context: orNull(form.context),
   achievements: orNull(form.achievements),
   results: orNull(form.results),
-  tags: form.tags.map((tag) => tag.id),
+  tags: form.tags.map((tag: Tag) => tag.id),
 });
 
 const VISIBLE_TAGS = 4;
 
-export function ProjectsTab() {
+export function ProjectsTab(): JSX.Element {
   const readOnly = useReadOnly();
   const [projects, setProjects] = useState<Project[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -76,21 +78,21 @@ export function ProjectsTab() {
   // Initial load: state is only set once the requests resolve
   useEffect(() => {
     Promise.all([getProjects(), getTags()])
-      .then(([loadedProjects, loadedTags]) => {
+      .then(([loadedProjects, loadedTags]: [Project[], TagWithDomain[]]) => {
         setProjects(loadedProjects);
         setTags(loadedTags);
       })
-      .catch((err) => setError(getErrorMessage(err, "Impossible de charger les projets")));
+      .catch((err: unknown) => setError(getErrorMessage(err, "Impossible de charger les projets")));
   }, []);
 
-  const resetForm = () => {
+  const resetForm = (): void => {
     setFormData(EMPTY_FORM);
     setEditingProject(null);
     setFormError("");
     setIsDialogOpen(false);
   };
 
-  const handleEdit = (project: Project) => {
+  const handleEdit = (project: Project): void => {
     setDeleteTargetId(null);
     setEditingProject(project);
     setFormData({
@@ -112,7 +114,7 @@ export function ProjectsTab() {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number): Promise<void> => {
     setIsBusy(true);
     try {
       await deleteProject(id);
@@ -126,7 +128,7 @@ export function ProjectsTab() {
     }
   };
 
-  const handleMove = async (index: number, direction: -1 | 1) => {
+  const handleMove = async (index: number, direction: -1 | 1): Promise<void> => {
     setIsBusy(true);
     try {
       setProjects(await reorderProjects(movedIds(projects, index, direction)));
@@ -140,7 +142,7 @@ export function ProjectsTab() {
   // Required fields must contain more than whitespace (`required` alone accepts "   ")
   const isFormValid = Boolean(formData.title.trim() && formData.description.trim() && formData.projectImageUrl.trim());
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (!isFormValid) return;
     setIsSaving(true);
@@ -162,9 +164,9 @@ export function ProjectsTab() {
     }
   };
 
-  const handleCreateTag = async (name: string) => {
+  const handleCreateTag = async (name: string): Promise<TagWithDomain> => {
     const tag = await createTag(name);
-    setTags((current) => [...current, tag].sort((a, b) => a.name.localeCompare(b.name)));
+    setTags((current: Tag[]) => [...current, tag].sort((a: Tag, b: Tag) => a.name.localeCompare(b.name)));
     return tag;
   };
 
@@ -192,7 +194,7 @@ export function ProjectsTab() {
       {!readOnly && (
         <ProjectDialog
           isOpen={isDialogOpen}
-          onOpenChange={(open) => (open ? setIsDialogOpen(true) : resetForm())}
+          onOpenChange={(open: boolean) => (open ? setIsDialogOpen(true) : resetForm())}
           isEditing={Boolean(editingProject)}
           isSaving={isSaving}
           submitDisabled={isSaving || !isFormValid}
@@ -220,7 +222,7 @@ export function ProjectsTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {projects.map((project, index) => (
+            {projects.map((project: Project, index: number) => (
               <TableRow key={project.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">
@@ -256,7 +258,7 @@ export function ProjectsTab() {
                   <ImageWithFallback src={project.projectImageUrl} alt={`Capture de ${project.title}`} className="h-12 w-20 rounded border border-line bg-mist object-cover" />
                 </TableCell>
                 <TableCell>
-                  <TagList names={project.tags.map((tag) => tag.name)} label={`Tags de ${project.title}`} variant="compact" limit={VISIBLE_TAGS} className="gap-1.5" />
+                  <TagList names={project.tags.map((tag: Tag) => tag.name)} label={`Tags de ${project.title}`} variant="compact" limit={VISIBLE_TAGS} className="gap-1.5" />
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">

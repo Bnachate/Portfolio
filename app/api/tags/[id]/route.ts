@@ -5,7 +5,7 @@ import { deleteTag, updateTag } from '@/server/services/tags';
 type Context = { params: Promise<{ id: string }> };
 
 // Rename and / or change the domain
-export const PATCH = handler<Context>(async (request, { params }) => {
+export const PATCH = handler<Context>(async (request: Request, { params }: Context) => {
   await requireAdmin();
   const id = parseId((await params).id);
   const changes = await parseBody(request, updateTagSchema);
@@ -13,7 +13,7 @@ export const PATCH = handler<Context>(async (request, { params }) => {
 });
 
 // Also removes the tag from every experience and project using it (ON DELETE CASCADE)
-export const DELETE = handler<Context>(async (_request, { params }) => {
+export const DELETE = handler<Context>(async (_request: Request, { params }: Context) => {
   await requireAdmin();
   await deleteTag(parseId((await params).id));
   return ok(null);

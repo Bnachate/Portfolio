@@ -14,8 +14,9 @@ import { TextLink } from "@/app/components/common/AppLink";
 import { gutter } from "@/app/components/site/ui";
 import { login } from "@/app/services/auth.service";
 import { getErrorMessage } from "@/app/config/api.config";
+import type { ChangeEvent, JSX } from "react";
 
-export default function LoginPage() {
+export default function LoginPage(): JSX.Element {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -23,7 +24,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     // Whitespace-only values pass `required`: never send them (each attempt counts towards the rate limit)
     if (!email.trim() || !password.trim()) {
@@ -83,7 +84,7 @@ export default function LoginPage() {
                 autoComplete="username"
                 placeholder="vous@exemple.fr"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                 required
               />
             </Field>
@@ -97,7 +98,7 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                 required
                 end={
                   <IconButton

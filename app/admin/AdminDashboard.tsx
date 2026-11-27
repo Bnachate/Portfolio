@@ -16,11 +16,13 @@ import { SkillDomainsTab } from "../components/admin/SkillDomainsTab";
 import { logout } from "../services/auth.service";
 import { getContacts } from "../services/admin/contacts.service";
 import { ReadOnlyProvider } from "./ReadOnlyContext";
+import type { JSX } from "react";
+import type { ContactMessage } from "@/app/types/api";
 
 // Side margins of the admin bands: 16 to 48 px
 const adminGutter = "px-[clamp(16px,4vw,48px)]";
 
-export function AdminDashboard({ readOnly }: { readOnly: boolean }) {
+export function AdminDashboard({ readOnly }: { readOnly: boolean }): JSX.Element {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -29,12 +31,12 @@ export function AdminDashboard({ readOnly }: { readOnly: boolean }) {
   useEffect(() => {
     if (readOnly) return;
     getContacts()
-      .then((contacts) => setUnreadCount(contacts.filter((c) => c.status === "new").length))
+      .then((contacts: ContactMessage[]) => setUnreadCount(contacts.filter((c: ContactMessage) => c.status === "new").length))
       .catch(() => {});
   }, [readOnly]);
   const handleUnreadCount = useCallback((count: number) => setUnreadCount(count), []);
 
-  const handleLogout = async () => {
+  const handleLogout = async (): Promise<void> => {
     setIsLoggingOut(true);
     try {
       await logout();

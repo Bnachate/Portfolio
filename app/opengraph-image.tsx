@@ -15,7 +15,7 @@ const ON_INK = "#F5F7FA";
 const LINE = "#CBD4E0";
 const INK_RULE = "#2B3B54";
 
-export default async function OpenGraphImage() {
+export default async function OpenGraphImage(): Promise<ImageResponse> {
   const photo = await readFile(path.join(process.cwd(), "public", "my_photo.jpeg"));
   const photoSrc = `data:image/jpeg;base64,${photo.toString("base64")}`;
 
@@ -56,7 +56,7 @@ export default async function OpenGraphImage() {
           <div style={{ fontSize: 80, color: ON_INK, fontWeight: 700, lineHeight: 1.02, marginTop: 34, letterSpacing: -2 }}>{SITE.name}</div>
           <div style={{ fontSize: 42, color: MINT_LIGHT, fontWeight: 600, marginTop: 16 }}>{SITE.jobTitle}</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 40 }}>
-            {SITE.skills.map((skill) => (
+            {SITE.skills.map((skill: string) => (
               <div
                 key={skill}
                 style={{ fontSize: 24, color: LINE, border: `2px solid ${INK_RULE}`, borderRadius: 8, padding: "8px 18px" }}

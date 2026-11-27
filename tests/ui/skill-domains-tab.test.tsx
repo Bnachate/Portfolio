@@ -31,7 +31,7 @@ function renderTab(readOnly = false) {
   return screen.findByText('Front-end');
 }
 
-const names = () => screen.getAllByRole('row').slice(1).map((r) => within(r).getAllByRole('cell')[1].textContent);
+const names = () => screen.getAllByRole('row').slice(1).map((r) => within(r).getAllByRole('cell')[1]!.textContent);
 
 beforeEach(() => {
   service.getSkillDomains.mockResolvedValue(DOMAINS.map((d) => ({ ...d })));

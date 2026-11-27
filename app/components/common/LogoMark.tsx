@@ -1,5 +1,6 @@
+import type { JSX } from "react";
 /** "BN" monogram (decorative: the name next to it carries the meaning). Mint on ink backgrounds, ink on light ones. */
-export function LogoMark({ onInk = false }: { onInk?: boolean }) {
+export function LogoMark({ onInk = false }: { onInk?: boolean }): JSX.Element {
   return (
     <span
       aria-hidden="true"

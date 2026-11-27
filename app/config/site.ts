@@ -17,7 +17,7 @@ export const SITE = {
  * Public URL of the site, needed for absolute links (sitemap, link previews).
  * NEXT_PUBLIC_SITE_URL wins (e.g. a custom domain), then the production domain Vercel exposes.
  */
-export function getSiteUrl() {
+export function getSiteUrl(): string {
   const explicit = process.env.NEXT_PUBLIC_SITE_URL;
   if (explicit) return explicit.replace(/\/+$/, "");
   const vercelDomain = process.env.VERCEL_PROJECT_PRODUCTION_URL;

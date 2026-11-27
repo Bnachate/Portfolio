@@ -1,5 +1,6 @@
 import { inArray } from 'drizzle-orm';
 import type { Executor } from '../server/db';
+import { onlyRow } from '../server/db/rows';
 import { experiences, experienceTags, hero, skillDomains, tags } from '../server/db/schema';
 import { DEFAULT_HERO } from '../server/services/hero';
 import { findOrCreateCompany } from '../server/services/companies';
@@ -84,36 +85,39 @@ export const EXPERIENCES: ExperienceContent[] = [
 ];
 
 /** Inserts the CV experiences (and their missing tags). Call it inside a transaction. */
-export async function insertExperiences(tx: Executor) {
-  const tagNames = [...new Set(EXPERIENCES.flatMap((e) => e.stack))];
+export async function insertExperiences(tx: Executor): Promise<{ experiences: number; tags: number }> {
+  const tagNames = [...new Set(EXPERIENCES.flatMap((e: ExperienceContent) => e.stack))];
   // The domains are created by the migrations; tags get the default one of their technology
   const domainRows = await tx.select({ id: skillDomains.id, name: skillDomains.name }).from(skillDomains);
-  const domainIdByName = new Map(domainRows.map((d) => [d.name, d.id]));
+  const domainIdByName = new Map(domainRows.map((d: { id: number; name: string }) => [d.name, d.id]));
   await tx
     .insert(tags)
-    .values(tagNames.map((name) => ({ name, domainId: domainIdByName.get(defaultTagDomain(name) ?? '') ?? null })))
+    .values(tagNames.map((name: string) => ({ name, domainId: domainIdByName.get(defaultTagDomain(name) ?? '') ?? null })))
     .onConflictDoNothing();
   const tagRows = await tx
     .select({ id: tags.id, name: tags.name })
     .from(tags)
     .where(inArray(tags.name, tagNames));
-  const tagIdByName = new Map(tagRows.map((t) => [t.name, t.id]));
+  const tagIdByName = new Map(tagRows.map((t: { id: number; name: string }) => [t.name, t.id]));
 
   for (const [position, { stack, ...experience }] of EXPERIENCES.entries()) {
     // Employers and their context come from migration 0005; any other name gets a bare company
     const company = await findOrCreateCompany(tx, experience.company);
-    const [{ id }] = await tx
-      .insert(experiences)
-      .values({ ...experience, company: company.name, companyId: company.id, position })
-      .returning({ id: experiences.id });
-    await tx.insert(experienceTags).values(stack.map((name) => ({ experienceId: id, tagId: tagIdByName.get(name)! })));
+    const { id } = onlyRow(
+      await tx
+        .insert(experiences)
+        .values({ ...experience, company: company.name, companyId: company.id, position })
+        .returning({ id: experiences.id }),
+      'insert experience',
+    );
+    await tx.insert(experienceTags).values(stack.map((name: string) => ({ experienceId: id, tagId: tagIdByName.get(name)! })));
   }
 
   return { experiences: EXPERIENCES.length, tags: tagNames.length };
 }
 
 /** Creates or overwrites the hero section with the CV content. */
-export async function saveCvHero(tx: Executor, { overwrite }: { overwrite: boolean }) {
+export async function saveCvHero(tx: Executor, { overwrite }: { overwrite: boolean }): Promise<void> {
   const insert = tx.insert(hero).values({ id: 1, ...DEFAULT_HERO });
   await (overwrite
     ? insert.onConflictDoUpdate({ target: hero.id, set: DEFAULT_HERO })

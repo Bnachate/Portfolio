@@ -75,7 +75,7 @@ test.describe('Admin - experiences', () => {
     await page.getByRole('button', { name: `Descendre ${first}`, exact: true }).click();
     await expect.poll(() => jobsInTable(page).then((jobs) => jobs.slice(0, 2))).toEqual([second, first]);
     await page.goto('/experience/weborama');
-    await expect(page.getByRole('main').getByRole('heading', { level: 2 }).filter({ hasNotText: 'Contexte' }).first()).toContainText(second);
+    await expect(page.getByRole('main').getByRole('heading', { level: 2 }).filter({ hasNotText: 'Contexte' }).first()).toContainText(second!);
 
     // Restore the order for the other specs (kept after a reload: saved on the server)
     await page.goto('/admin');

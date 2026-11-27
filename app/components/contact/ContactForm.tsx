@@ -8,20 +8,21 @@ import { ErrorBanner } from "@/app/components/common/ErrorBanner";
 import { Field } from "@/app/components/common/Field";
 import { Input } from "@/app/components/common/input";
 import { Textarea } from "@/app/components/common/textarea";
+import type { JSX } from "react";
 
 const EMPTY_FORM = { name: "", email: "", subject: "", message: "", website: "" };
 
-export function ContactForm() {
+export function ContactForm(): JSX.Element {
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     // `required` lets whitespace-only values through: check them before calling the API
     const { name, email, subject, message } = formData;
-    if ([name, email, subject, message].some((value) => !value.trim())) {
+    if ([name, email, subject, message].some((value: string) => !value.trim())) {
       setError("Merci de remplir tous les champs.");
       return;
     }
@@ -39,7 +40,7 @@ export function ContactForm() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 

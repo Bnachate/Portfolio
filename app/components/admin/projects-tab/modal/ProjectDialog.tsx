@@ -9,6 +9,7 @@ import { MultiSelectTags } from "@/app/components/admin/common/MultiSelectTags";
 import { ErrorBanner } from "@/app/components/common/ErrorBanner";
 import { Textarea } from "@/app/components/common/textarea";
 import type { Tag } from "@/app/types/api";
+import type { JSX } from "react";
 
 export interface ProjectFormData {
   title: string;
@@ -55,8 +56,8 @@ export function ProjectDialog({
   onCreateTag,
   onSubmit,
   onReset,
-}: ProjectDialogProps) {
-  const field = (key: keyof ProjectFormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+}: ProjectDialogProps): JSX.Element {
+  const field = (key: keyof ProjectFormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void =>
     onFormChange({ ...formData, [key]: e.target.value });
 
   return (
@@ -81,7 +82,7 @@ export function ProjectDialog({
                 id="tags"
                 options={tags}
                 selectedValues={formData.tags}
-                onChange={(nextTags) => onFormChange({ ...formData, tags: nextTags })}
+                onChange={(nextTags: Tag[]) => onFormChange({ ...formData, tags: nextTags })}
                 onCreate={onCreateTag}
               />
             </Field>
@@ -109,7 +110,7 @@ export function ProjectDialog({
           </FieldGroup>
 
           <FieldGroup title="Étude de cas">
-            <DialogDescription>Facultatif : tant qu&apos;un champ est vide, la page du projet affiche un texte provisoire.</DialogDescription>
+            <DialogDescription>Facultatif : un champ laissé vide n&apos;est pas affiché sur le site.</DialogDescription>
             <div className="grid gap-4 sm:grid-cols-3">
               <Field id="kind" label="Type">
                 <Input id="kind" value={formData.kind} onChange={field("kind")} maxLength={100} placeholder="Projet personnel" />

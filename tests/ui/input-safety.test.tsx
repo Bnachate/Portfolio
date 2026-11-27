@@ -111,7 +111,7 @@ describe('blank or whitespace-only input never reaches the API', () => {
   it.each(['Nom', 'Sujet', 'Message'])('contact form: %s made of spaces', async (blankField) => {
     const user = userEvent.setup();
     render(<ContactForm />);
-    for (const [label, value] of [['Nom', 'Ada'], ['E-mail', 'ada@example.com'], ['Sujet', 'Sujet'], ['Message', 'Bonjour']]) {
+    for (const [label, value] of [['Nom', 'Ada'], ['E-mail', 'ada@example.com'], ['Sujet', 'Sujet'], ['Message', 'Bonjour']] as const) {
       await user.type(screen.getByLabelText(label), label === blankField ? BLANK : value);
     }
     await user.click(screen.getByRole('button', { name: /envoyer le message/i }));

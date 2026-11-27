@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { IconButton } from "./IconButton";
 import { cn } from "./utils";
+import type { JSX } from "react";
 
 /** Technology name (monospace, 4 px radius), on the public site and in the admin. */
 
@@ -25,7 +26,7 @@ const tagStyles: Record<TagVariant, string> = {
  * `onRemove` adds a remove button (a real <button>, so the tag must not sit inside another button).
  * inline-block so the vertical padding takes up room and wrapped rows keep their gap.
  */
-export function Tag({ name, variant = "label", onRemove, className }: { name: string; variant?: TagVariant; onRemove?: () => void; className?: string }) {
+export function Tag({ name, variant = "label", onRemove, className }: { name: string; variant?: TagVariant; onRemove?: () => void; className?: string }): JSX.Element {
   return (
     <span className={cn("inline-block rounded font-mono leading-tight", tagStyles[variant], onRemove && "inline-flex items-center gap-1 py-1 pr-1", className)}>
       {name}
@@ -41,13 +42,13 @@ export function Tag({ name, variant = "label", onRemove, className }: { name: st
 /**
  * List of tags with an accessible name. `limit` shows the first tags and "+N" for the others.
  */
-export function TagList({ names, label, variant, limit, className }: { names: string[]; label: string; variant?: TagVariant; limit?: number; className?: string }) {
+export function TagList({ names, label, variant, limit, className }: { names: string[]; label: string; variant?: TagVariant; limit?: number; className?: string }): JSX.Element | null {
   if (names.length === 0) return null;
   const shown = limit === undefined ? names : names.slice(0, limit);
   const hidden = names.length - shown.length;
   return (
     <ul aria-label={label} className={cn("flex flex-wrap gap-2", className)}>
-      {shown.map((name) => (
+      {shown.map((name: string) => (
         <li key={name}>
           <Tag name={name} variant={variant} />
         </li>

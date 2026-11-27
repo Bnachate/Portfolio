@@ -4,7 +4,7 @@ import { createProject, listProjects } from '@/server/services/projects';
 
 export const GET = handler(async () => ok(await listProjects()));
 
-export const POST = handler(async (request) => {
+export const POST = handler(async (request: Request) => {
   await requireAdmin();
   const input = await parseBody(request, createProjectSchema);
   return ok(await createProject(input), 201);

@@ -11,7 +11,7 @@ export const GET = handler(async () => {
 });
 
 // Public: used by the contact form
-export const POST = handler(async (request) => {
+export const POST = handler(async (request: Request) => {
   const { website, ...input } = await parseBody(request, createContactSchema);
   // Honeypot filled in: it's a bot. Pretend it worked without storing anything.
   if (website) return ok(null, 201);

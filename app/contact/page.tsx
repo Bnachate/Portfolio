@@ -5,6 +5,7 @@ import { SiteFooter } from "@/app/components/site/SiteFooter";
 import { PageTitle, Section } from "@/app/components/site/ui";
 import { ContactForm } from "@/app/components/contact/ContactForm";
 import { ContactInfo } from "@/app/components/contact/ContactInfo";
+import type { JSX } from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
 };
 
-export default async function ContactPage() {
+export default async function ContactPage(): Promise<JSX.Element> {
   const hero = await getPublicHero();
 
   return (

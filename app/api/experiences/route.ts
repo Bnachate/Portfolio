@@ -4,7 +4,7 @@ import { createExperience, listExperiences } from '@/server/services/experiences
 
 export const GET = handler(async () => ok(await listExperiences()));
 
-export const POST = handler(async (request) => {
+export const POST = handler(async (request: Request) => {
   await requireAdmin();
   const input = await parseBody(request, createExperienceSchema);
   return ok(await createExperience(input), 201);
