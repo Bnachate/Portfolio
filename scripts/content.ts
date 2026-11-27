@@ -2,6 +2,7 @@ import { inArray } from 'drizzle-orm';
 import type { Executor } from '../server/db';
 import { experiences, experienceTags, hero, skillDomains, tags } from '../server/db/schema';
 import { DEFAULT_HERO } from '../server/services/hero';
+import { findOrCreateCompany } from '../server/services/companies';
 import { defaultTagDomain } from '../app/config/tag-domains';
 
 /**
@@ -99,9 +100,11 @@ export async function insertExperiences(tx: Executor) {
   const tagIdByName = new Map(tagRows.map((t) => [t.name, t.id]));
 
   for (const [position, { stack, ...experience }] of EXPERIENCES.entries()) {
+    // Employers and their context come from migration 0005; any other name gets a bare company
+    const company = await findOrCreateCompany(tx, experience.company);
     const [{ id }] = await tx
       .insert(experiences)
-      .values({ ...experience, position })
+      .values({ ...experience, company: company.name, companyId: company.id, position })
       .returning({ id: experiences.id });
     await tx.insert(experienceTags).values(stack.map((name) => ({ experienceId: id, tagId: tagIdByName.get(name)! })));
   }

@@ -21,7 +21,7 @@ const contacts = vi.mocked(contactsService);
 
 const HERO: Hero = {
   title: 'Développeur Full-Stack',
-  subtitle: "7 ans d'expérience",
+  subtitle: "6 ans d'expérience",
   description: 'Bonjour',
   primaryButtonText: 'Me contacter',
   primaryButtonUrl: '/contact',

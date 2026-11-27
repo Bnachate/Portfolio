@@ -16,7 +16,7 @@ async function expectNoViolations(page: Page, label: string) {
 
 test.describe('Accessibility (visitor)', () => {
   test('every public page (X1)', async ({ page }) => {
-    for (const path of ['/', '/projets', '/experience', '/competences', '/contact']) {
+    for (const path of ['/', '/projets', '/experience', '/experience/weborama', '/competences', '/contact']) {
       await page.goto(path);
       await expectNoViolations(page, path);
     }
@@ -70,7 +70,7 @@ test.describe('Accessibility (visitor)', () => {
 
   test('read-only admin, every tab (X3)', async ({ page }) => {
     await page.goto('/admin');
-    for (const tab of ['Expériences', 'Projets', 'Tags', 'Domaines', 'Hero']) {
+    for (const tab of ['Expériences', 'Entreprises', 'Projets', 'Tags', 'Domaines', 'Hero']) {
       await page.getByRole('tab', { name: tab }).click();
       await expect(page.getByRole('tabpanel')).toBeVisible();
       await expectNoViolations(page, `read-only ${tab}`);
@@ -83,7 +83,7 @@ test.describe('Accessibility (admin)', () => {
 
   test('every admin tab (X4)', async ({ page }) => {
     await page.goto('/admin');
-    for (const tab of ['Expériences', 'Messages', 'Projets', 'Tags', 'Domaines', 'Hero']) {
+    for (const tab of ['Expériences', 'Entreprises', 'Messages', 'Projets', 'Tags', 'Domaines', 'Hero']) {
       await page.getByRole('tab', { name: tab }).click();
       await expect(page.getByRole('tabpanel')).toBeVisible();
       await expectNoViolations(page, `admin ${tab}`);
@@ -119,6 +119,12 @@ test.describe('Accessibility (admin)', () => {
     await page.getByRole('list', { name: 'Messages reçus' }).getByRole('button', { name: /Seed Visitor/ }).click();
     await expect(page.getByRole('article', { name: 'Message de Seed Visitor' })).toBeVisible();
     await expectNoViolations(page, 'open message');
+
+    await page.getByRole('tab', { name: 'Entreprises' }).click();
+    await page.getByRole('button', { name: 'Modifier Weborama' }).click();
+    await expect(page.getByRole('dialog', { name: 'Modifier Weborama' })).toBeVisible();
+    await expectNoViolations(page, 'company dialog');
+    await page.keyboard.press('Escape');
 
     await page.getByRole('tab', { name: 'Projets' }).click();
     await page.getByRole('button', { name: 'Nouveau projet' }).click();

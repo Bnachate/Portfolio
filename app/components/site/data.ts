@@ -23,6 +23,37 @@ export function toBulletPoints(text: string) {
     .filter(Boolean);
 }
 
+export type TextBlock = { type: "paragraph"; text: string } | { type: "list"; items: string[] };
+
+/**
+ * Splits a free text written in the admin into blocks: a blank line ends a paragraph, and
+ * consecutive lines starting with "- ", "• " or "* " form a bulleted list.
+ */
+export function toTextBlocks(text: string): TextBlock[] {
+  const blocks: TextBlock[] = [];
+  let paragraph: string[] = [];
+  const endParagraph = () => {
+    if (paragraph.length > 0) blocks.push({ type: "paragraph", text: paragraph.join(" ") });
+    paragraph = [];
+  };
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    const item = line.match(/^[•\-*]\s+(.*)$/);
+    if (!line) {
+      endParagraph();
+    } else if (item) {
+      endParagraph();
+      const last = blocks.at(-1);
+      if (last?.type === "list") last.items.push(item[1]);
+      else blocks.push({ type: "list", items: [item[1]] });
+    } else {
+      // A text line right after a list starts a new paragraph
+      paragraph.push(line);
+    }
+  }
+  endParagraph();
+  return blocks;
+}
 export type Skill = { name: string; current: boolean };
 export type SkillGroup = { title: string; skills: Skill[] };
 

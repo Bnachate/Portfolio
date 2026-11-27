@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, LogIn, FolderKanban, Briefcase, Mail, Home, Tags, Eye, Layers } from "lucide-react";
+import { LogOut, LogIn, FolderKanban, Briefcase, Building2, Mail, Home, Tags, Eye, Layers } from "lucide-react";
 import { Button, ButtonLink } from "../components/common/Button";
 import { LogoMark } from "../components/common/LogoMark";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/common/tabs";
 import { ProjectsTab } from "../components/admin/ProjectsTab";
 import { ExperienceTab } from "../components/admin/ExperienceTab";
+import { CompaniesTab } from "../components/admin/CompaniesTab";
 import { ContactsTab } from "../components/admin/ContactsTab";
 import { HeroTab } from "../components/admin/HeroTab";
 import { TagsTab } from "../components/admin/TagsTab";
@@ -93,6 +94,10 @@ export function AdminDashboard({ readOnly }: { readOnly: boolean }) {
                 <Briefcase aria-hidden="true" />
                 Expériences
               </TabsTrigger>
+              <TabsTrigger value="companies">
+                <Building2 aria-hidden="true" />
+                Entreprises
+              </TabsTrigger>
               {/* Contact messages hold visitors' personal data: admin only */}
               {!readOnly && (
                 <TabsTrigger value="contacts">
@@ -127,6 +132,9 @@ export function AdminDashboard({ readOnly }: { readOnly: boolean }) {
 
             <TabsContent value="experiences">
               <ExperienceTab />
+            </TabsContent>
+            <TabsContent value="companies">
+              <CompaniesTab />
             </TabsContent>
             {!readOnly && (
               <TabsContent value="contacts">

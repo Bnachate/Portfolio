@@ -70,10 +70,29 @@ export const projectTags = pgTable(
   (t) => [primaryKey({ columns: [t.projectId, t.tagId] })],
 );
 
+// Employers: one card on the "Expérience" page, and a page with their context and the positions held there
+export const companies = pgTable('companies', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull().unique(),
+  // URL segment of /experience/[slug], derived from the name
+  slug: text('slug').notNull().unique(),
+  // Short line on the card, e.g. "AdTech · Data marketing"
+  sector: text('sector'),
+  websiteUrl: text('website_url'),
+  // Paragraphs separated by a blank line; lines starting with "- " become a bulleted list
+  context: text('context'),
+  ...timestamps,
+});
+
 export const experiences = pgTable('experiences', {
   id: serial('id').primaryKey(),
   job: text('job').notNull(),
+  // Deprecated copy of the company name, still written for the deploy that adds companyId; drop it in a later migration
   company: text('company').notNull(),
+  // An employer cannot be deleted while a position points to it
+  companyId: integer('company_id')
+    .notNull()
+    .references(() => companies.id, { onDelete: 'restrict' }),
   description: text('description').notNull(),
   // Stored as DATE, exchanged as 'YYYY-MM-DD' strings
   startDate: date('start_date', { mode: 'string' }).notNull(),
@@ -139,7 +158,12 @@ export const projectsRelations = relations(projects, ({ many }) => ({
   projectTags: many(projectTags),
 }));
 
-export const experiencesRelations = relations(experiences, ({ many }) => ({
+export const companiesRelations = relations(companies, ({ many }) => ({
+  experiences: many(experiences),
+}));
+
+export const experiencesRelations = relations(experiences, ({ one, many }) => ({
+  companyRef: one(companies, { fields: [experiences.companyId], references: [companies.id] }),
   experienceTags: many(experienceTags),
 }));
 

@@ -35,9 +35,13 @@ test.describe('Admin - experiences', () => {
     // New experiences go to the end of the list
     expect((await jobsInTable(page)).at(-1)).toBe('Ingénieur E2E');
 
+    // A new company name creates its employer: a card on /experience, a page with the position
     await page.goto('/experience');
+    await page.getByRole('region', { name: 'Entreprises' }).getByRole('link', { name: /Playwright Corp/ }).click();
+    await expect(page).toHaveURL('/experience/playwright-corp');
+    await expect(page.getByRole('heading', { level: 1, name: 'Playwright Corp' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Ingénieur E2E' })).toBeVisible();
-    await expect(page.getByText('Mars 2019 - Févr. 2020')).toBeVisible();
+    await expect(page.getByText('Mars 2019 - Févr. 2020').first()).toBeVisible();
 
     // Edit
     await page.goto('/admin');
@@ -51,7 +55,15 @@ test.describe('Admin - experiences', () => {
     await confirmDeletion(page, 'Supprimer « Ingénieur E2E » ?');
     await expect(row).toHaveCount(0);
     await page.goto('/experience');
-    await expect(page.getByRole('heading', { name: 'Ingénieur E2E' })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Playwright SAS' })).toHaveCount(0);
+
+    // Both employers are now unused: delete them from the "Entreprises" tab (C2)
+    await openTab(page, 'Entreprises');
+    for (const name of ['Playwright Corp', 'Playwright SAS']) {
+      await page.getByRole('button', { name: `Supprimer ${name}` }).click();
+      await confirmDeletion(page, `Supprimer « ${name} » ?`);
+      await expect(page.getByRole('row').filter({ hasText: name })).toHaveCount(0);
+    }
   });
 
   test('move an experience down and back up, reflected on the experience page (E4)', async ({ page }) => {
@@ -62,14 +74,45 @@ test.describe('Admin - experiences', () => {
 
     await page.getByRole('button', { name: `Descendre ${first}`, exact: true }).click();
     await expect.poll(() => jobsInTable(page).then((jobs) => jobs.slice(0, 2))).toEqual([second, first]);
-    await page.goto('/experience');
-    await expect(page.getByRole('main').getByRole('heading', { level: 2 }).first()).toContainText(second);
+    await page.goto('/experience/weborama');
+    await expect(page.getByRole('main').getByRole('heading', { level: 2 }).filter({ hasNotText: 'Contexte' }).first()).toContainText(second);
 
     // Restore the order for the other specs (kept after a reload: saved on the server)
     await page.goto('/admin');
     await expect.poll(() => jobsInTable(page).then((jobs) => jobs.slice(0, 2))).toEqual([second, first]);
     await page.getByRole('button', { name: `Monter ${first}`, exact: true }).click();
     await expect.poll(() => jobsInTable(page).then((jobs) => jobs.slice(0, 2))).toEqual([first, second]);
+  });
+});
+
+test.describe('Admin - companies', () => {
+  test('edit an employer, reflected on its public page, then restore (C1)', async ({ page }) => {
+    await openTab(page, 'Entreprises');
+    const row = page.getByRole('row').filter({ hasText: 'Ipocamp' });
+    await row.getByRole('button', { name: 'Modifier Ipocamp' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Modifier Ipocamp' });
+    // Keep the real values to restore them
+    const original = await dialog.getByLabel('Secteur').inputValue();
+    const context = await dialog.getByLabel('Contexte').inputValue();
+    await dialog.getByLabel('Secteur').fill('Secteur E2E');
+    await dialog.getByLabel('Contexte').fill('Paragraphe E2E.\n\n- Point E2E');
+    await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(dialog).toBeHidden();
+    await expect(row).toContainText('Secteur E2E');
+
+    await page.goto('/experience/ipocamp');
+    await expect(page.getByText('Secteur E2E')).toBeVisible();
+    await expect(page.getByText('Paragraphe E2E.')).toBeVisible();
+    await expect(page.getByRole('listitem').filter({ hasText: 'Point E2E' })).toBeVisible();
+
+    // Restore for the other specs
+    await openTab(page, 'Entreprises');
+    await row.getByRole('button', { name: 'Modifier Ipocamp' }).click();
+    await dialog.getByLabel('Secteur').fill(original);
+    await dialog.getByLabel('Contexte').fill(context);
+    await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(dialog).toBeHidden();
+    await expect(row).toContainText(original);
   });
 });
 

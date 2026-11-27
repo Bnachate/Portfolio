@@ -112,7 +112,8 @@ Responses are `{ data }` on success and `{ message }` on error. 🔒 = admin ses
 |---|---|
 | `/api/auth/login` · `/api/auth/logout` · `/api/auth/me` | `POST` (rate limited) · `POST` · `GET` 🔒 |
 | `/api/projects` · `/api/projects/:id` · `/api/projects/order` | `GET`, `POST` 🔒 · `PATCH` 🔒, `DELETE` 🔒 · `PUT` 🔒 (`{ ids }` in display order) |
-| `/api/experiences` · `/api/experiences/:id` · `/api/experiences/order` | `GET`, `POST` 🔒 · `PATCH` 🔒, `DELETE` 🔒 · `PUT` 🔒 (`{ ids }` in display order, 409 if the list changed) |
+| `/api/experiences` · `/api/experiences/:id` · `/api/experiences/order` | `GET`, `POST` 🔒 · `PATCH` 🔒, `DELETE` 🔒 · `PUT` 🔒 (`{ ids }` in display order, 409 if the list changed). `company` is a name: linked to the employer whatever the case, or creates it |
+| `/api/companies` · `/api/companies/:id` | `GET` (with `experienceCount`) · `PATCH` 🔒 (`{ name, sector, websiteUrl, context }`, 409 on a duplicate name), `DELETE` 🔒 (409 while a position points to it). No `POST`: employers come from positions |
 | `/api/tags` · `/api/tags/:id` | `GET` (`?usage=1` adds usage counts), `POST` 🔒 (`{ name, domainId }`, `null` = "Autres") · `PATCH` 🔒 (rename and / or domain), `DELETE` 🔒 |
 | `/api/skill-domains` · `/api/skill-domains/:id` · `/api/skill-domains/order` | `GET`, `POST` 🔒 (`{ name }`, added at the end) · `PATCH` 🔒 (rename), `DELETE` 🔒 (its tags move to "Autres") · `PUT` 🔒 (`{ ids }`, every id in the new order) |
 | `/api/contacts` · `/api/contacts/:id` | `GET` 🔒, `POST` (contact form, rate limited) · `PATCH` 🔒, `DELETE` 🔒 |

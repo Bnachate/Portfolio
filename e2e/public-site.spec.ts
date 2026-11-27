@@ -86,11 +86,50 @@ test.describe('Public site (visitor)', () => {
     await expect(page.getByRole('navigation', { name: 'Navigation principale' }).getByRole('link', { name: 'Contact' })).toBeVisible();
   });
 
-  test('the experience page shows the timeline and the education (V3)', async ({ page }) => {
+  test('the experience page lists the employers, each card opens its context and missions (V3)', async ({ page }) => {
     await page.goto('/experience');
-    await expect(page.getByRole('heading', { level: 2, name: 'Poste actuel : Développeur Full-Stack Vue.js / Java' })).toBeVisible();
+    const cards = page.getByRole('region', { name: 'Entreprises' }).getByRole('link');
+    await expect(cards.getByRole('heading', { level: 2 })).toHaveText(['Weborama', 'Ipocamp', 'Octelio Conseil']);
+    // The missions are not on the list any more
+    await expect(page.getByRole('heading', { name: /Poste actuel/ })).toHaveCount(0);
     await expect(page.getByRole('heading', { level: 2, name: 'Formation' })).toBeVisible();
     await expect(page.getByText('Coding Academy by Epitech Paris')).toBeVisible();
+
+    await cards.filter({ hasText: 'Weborama' }).click();
+    await expect(page).toHaveURL('/experience/weborama');
+    await expect(page).toHaveTitle('Weborama : contexte et missions | Brahim Nachate');
+    await expect(page.getByRole('heading', { level: 1, name: 'Weborama' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Contexte' })).toBeVisible();
+    await expect(page.getByRole('listitem').filter({ hasText: 'un Scrum Master' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Poste actuel : Développeur Full-Stack Vue.js / Java' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Développeur Vue.js' })).toBeVisible();
+
+    await page.getByRole('navigation', { name: "Fil d'Ariane" }).getByRole('link', { name: 'Expérience' }).click();
+    await expect(page).toHaveURL('/experience');
+  });
+
+  test('employer cards line up their names; a cut sector shows in full in a tooltip below (V3)', async ({ page }) => {
+    await page.goto('/experience');
+    const names = page.getByRole('region', { name: 'Entreprises' }).getByRole('heading', { level: 2 });
+    const tops = await names.evaluateAll((headings) => headings.map((h) => Math.round(h.getBoundingClientRect().top)));
+    expect(new Set(tops).size).toBe(1);
+
+    // "Legal Tech · Propriété intellectuelle" does not fit on one line of the Ipocamp card
+    const sector = page.getByRole('region', { name: 'Entreprises' }).getByText('Legal Tech · Propriété intellectuelle').first();
+    const tooltip = page.getByTestId('truncated-tag-tooltip');
+    await expect(tooltip).toBeHidden();
+    await sector.hover();
+    await expect(tooltip).toBeVisible();
+    await expect(tooltip).toHaveText('Legal Tech · Propriété intellectuelle');
+    const [tag, tip] = await Promise.all([sector.boundingBox(), tooltip.boundingBox()]);
+    expect(tip!.y).toBeGreaterThanOrEqual(tag!.y + tag!.height);
+    await page.keyboard.press('Escape');
+    await expect(tooltip).toBeHidden();
+  });
+
+  test('an unknown employer page answers 404 (V3)', async ({ page }) => {
+    expect((await page.goto('/experience/inconnue'))?.status()).toBe(404);
+    expect((await page.goto('/experience/..%2Fadmin'))?.status()).toBe(404);
   });
 
   // Case studies are switched off (CASE_STUDIES_ENABLED = false in app/config/content.ts).

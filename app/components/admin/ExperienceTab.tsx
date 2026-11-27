@@ -190,6 +190,7 @@ export function ExperienceTab() {
             error={formError}
             formData={formData}
             tags={tags}
+            companyNames={[...new Set(experiences.map((experience) => experience.company))].sort((a, b) => a.localeCompare(b, "fr"))}
             onFormChange={setFormData}
             onCreateTag={handleCreateTag}
             onSubmit={handleSubmit}

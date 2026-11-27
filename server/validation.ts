@@ -132,6 +132,18 @@ export const updateTagSchema = z
   .partial()
   .refine((tag) => tag.name !== undefined || tag.domainId !== undefined, 'Rien à modifier');
 
+/* ---------- Companies ---------- */
+
+// Created from the company name of a position; the admin edits them, all fields optional on update
+export const updateCompanySchema = z
+  .object({
+    name: shortText(200),
+    sector: optionalText(100),
+    websiteUrl: optionalHttpUrl,
+    context: optionalText(5000),
+  })
+  .partial();
+
 /* ---------- Skill domains ---------- */
 
 export const skillDomainSchema = z.object({ name: shortText(60) });

@@ -32,6 +32,8 @@ interface ExperienceDialogProps {
   error: string;
   formData: ExperienceFormData;
   tags: Tag[];
+  /** Existing employers, suggested in the company field so a typo does not create a duplicate */
+  companyNames?: string[];
   onFormChange: (nextFormData: ExperienceFormData) => void;
   onCreateTag: (name: string) => Promise<Tag>;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
@@ -47,6 +49,7 @@ export function ExperienceDialog({
   error,
   formData,
   tags,
+  companyNames = [],
   onFormChange,
   onCreateTag,
   onSubmit,
@@ -84,15 +87,22 @@ export function ExperienceDialog({
             />
           </Field>
 
-          <Field id="company" label="Entreprise">
+          <Field id="company" label="Entreprise" hint="Une entreprise existante, ou un nouveau nom : son contexte se rédige ensuite dans l'onglet Entreprises.">
             <Input
               id="company"
+              list="company-names"
+              autoComplete="off"
               value={formData.company}
               onChange={(e) => onFormChange({ ...formData, company: e.target.value })}
               maxLength={200}
               required
             />
           </Field>
+          <datalist id="company-names">
+            {companyNames.map((name) => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Field id="startDate" label="Date de début">

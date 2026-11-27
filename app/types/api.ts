@@ -44,12 +44,25 @@ export interface Project {
 export interface Experience {
   id: number;
   job: string;
-  company: string;
+  company: string; // name of the employer, typed freely in the admin
+  companyId: number;
+  companySlug: string; // URL segment of /experience/[slug]
   description: string;
   startDate: string; // YYYY-MM-DD
   endDate: string | null; // YYYY-MM-DD, null = current position
   position: number;
   tags: Tag[];
+}
+
+/** Employer edited in the admin "Entreprises" tab (created by typing its name on a position). */
+export interface Company {
+  id: number;
+  name: string;
+  slug: string;
+  sector: string | null;
+  websiteUrl: string | null;
+  context: string | null;
+  experienceCount: number;
 }
 
 export type ContactStatus = 'new' | 'read' | 'done';

@@ -9,26 +9,28 @@ import Home from '@/app/page';
 import ProjectsPage from '@/app/projets/page';
 import ProjectPage from '@/app/projets/[id]/page';
 import ExperiencePage from '@/app/experience/page';
+import EmployerPage from '@/app/experience/[slug]/page';
 import SkillsPage from '@/app/competences/page';
 import ContactPage from '@/app/contact/page';
 import sitemap from '@/app/sitemap';
 import { LOREM } from '@/app/config/content';
 import { getPublicHero } from '@/server/services/hero';
 import { findProject, listProjects } from '@/server/services/projects';
-import { listExperiences } from '@/server/services/experiences';
+import { findEmployer, listEmployers, listExperiences, type EmployerDTO } from '@/server/services/experiences';
 import { listTags } from '@/server/services/tags';
 import { listSkillDomains } from '@/server/services/skill-domains';
-import { getContentDates, getProjectDates } from '@/server/services/sitemap';
+import { getContentDates, getEmployerDates, getProjectDates } from '@/server/services/sitemap';
 import type { Experience, Project, SkillDomain, TagWithDomain } from '@/app/types/api';
 
 // Pages are server components reading the database through these services
 vi.mock('@/server/services/hero', () => ({ getPublicHero: vi.fn() }));
 vi.mock('@/server/services/projects', () => ({ listProjects: vi.fn(), findProject: vi.fn() }));
-vi.mock('@/server/services/experiences', () => ({ listExperiences: vi.fn() }));
+vi.mock('@/server/services/experiences', () => ({ listExperiences: vi.fn(), listEmployers: vi.fn(), findEmployer: vi.fn() }));
 vi.mock('@/server/services/tags', () => ({ listTags: vi.fn() }));
 vi.mock('@/server/services/skill-domains', () => ({ listSkillDomains: vi.fn() }));
 vi.mock('@/server/services/sitemap', () => ({
-  getContentDates: vi.fn(async () => ({ hero: null, experiences: null, projects: null, tags: null, skillDomains: null })),
+  getContentDates: vi.fn(async () => ({ hero: null, experiences: null, companies: null, projects: null, tags: null, skillDomains: null })),
+  getEmployerDates: vi.fn(async () => [{ slug: 'weborama', updatedAt: new Date('2026-11-02T10:00:00Z') }]),
   getProjectDates: vi.fn(async () => [{ id: 7, updatedAt: new Date('2026-11-01T10:00:00Z') }]),
 }));
 vi.mock('next/navigation', () => ({
@@ -51,7 +53,7 @@ vi.mock('@/app/config/content', async (importOriginal) => ({
 
 const HERO = {
   title: 'Développeur Full-Stack',
-  subtitle: "7 ans d'expérience",
+  subtitle: "6 ans d'expérience",
   description: 'Bonjour',
   primaryButtonText: 'Me contacter',
   primaryButtonUrl: '/contact',
@@ -83,6 +85,8 @@ const EXPERIENCES: Experience[] = [
     id: 10,
     job: 'Développeur Full-Stack',
     company: 'Weborama',
+    companyId: 1,
+    companySlug: 'weborama',
     description: '• Conception des API\n• Revues de code',
     startDate: '2026-01-01',
     endDate: null,
@@ -93,11 +97,38 @@ const EXPERIENCES: Experience[] = [
     id: 11,
     job: 'Développeur React',
     company: 'Ipocamp',
+    companyId: 2,
+    companySlug: 'ipocamp',
     description: 'Applications React',
     startDate: '2021-04-01',
     endDate: '2023-01-01',
     position: 1,
     tags: [{ id: 2, name: 'React' }, { id: 3, name: 'Node.js' }],
+  },
+];
+
+const EMPLOYERS: EmployerDTO[] = [
+  {
+    id: 1,
+    name: 'Weborama',
+    slug: 'weborama',
+    sector: 'AdTech · Data marketing',
+    websiteUrl: 'https://www.weborama.com/',
+    context: "Weborama est une entreprise d’AdTech.\n\nRéférent Front-End au sein d’une équipe incluant :\n- un Scrum Master\n- 2 développeurs Front-End",
+    startDate: '2026-01-01',
+    endDate: null,
+    experiences: [EXPERIENCES[0]],
+  },
+  {
+    id: 2,
+    name: 'Ipocamp',
+    slug: 'ipocamp',
+    sector: null,
+    websiteUrl: null,
+    context: null,
+    startDate: '2021-04-01',
+    endDate: '2023-01-01',
+    experiences: [EXPERIENCES[1]],
   },
 ];
 
@@ -120,6 +151,8 @@ beforeEach(() => {
   vi.mocked(listProjects).mockResolvedValue([{ ...PROJECT }]);
   vi.mocked(findProject).mockResolvedValue({ ...PROJECT });
   vi.mocked(listExperiences).mockResolvedValue(EXPERIENCES.map((e) => ({ ...e })));
+  vi.mocked(listEmployers).mockResolvedValue(EMPLOYERS.map((e) => ({ ...e })));
+  vi.mocked(findEmployer).mockImplementation(async (slug) => EMPLOYERS.find((e) => e.slug === slug) ?? null);
   vi.mocked(listTags).mockResolvedValue(TAGS.map((t) => ({ ...t })));
   vi.mocked(listSkillDomains).mockResolvedValue(DOMAINS.map((d) => ({ ...d })));
 });
@@ -287,25 +320,28 @@ describe('sitemap', () => {
     const urls = async () => (await sitemap()).map((entry) => new URL(entry.url).pathname);
     expect(await urls()).toContain('/projets/7');
     flags.caseStudies = false;
-    expect(await urls()).toEqual(['/', '/projets', '/experience', '/competences', '/contact']);
+    expect(await urls()).toEqual(['/', '/projets', '/experience', '/competences', '/contact', '/experience/weborama']);
   });
 
   it('dates each page with the latest change of what it shows', async () => {
     const day = (d: number) => new Date(`2026-11-${String(d).padStart(2, '0')}T10:00:00Z`);
-    vi.mocked(getContentDates).mockResolvedValueOnce({ hero: day(1), experiences: day(5), projects: day(3), tags: day(2), skillDomains: day(9) });
+    vi.mocked(getContentDates).mockResolvedValueOnce({ hero: day(1), experiences: day(5), companies: day(6), projects: day(3), tags: day(2), skillDomains: day(9) });
     const entries = await sitemap();
     const lastmod = (path: string) => entries.find((e) => new URL(e.url).pathname === path)?.lastModified;
     expect(lastmod('/')).toEqual(day(9));
     expect(lastmod('/projets')).toEqual(day(3));
-    expect(lastmod('/experience')).toEqual(day(5));
+    // Cards: companies and positions, no tags any more
+    expect(lastmod('/experience')).toEqual(day(6));
     expect(lastmod('/competences')).toEqual(day(9));
     expect(lastmod('/contact')).toBeUndefined();
     expect(lastmod('/projets/7')).toEqual(new Date('2026-11-01T10:00:00Z'));
+    expect(lastmod('/experience/weborama')).toEqual(new Date('2026-11-02T10:00:00Z'));
   });
 
   it('still lists every page, without dates, when the database fails', async () => {
     vi.mocked(getContentDates).mockRejectedValueOnce(new Error('down'));
     vi.mocked(getProjectDates).mockRejectedValueOnce(new Error('down'));
+    vi.mocked(getEmployerDates).mockRejectedValueOnce(new Error('down'));
     const entries = await sitemap();
     expect(entries.map((e) => new URL(e.url).pathname)).toEqual(['/', '/projets', '/experience', '/competences', '/contact']);
     expect(entries.every((e) => e.lastModified === undefined)).toBe(true);
@@ -313,13 +349,63 @@ describe('sitemap', () => {
 });
 
 describe('Experience page', () => {
-  it('shows the timeline with the current position, bullet points and education', async () => {
+  it('shows one card per employer, leading to its page, then the education', async () => {
     render(await ExperiencePage());
-    expect(screen.getByRole('heading', { level: 2, name: 'Poste actuel : Développeur Full-Stack' })).toBeInTheDocument();
-    expect(screen.getByText('Revues de code').tagName).toBe('LI');
-    expect(screen.getByText('Avr. 2021 - Janv. 2023')).toBeInTheDocument();
+    const cards = within(screen.getByRole('region', { name: 'Entreprises' })).getAllByRole('link');
+    expect(cards.map((card) => card.getAttribute('href'))).toEqual(['/experience/weborama', '/experience/ipocamp']);
+    expect(within(cards[0]).getByRole('heading', { level: 2, name: 'Weborama' })).toBeInTheDocument();
+    expect(cards[0]).toHaveTextContent('AdTech · Data marketing');
+    expect(cards[0]).toHaveTextContent('En poste');
+    expect(cards[0]).toHaveTextContent('Développeur Full-Stack');
+    expect(cards[1]).toHaveTextContent('Avr. 2021 - Janv. 2023');
+    expect(cards[1]).not.toHaveTextContent('En poste');
+    // The missions are on the employer page, not on the list
+    expect(screen.queryByText('Revues de code')).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'Formation' })).toBeInTheDocument();
     expect(screen.getByText('Coding Academy by Epitech Paris')).toBeInTheDocument();
+  });
+
+  it('says the timeline is coming when there is no position yet', async () => {
+    vi.mocked(listEmployers).mockResolvedValue([]);
+    render(await ExperiencePage());
+    expect(screen.getByText('Le parcours arrive bientôt.')).toBeInTheDocument();
+  });
+});
+
+describe('Employer page', () => {
+  const page = (slug: string) => EmployerPage({ params: Promise.resolve({ slug }) });
+
+  it('shows the context, then each position with its missions and technologies', async () => {
+    render(await page('weborama'));
+    expect(screen.getByRole('heading', { level: 1, name: 'Weborama' })).toBeInTheDocument();
+    expect(screen.getByText('AdTech · Data marketing')).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: "Fil d'Ariane" })).toHaveTextContent('Expérience/Weborama');
+    // Context: paragraphs and the team as a list
+    expect(screen.getByRole('heading', { level: 2, name: 'Contexte' })).toBeInTheDocument();
+    expect(screen.getByText('Weborama est une entreprise d’AdTech.').tagName).toBe('P');
+    expect(screen.getByText('un Scrum Master').tagName).toBe('LI');
+    // Position
+    expect(screen.getByRole('heading', { level: 2, name: 'Poste actuel : Développeur Full-Stack' })).toBeInTheDocument();
+    expect(screen.getByText('Revues de code').tagName).toBe('LI');
+    expect(screen.getByRole('list', { name: 'Technologies : Développeur Full-Stack' })).toHaveTextContent('Vue.js');
+    const site = screen.getByRole('link', { name: 'weborama.com' });
+    expect(site).toHaveAttribute('href', 'https://www.weborama.com/');
+    expect(site).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('leaves out the context and the website when they are not written yet', async () => {
+    render(await page('ipocamp'));
+    expect(screen.queryByRole('heading', { level: 2, name: 'Contexte' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Site')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Développeur React' })).toBeInTheDocument();
+  });
+
+  it('answers 404 for an unknown or malformed slug, without querying malformed ones', async () => {
+    await expect(page('inconnue')).rejects.toThrow('NEXT_NOT_FOUND');
+    vi.mocked(findEmployer).mockClear();
+    await expect(page('../admin')).rejects.toThrow('NEXT_NOT_FOUND');
+    await expect(page('Weborama')).rejects.toThrow('NEXT_NOT_FOUND');
+    expect(findEmployer).not.toHaveBeenCalled();
   });
 });
 
