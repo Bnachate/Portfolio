@@ -62,7 +62,7 @@ const HERO = {
   githubUrl: 'https://github.com/someone',
   linkedinUrl: 'https://www.linkedin.com/in/someone/',
   availabilityEnabled: true,
-  availabilityText: 'Ouvert aux opportunités, Paris',
+  availabilityText: 'Ouvert aux opportunités, Île-de-France',
 };
 
 // Display order comes from the database: "API et données" first here

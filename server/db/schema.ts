@@ -150,7 +150,7 @@ export const hero = pgTable('hero', {
   email: text('email').notNull(),
   // Availability indicator above the hero title (amber dot + short sentence)
   availabilityEnabled: boolean('availability_enabled').notNull().default(true),
-  availabilityText: text('availability_text').notNull().default('Ouvert aux opportunités, Paris'),
+  availabilityText: text('availability_text').notNull().default('Ouvert aux opportunités, Île-de-France'),
   ...timestamps,
 });
 

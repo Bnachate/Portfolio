@@ -65,13 +65,13 @@ export default async function Home() {
             </div>
 
             <div className="flex w-full min-w-0 max-w-[340px] flex-[0_1_340px] flex-col gap-5">
-              {/* eslint-disable-next-line @next/next/no-img-element -- static profile photo, already small */}
+              {/* eslint-disable-next-line @next/next/no-img-element -- static profile photo, already small (680 x 850, white background) */}
               <img
                 src="/my_photo.jpeg"
                 alt="Photo de profil de Brahim Nachate"
                 width={340}
                 height={425}
-                className="aspect-[4/5] w-full rounded-2xl border border-ink-rule bg-night object-cover"
+                className="aspect-[4/5] w-full rounded-2xl border border-ink-rule bg-white object-cover"
               />
               <dl className="flex flex-col font-display text-base">
                 {HERO_FACTS.map((fact, index) => (

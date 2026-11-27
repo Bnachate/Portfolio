@@ -262,7 +262,7 @@ test.describe('Admin - hero', () => {
 
     await page.goto('/');
     await expect(page.getByText('Sous-titre modifié par Playwright')).toBeVisible();
-    await expect(page.getByText('Ouvert aux opportunités, Paris')).toHaveCount(0);
+    await expect(page.getByText('Ouvert aux opportunités, Île-de-France')).toHaveCount(0);
 
     // Restore the original hero for the other specs
     await openTab(page, 'Hero');

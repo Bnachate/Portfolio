@@ -20,7 +20,7 @@ export const DEFAULT_HERO: HeroDTO = {
   linkedinUrl: 'https://www.linkedin.com/in/brahim-nachate/',
   email: 'nachate.brahim@gmail.com',
   availabilityEnabled: true,
-  availabilityText: 'Ouvert aux opportunités, Paris',
+  availabilityText: 'Ouvert aux opportunités, Île-de-France',
 };
 
 // Every column except technical ones
