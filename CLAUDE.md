@@ -56,6 +56,7 @@ Single Next.js 16 App Router project (React 19, Tailwind 4): public site, admin 
 - Forms check required fields with `.trim()` before calling the API: the HTML `required` attribute accepts whitespace-only values.
 - Never render user or admin content as HTML: no `dangerouslySetInnerHTML` except JSON-LD, serialized with `toInlineJson()` (`app/config/structured-data.ts`).
 - Security headers and CSP are in `next.config.ts` (PDFs are excluded from the CSP so the CV opens in the browser viewer).
+- Vercel Web Analytics (`app/components/site/SiteAnalytics.tsx`, rendered by `layout.tsx` only when `VERCEL=1`): cookieless page views, script and endpoint on the site's own origin (`/_vercel/insights/*`, allowed by the CSP as is); `/admin` and `/auth` page views are dropped in `beforeSend`. Enable "Web Analytics" in the Vercel project for data to be collected.
 
 ## Tests
 

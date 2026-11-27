@@ -29,6 +29,15 @@ test.describe('Public site (visitor)', () => {
     expect(errors.filter((text) => /Content Security Policy|Refused to/i.test(text))).toEqual([]);
   });
 
+  test('outside Vercel, no analytics script is loaded (S5)', async ({ page }) => {
+    const insights: string[] = [];
+    page.on('request', (request) => request.url().includes('/_vercel/insights') && insights.push(request.url()));
+    await page.goto('/');
+    await page.goto('/experience');
+    await expect(page.locator('script[src*="/_vercel/insights"]')).toHaveCount(0);
+    expect(insights).toEqual([]);
+  });
+
   test('every page has its title and the header marks it as current (V2)', async ({ page }) => {
     for (const { path, title, nav } of PAGES) {
       await page.goto(path);
