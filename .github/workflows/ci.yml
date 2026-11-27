@@ -16,7 +16,9 @@ permissions:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    # Pinned rather than ubuntu-latest: Playwright's --with-deps supports this release, and the
+    # 26.04 image broke `apt-get update` (its Microsoft package source answers 403, unsigned)
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5
@@ -42,7 +44,10 @@ jobs:
         run: npm run build
 
       - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
+        run: |
+          # A broken third-party apt source must not block the system packages Playwright needs
+          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list /etc/apt/sources.list.d/microsoft-prod.sources
+          npx playwright install --with-deps chromium
 
       # Starts its own server on port 3100 with a throwaway database (see playwright.config.ts)
       - name: End-to-end tests
