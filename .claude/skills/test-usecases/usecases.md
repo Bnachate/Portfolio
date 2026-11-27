@@ -155,3 +155,4 @@ Levels: API (Vitest + route handlers), Unit, UI (Testing Library, `tests/ui/`), 
 | S2 | Security headers and CSP on pages, no CSP on the CV PDF, no `X-Powered-By` | E2E | `e2e/public-site.spec.ts` | ✅ |
 | S3 | Production deploys apply migrations, previews never do | ⏭️ | Verified by the Vercel build logs (`Database migrations applied`); needs the Vercel environment | ⏭️ |
 | S4 | Connection to a real Postgres (`DATABASE_URL`) and the PGlite refusal on Vercel | ⏭️ | Needs a Postgres server; every query path runs on PGlite in tests and on Neon in production | ⏭️ |
+| S5 | Vercel Web Analytics counts public page views only (admin and login pages dropped, whole path segments); outside Vercel no analytics script is loaded and no request is sent. Counting on Vercel itself is checked by the production smoke check | Unit, UI, E2E | `tests/analytics.test.ts`, `tests/ui/site-analytics.test.tsx` (script served by the site itself), `e2e/public-site.spec.ts` | ✅ |

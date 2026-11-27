@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Familjen_Grotesk, JetBrains_Mono, Source_Serif_4 } from "next/font/google";
 import "./assets/css/globals.css";
 import { SITE, getSiteUrl } from "./config/site";
+import { SiteAnalytics } from "./components/site/SiteAnalytics";
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -45,6 +46,8 @@ export default function RootLayout({
     <html lang="fr" className={`${familjen.variable} ${sourceSerif.variable} ${jetbrains.variable}`}>
       <body>
         {children}
+        {/* The analytics script only exists on Vercel: elsewhere (local, CI, E2E) it would answer 404 */}
+        {process.env.VERCEL === "1" && <SiteAnalytics />}
       </body>
     </html>
   );
