@@ -3,6 +3,7 @@ import { Familjen_Grotesk, JetBrains_Mono, Source_Serif_4 } from "next/font/goog
 import "./assets/css/globals.css";
 import { SITE, getSiteUrl } from "./config/site";
 import { SiteAnalytics } from "./components/site/SiteAnalytics";
+import type { JSX } from "react";
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -41,7 +42,7 @@ export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) {
+}>): JSX.Element {
   return (
     <html lang="fr" className={`${familjen.variable} ${sourceSerif.variable} ${jetbrains.variable}`}>
       <body>

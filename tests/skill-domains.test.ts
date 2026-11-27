@@ -76,7 +76,7 @@ describe('skill domains', () => {
   });
 
   it('refuses every write to visitors', async () => {
-    const [first] = await list();
+    const first = (await list())[0]!;
     await actAs('visitor');
     const params = { id: String(first.id) };
     expect((await create('Pirate')).status).toBe(401);

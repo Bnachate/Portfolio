@@ -16,4 +16,4 @@ const fieldSizes: Record<FieldSize, string> = {
   lg: "min-h-12 text-[17px]",
 };
 
-export const fieldClass = (size: FieldSize = "md", className?: string) => cn(fieldBase, fieldSizes[size], className);
+export const fieldClass = (size: FieldSize = "md", className?: string): string => cn(fieldBase, fieldSizes[size], className);

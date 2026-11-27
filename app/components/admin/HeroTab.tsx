@@ -13,11 +13,14 @@ import { getHero, saveHero } from "@/app/services/admin/hero.service";
 import { getErrorMessage } from "@/app/config/api.config";
 import type { Hero } from "@/app/types/api";
 import { useReadOnly } from "@/app/admin/ReadOnlyContext";
+import type { JSX } from "react";
 
 type TextField = Exclude<keyof Hero, "availabilityEnabled">;
 
 // Every text field is required (same labels as the form)
-const REQUIRED_FIELDS: { field: TextField; label: string }[] = [
+type RequiredField = { field: TextField; label: string };
+
+const REQUIRED_FIELDS: RequiredField[] = [
   { field: "title", label: "Titre principal" },
   { field: "subtitle", label: "Sous-titre" },
   { field: "description", label: "Description" },
@@ -31,7 +34,7 @@ const REQUIRED_FIELDS: { field: TextField; label: string }[] = [
   { field: "email", label: "E-mail de contact" },
 ];
 
-export function HeroTab() {
+export function HeroTab(): JSX.Element {
   const readOnly = useReadOnly();
   // Last saved version, used by "Annuler les modifications"
   const [savedData, setSavedData] = useState<Hero | null>(null);
@@ -42,11 +45,11 @@ export function HeroTab() {
 
   useEffect(() => {
     getHero()
-      .then((hero) => {
+      .then((hero: Hero) => {
         setSavedData(hero);
         setFormData(hero);
       })
-      .catch((err) => setError(getErrorMessage(err, "Impossible de charger la section Hero")));
+      .catch((err: unknown) => setError(getErrorMessage(err, "Impossible de charger la section Hero")));
   }, []);
 
   if (!formData) {
@@ -57,16 +60,16 @@ export function HeroTab() {
     );
   }
 
-  const update = (field: TextField) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const update = (field: TextField) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     setIsSaved(false);
     setFormData({ ...formData, [field]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (readOnly) return;
     // `required` lets whitespace-only values through: check them before calling the API
-    const blank = REQUIRED_FIELDS.find(({ field }) => !formData[field]?.trim());
+    const blank = REQUIRED_FIELDS.find(({ field }: RequiredField) => !formData[field]?.trim());
     if (blank) {
       setError(`Champ requis : ${blank.label}`);
       return;
@@ -85,7 +88,7 @@ export function HeroTab() {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = (): void => {
     if (savedData && confirm("Annuler les modifications non enregistrées ?")) {
       setFormData(savedData);
     }
@@ -134,7 +137,7 @@ export function HeroTab() {
                 label="Afficher le voyant de disponibilité"
                 description="Un point ambre et une courte phrase au-dessus du titre."
                 checked={formData.availabilityEnabled}
-                onChange={(checked) => {
+                onChange={(checked: boolean) => {
                   setIsSaved(false);
                   setFormData({ ...formData, availabilityEnabled: checked });
                 }}

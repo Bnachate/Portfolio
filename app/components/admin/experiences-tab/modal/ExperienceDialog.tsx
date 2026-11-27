@@ -10,6 +10,7 @@ import { MultiSelectTags } from "@/app/components/admin/common/MultiSelectTags";
 import { ErrorBanner } from "@/app/components/common/ErrorBanner";
 import { Textarea } from "@/app/components/common/textarea";
 import type { Tag } from "@/app/types/api";
+import type { ChangeEvent, JSX } from "react";
 
 const DESCRIPTION_MAX_LENGTH = 2000;
 
@@ -54,7 +55,7 @@ export function ExperienceDialog({
   onCreateTag,
   onSubmit,
   onReset,
-}: ExperienceDialogProps) {
+}: ExperienceDialogProps): JSX.Element {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
@@ -81,7 +82,7 @@ export function ExperienceDialog({
             <Input
               id="job"
               value={formData.job}
-              onChange={(e) => onFormChange({ ...formData, job: e.target.value })}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => onFormChange({ ...formData, job: e.target.value })}
               maxLength={200}
               required
             />
@@ -93,13 +94,13 @@ export function ExperienceDialog({
               list="company-names"
               autoComplete="off"
               value={formData.company}
-              onChange={(e) => onFormChange({ ...formData, company: e.target.value })}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => onFormChange({ ...formData, company: e.target.value })}
               maxLength={200}
               required
             />
           </Field>
           <datalist id="company-names">
-            {companyNames.map((name) => (
+            {companyNames.map((name: string) => (
               <option key={name} value={name} />
             ))}
           </datalist>
@@ -109,7 +110,7 @@ export function ExperienceDialog({
               <DatePicker
                 id="startDate"
                 value={formData.startDate}
-                onChange={(value) => onFormChange({ ...formData, startDate: value })}
+                onChange={(value: string) => onFormChange({ ...formData, startDate: value })}
                 required
               />
             </Field>
@@ -119,7 +120,7 @@ export function ExperienceDialog({
                 id="endDate"
                 value={formData.endDate ?? ""}
                 min={formData.startDate || undefined}
-                onChange={(value) => onFormChange({ ...formData, endDate: value || null })}
+                onChange={(value: string) => onFormChange({ ...formData, endDate: value || null })}
               />
             </Field>
           </div>
@@ -129,7 +130,7 @@ export function ExperienceDialog({
               id="tags"
               options={tags}
               selectedValues={formData.tags}
-              onChange={(nextTags) => onFormChange({ ...formData, tags: nextTags })}
+              onChange={(nextTags: Tag[]) => onFormChange({ ...formData, tags: nextTags })}
               onCreate={onCreateTag}
             />
           </Field>
@@ -149,7 +150,7 @@ export function ExperienceDialog({
               rows={4}
               className="field-sizing-fixed whitespace-pre-wrap wrap-break-word"
               value={formData.description}
-              onChange={(e) => onFormChange({ ...formData, description: e.target.value })}
+              onChange={(e: ChangeEvent<HTMLTextAreaElement>) => onFormChange({ ...formData, description: e.target.value })}
               maxLength={DESCRIPTION_MAX_LENGTH}
               required
             />

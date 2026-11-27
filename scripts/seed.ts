@@ -1,5 +1,6 @@
 import { count } from 'drizzle-orm';
-import { closeDb, db } from '../server/db';
+import { closeDb, db, type Transaction } from '../server/db';
+import { onlyRow } from '../server/db/rows';
 import { experiences } from '../server/db/schema';
 import { insertExperiences, saveCvHero } from './content';
 
@@ -9,14 +10,14 @@ import { insertExperiences, saveCvHero } from './content';
  * To overwrite existing content, use `npm run content:sync` instead.
  * Usage: npm run db:seed
  */
-async function main() {
-  const [{ value: existing }] = await db.select({ value: count() }).from(experiences);
+async function main(): Promise<void> {
+  const { value: existing } = onlyRow(await db.select({ value: count() }).from(experiences), 'count experiences');
   if (existing > 0) {
     console.log('Database already has experiences, skipping seed (use content:sync to overwrite)');
     return;
   }
 
-  const seeded = await db.transaction(async (tx) => {
+  const seeded = await db.transaction(async (tx: Transaction) => {
     const result = await insertExperiences(tx);
     await saveCvHero(tx, { overwrite: false });
     return result;
@@ -26,7 +27,7 @@ async function main() {
 }
 
 main()
-  .catch((error) => {
+  .catch((error: unknown) => {
     console.error(error);
     process.exitCode = 1;
   })

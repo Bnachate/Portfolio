@@ -20,7 +20,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-const sentBody = () => JSON.parse(fetchMock.mock.calls[0][1].body);
+const sentBody = () => JSON.parse(fetchMock.mock.calls[0]![1].body);
 
 describe('contact notification', () => {
   it('does nothing without a Resend API key', async () => {
@@ -33,7 +33,7 @@ describe('contact notification', () => {
     await notifyNewContact(contact);
 
     expect(fetchMock).toHaveBeenCalledOnce();
-    const [url, init] = fetchMock.mock.calls[0];
+    const [url, init] = fetchMock.mock.calls[0]!;
     expect(url).toBe('https://api.resend.com/emails');
     expect(init.headers.Authorization).toBe('Bearer re_test');
     expect(sentBody()).toMatchObject({ to: DEFAULT_HERO.email, reply_to: contact.email });

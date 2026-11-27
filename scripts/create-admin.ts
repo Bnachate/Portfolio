@@ -6,7 +6,7 @@ import { upsertAdmin } from '../server/services/users';
  * Usage: ADMIN_PASSWORD='...' npm run admin:create -- you@example.com "Your Name"
  * (The password is read from the environment so it does not end up in shell history.)
  */
-async function main() {
+async function main(): Promise<void> {
   const [email, name = 'Admin'] = process.argv.slice(2);
   const password = process.env.ADMIN_PASSWORD;
 
@@ -22,7 +22,7 @@ async function main() {
 }
 
 main()
-  .catch((error) => {
+  .catch((error: unknown) => {
     console.error(error instanceof Error ? error.message : error);
     process.exitCode = 1;
   })

@@ -69,14 +69,14 @@ function getConnection(): Connection {
 
 // Lazy proxy so that importing this module never opens a connection by itself
 export const db = new Proxy({} as Database, {
-  get(_target, prop) {
+  get(_target: Database, prop: string | symbol): unknown {
     const real = getConnection().db as unknown as Record<string | symbol, unknown>;
     const value = real[prop];
     return typeof value === 'function' ? value.bind(real) : value;
   },
 });
 
-export async function runMigrations() {
+export async function runMigrations(): Promise<void> {
   const conn = getConnection();
   if (conn.kind === 'pglite') {
     await migratePglite(conn.db as unknown as Parameters<typeof migratePglite>[0], {
@@ -87,7 +87,7 @@ export async function runMigrations() {
   }
 }
 
-export async function closeDb() {
+export async function closeDb(): Promise<void> {
   if (globalForDb.__portfolioDb) {
     await globalForDb.__portfolioDb.close();
     globalForDb.__portfolioDb = undefined;

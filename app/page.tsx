@@ -4,7 +4,7 @@ import { listExperiences } from "@/server/services/experiences";
 import { listTags } from "@/server/services/tags";
 import { listSkillDomains } from "@/server/services/skill-domains";
 import { personJsonLd } from "./config/structured-data";
-import { HERO_FACTS, PROFILE, TILE_TEXTS } from "./config/content";
+import { HERO_FACTS, PROFILE, TILE_TEXTS, type HeroFact } from "./config/content";
 import { SiteHeader } from "./components/site/SiteHeader";
 import { SiteFooter } from "./components/site/SiteFooter";
 import { ArrowIcon, Container, Section, TileLink, gutter } from "./components/site/ui";
@@ -13,16 +13,21 @@ import { TextLink } from "./components/common/AppLink";
 import { Tag, TagList } from "./components/common/Tag";
 import { buildSkillGroups, currentExperience, experienceSummary, toBulletPoints } from "./components/site/data";
 import { formatPeriod } from "./components/experience/format";
+import type { JSX } from "react";
+import type { TagDTO } from "@/server/services/tags";
+
+// Entry tiles towards the dedicated pages
+type Tile = { href: string; title: string; meta: string; text: string };
 
 // Content is edited from the admin: always render with fresh data
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
+export default async function Home(): Promise<JSX.Element> {
   const [hero, projects, experiences, tags, domains] = await Promise.all([getPublicHero(), listProjects(), listExperiences(), listTags(), listSkillDomains()]);
   const latest = currentExperience(experiences);
   const domainCount = buildSkillGroups(domains, tags, experiences, projects).length;
 
-  const tiles = [
+  const tiles: Tile[] = [
     {
       href: "/projets",
       title: "Projets",
@@ -74,7 +79,7 @@ export default async function Home() {
                 className="aspect-[4/5] w-full rounded-2xl border border-ink-rule bg-white object-cover"
               />
               <dl className="flex flex-col font-display text-base">
-                {HERO_FACTS.map((fact, index) => (
+                {HERO_FACTS.map((fact: HeroFact, index: number) => (
                   <div
                     key={fact.label}
                     className={`flex justify-between gap-4 border-t border-ink-rule py-3 ${index === HERO_FACTS.length - 1 ? "border-b" : ""}`}
@@ -99,7 +104,7 @@ export default async function Home() {
         {/* Entry tiles towards the dedicated pages */}
         <Section className="pt-[72px]" aria-label="Pages du portfolio">
           <ul className="flex flex-wrap gap-5">
-            {tiles.map((tile) => (
+            {tiles.map((tile: Tile) => (
               <li key={tile.href} className="flex min-w-0 flex-[1_1_320px]">
                 <TileLink href={tile.href} className="group flex min-h-[280px] w-full flex-col justify-between gap-8 p-8">
                   <span className="flex flex-col gap-3.5">
@@ -121,7 +126,7 @@ export default async function Home() {
               {PROFILE.title}
             </h2>
             <div className="flex min-w-0 max-w-[64ch] flex-[1.6_1_480px] flex-col gap-5 text-[19px] leading-[1.7] text-slate">
-              {PROFILE.paragraphs.map((paragraph) => (
+              {PROFILE.paragraphs.map((paragraph: string) => (
                 <p key={paragraph.slice(0, 24)}>{paragraph}</p>
               ))}
               <TextLink variant="underline" href="/experience">
@@ -143,7 +148,7 @@ export default async function Home() {
                 <p className="max-w-[60ch] text-lg leading-[1.65] text-slate">{toBulletPoints(latest.description)[0]}</p>
                 <div className="pt-1">
                   {/* White tags on mist, as in the design */}
-                  <TagList names={latest.tags.slice(0, 8).map((tag) => tag.name)} label={`Technologies chez ${latest.company}`} variant="onMist" />
+                  <TagList names={latest.tags.slice(0, 8).map((tag: TagDTO) => tag.name)} label={`Technologies chez ${latest.company}`} variant="onMist" />
                 </div>
               </div>
               <ButtonLink variant="primary" size="lg" href="/experience">

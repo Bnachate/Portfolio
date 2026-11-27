@@ -1,8 +1,11 @@
-import { MessageSquareText, Mail, ShieldCheck } from "lucide-react";
+import { MessageSquareText, Mail, ShieldCheck, type LucideIcon } from "lucide-react";
+import type { JSX } from "react";
 
 // No email or phone number here on purpose: visitors reach out through the form,
 // so personal contact details are never exposed to scrapers
-const STEPS = [
+type Step = { icon: LucideIcon; title: string; text: string };
+
+const STEPS: Step[] = [
   {
     icon: MessageSquareText,
     title: "Écrivez-moi via le formulaire",
@@ -20,7 +23,7 @@ const STEPS = [
   },
 ];
 
-export function ContactInfo() {
+export function ContactInfo(): JSX.Element {
   return (
     <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-8 py-2">
       <div>
@@ -32,7 +35,7 @@ export function ContactInfo() {
       </div>
 
       <ol className="flex flex-col gap-7">
-        {STEPS.map(({ icon: Icon, title, text }) => (
+        {STEPS.map(({ icon: Icon, title, text }: Step) => (
           <li key={title} className="flex items-start gap-4">
             <div className="shrink-0 rounded-lg bg-mint p-3 text-on-ink">
               <Icon size={22} aria-hidden="true" />

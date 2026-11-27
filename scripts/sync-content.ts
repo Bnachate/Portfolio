@@ -1,4 +1,4 @@
-import { closeDb, db } from '../server/db';
+import { closeDb, db, type Transaction } from '../server/db';
 import { experiences } from '../server/db/schema';
 import { insertExperiences, saveCvHero } from './content';
 
@@ -8,8 +8,8 @@ import { insertExperiences, saveCvHero } from './content';
  * Everything runs in one transaction: on error, nothing is changed.
  * Usage: npm run content:sync
  */
-async function main() {
-  const synced = await db.transaction(async (tx) => {
+async function main(): Promise<void> {
+  const synced = await db.transaction(async (tx: Transaction) => {
     // Links to tags are removed by the ON DELETE CASCADE on experience_tags
     await tx.delete(experiences);
     const result = await insertExperiences(tx);
@@ -21,7 +21,7 @@ async function main() {
 }
 
 main()
-  .catch((error) => {
+  .catch((error: unknown) => {
     console.error(error);
     process.exitCode = 1;
   })

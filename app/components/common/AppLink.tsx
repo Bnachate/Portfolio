@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ComponentProps } from "react";
 import { cn } from "./utils";
+import type { JSX } from "react";
 
 type AppLinkProps = Omit<ComponentProps<"a">, "href"> & {
   href: string;
@@ -11,13 +12,13 @@ type AppLinkProps = Omit<ComponentProps<"a">, "href"> & {
 // Absolute URLs, mailto:, tel: and files are not Next.js routes: render a plain <a> for them.
 // Only known file extensions count as files, so a route such as /projets/v2.0 keeps client navigation.
 const FILE_EXTENSION = /\.(pdf|txt|xml|json|csv|zip|png|jpe?g|gif|webp|svg|ico|docx?)$/i;
-const isPlainHref = (href: string) => /^([a-z][a-z\d+.-]*:|\/\/)/i.test(href) || FILE_EXTENSION.test(href.split(/[?#]/)[0]);
+const isPlainHref = (href: string): boolean => /^([a-z][a-z\d+.-]*:|\/\/)/i.test(href) || FILE_EXTENSION.test(href.split(/[?#]/)[0] ?? href);
 
 /**
  * Link that picks the right element: Next.js `Link` for internal routes (client navigation),
  * a plain `<a>` for external URLs, mailto: links and files such as the CV PDF.
  */
-export function AppLink({ href, newTab = false, ...props }: AppLinkProps) {
+export function AppLink({ href, newTab = false, ...props }: AppLinkProps): JSX.Element {
   const tabProps = newTab ? { target: "_blank", rel: "noopener noreferrer" } : {};
   return isPlainHref(href) ? <a href={href} {...tabProps} {...props} /> : <Link href={href} {...tabProps} {...props} />;
 }
@@ -34,8 +35,8 @@ const textLinkStyles: Record<TextLinkVariant, string> = {
 };
 
 /** Class names of a text link, for elements that cannot be a `TextLink`. */
-export const textLinkClass = (variant: TextLinkVariant = "inline", className?: string) => cn(textLinkStyles[variant], className);
+export const textLinkClass = (variant: TextLinkVariant = "inline", className?: string): string => cn(textLinkStyles[variant], className);
 
-export function TextLink({ variant = "inline", className, ...props }: ComponentProps<typeof AppLink> & { variant?: TextLinkVariant }) {
+export function TextLink({ variant = "inline", className, ...props }: ComponentProps<typeof AppLink> & { variant?: TextLinkVariant }): JSX.Element {
   return <AppLink className={textLinkClass(variant, className)} {...props} />;
 }

@@ -67,7 +67,7 @@ describe('TagsTab (admin)', () => {
     await user.click(screen.getByRole('button', { name: 'Ajouter' }));
 
     expect(service.createTag).toHaveBeenCalledWith('Go', 3);
-    const names = screen.getAllByRole('row').slice(1).map((r) => within(r).getAllByRole('cell')[0].textContent);
+    const names = screen.getAllByRole('row').slice(1).map((r) => within(r).getAllByRole('cell')[0]!.textContent);
     expect(names).toEqual(['Go', 'React', 'Svelte', 'Vue.js']);
     expect(screen.getByLabelText('Nom du nouveau tag')).toHaveValue('');
   });

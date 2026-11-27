@@ -4,7 +4,7 @@ import { z } from 'zod';
 // and browsers silently strip tabs / line breaks from URLs (turning "/<tab>/evil" into "//evil")
 const CONTROL_CHARS = /[\u0000-\u001f\u007f]/;
 const CONTROL_CHARS_EXCEPT_LINE_BREAKS = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/;
-const noControlChars = (value: string) => !CONTROL_CHARS.test(value);
+const noControlChars = (value: string): boolean => !CONTROL_CHARS.test(value);
 
 // Only http(s) links are accepted, so stored URLs can never be `javascript:` payloads
 const httpUrl = z
@@ -15,7 +15,7 @@ const httpUrl = z
 const optionalHttpUrl = z
   .union([httpUrl, z.literal('')])
   .nullish()
-  .transform((value) => value || null);
+  .transform((value: string | null | undefined) => value || null);
 
 // In-page anchors (#contact), relative paths (/cv.pdf) or http(s) URLs.
 // "/\evil.com" is refused: browsers read a leading "/\" as "//", i.e. another site.
@@ -31,23 +31,24 @@ const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date attendue au format
 const tagIds = z.array(z.number().int().positive()).max(50);
 const position = z.number().int().min(0).max(10_000);
 // Required text, trimmed. Line breaks and tabs are allowed (descriptions, messages), other control characters are not.
-const shortText = (max: number) =>
+const shortText = (max: number): z.ZodString =>
   z
     .string({ error: 'Champ requis' })
     .trim()
     .min(1, 'Champ requis')
     .max(max, `${max} caractères maximum`)
-    .refine((value) => !CONTROL_CHARS_EXCEPT_LINE_BREAKS.test(value), 'Caractères invalides');
+    .refine((value: string) => !CONTROL_CHARS_EXCEPT_LINE_BREAKS.test(value), 'Caractères invalides');
 
 // Optional text (case study fields...): trimmed, empty or missing -> null
-const optionalText = (max: number) =>
+type OptionalTextSchema = z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string | null, string | null | undefined>>;
+const optionalText = (max: number): OptionalTextSchema =>
   z
     .string()
     .trim()
     .max(max, `${max} caractères maximum`)
-    .refine((value) => !CONTROL_CHARS_EXCEPT_LINE_BREAKS.test(value), 'Caractères invalides')
+    .refine((value: string) => !CONTROL_CHARS_EXCEPT_LINE_BREAKS.test(value), 'Caractères invalides')
     .nullish()
-    .transform((value) => value || null);
+    .transform((value: string | null | undefined) => value || null);
 
 /* ---------- Ordering ---------- */
 
@@ -57,7 +58,7 @@ export const reorderSchema = z.object({
     .array(z.number().int().positive())
     .min(1)
     .max(500)
-    .refine((ids) => new Set(ids).size === ids.length, 'Identifiants en double'),
+    .refine((ids: number[]) => new Set(ids).size === ids.length, 'Identifiants en double'),
 });
 
 /* ---------- Auth ---------- */
@@ -101,7 +102,7 @@ const experienceFields = {
   company: shortText(200),
   description: shortText(5000),
   startDate: isoDate,
-  endDate: isoDate.nullish().transform((value) => value ?? null),
+  endDate: isoDate.nullish().transform((value: string | null | undefined) => value ?? null),
   position,
   tags: tagIds,
 };
@@ -112,7 +113,7 @@ export const createExperienceSchema = z
     position: position.optional(),
     tags: tagIds.optional(),
   })
-  .refine((e) => !e.endDate || e.endDate >= e.startDate, {
+  .refine((e: { startDate: string; endDate: string | null }) => !e.endDate || e.endDate >= e.startDate, {
     message: 'La date de fin doit être après la date de début',
     path: ['endDate'],
   });
@@ -124,13 +125,13 @@ export const updateExperienceSchema = z.object(experienceFields).partial();
 // Id of a skill domain; null = "Autres". Existence is checked by the service.
 const domainId = z.number({ error: 'Domaine inconnu' }).int().positive().nullable();
 
-export const tagSchema = z.object({ name: shortText(50), domainId: domainId.optional().transform((value) => value ?? null) });
+export const tagSchema = z.object({ name: shortText(50), domainId: domainId.optional().transform((value: number | null | undefined) => value ?? null) });
 
 // Rename and / or change the domain
 export const updateTagSchema = z
   .object({ name: shortText(50), domainId })
   .partial()
-  .refine((tag) => tag.name !== undefined || tag.domainId !== undefined, 'Rien à modifier');
+  .refine((tag: { name?: string | undefined; domainId?: number | null | undefined }) => tag.name !== undefined || tag.domainId !== undefined, 'Rien à modifier');
 
 /* ---------- Companies ---------- */
 

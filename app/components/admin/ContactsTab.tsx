@@ -10,6 +10,7 @@ import { AdminPanel, InlineDeleteConfirm } from "./common/AdminUi";
 import { getContacts, updateContactStatus, deleteContact } from "@/app/services/admin/contacts.service";
 import { getErrorMessage } from "@/app/config/api.config";
 import type { ContactMessage, ContactStatus } from "@/app/types/api";
+import type { JSX } from "react";
 
 type Filter = "all" | "unread";
 
@@ -19,13 +20,13 @@ const STATUS_LABELS: Record<ContactStatus, { label: string; tone: "warning" | "m
   done: { label: "Traité", tone: "current" },
 };
 
-const formatDate = (value: string) => new Date(value).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+const formatDate = (value: string): string => new Date(value).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 
 /**
  * Inbox in two columns: the list (with an "unread" filter) and the open message.
  * `onUnreadCountChange` keeps the badge of the Messages tab up to date.
  */
-export function ContactsTab({ onUnreadCountChange }: { onUnreadCountChange?: (count: number) => void }) {
+export function ContactsTab({ onUnreadCountChange }: { onUnreadCountChange?: (count: number) => void }): JSX.Element {
   const [contacts, setContacts] = useState<ContactMessage[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
@@ -37,25 +38,25 @@ export function ContactsTab({ onUnreadCountChange }: { onUnreadCountChange?: (co
 
   useEffect(() => {
     getContacts()
-      .then((list) => {
+      .then((list: ContactMessage[]) => {
         setContacts(list);
         setLoaded(true);
       })
-      .catch((err) => setError(getErrorMessage(err, "Impossible de charger les messages")));
+      .catch((err: unknown) => setError(getErrorMessage(err, "Impossible de charger les messages")));
   }, []);
 
-  const unreadCount = contacts.filter((c) => c.status === "new").length;
+  const unreadCount = contacts.filter((c: ContactMessage) => c.status === "new").length;
   // Only once the messages are loaded: before that, the dashboard's own count is the right one
   useEffect(() => {
     if (loaded) onUnreadCountChange?.(unreadCount);
   }, [loaded, unreadCount, onUnreadCountChange]);
 
-  const selected = contacts.find((c) => c.id === selectedId) ?? null;
-  const shown = filter === "all" ? contacts : contacts.filter((c) => c.status === "new");
+  const selected = contacts.find((c: ContactMessage) => c.id === selectedId) ?? null;
+  const shown = filter === "all" ? contacts : contacts.filter((c: ContactMessage) => c.status === "new");
 
-  const replaceContact = (updated: ContactMessage) => setContacts((current) => current.map((c) => (c.id === updated.id ? updated : c)));
+  const replaceContact = (updated: ContactMessage): void => setContacts((current: ContactMessage[]) => current.map((c: ContactMessage) => (c.id === updated.id ? updated : c)));
 
-  const handleStatusChange = async (id: number, status: ContactStatus) => {
+  const handleStatusChange = async (id: number, status: ContactStatus): Promise<void> => {
     try {
       replaceContact(await updateContactStatus(id, status));
     } catch (err) {
@@ -63,18 +64,18 @@ export function ContactsTab({ onUnreadCountChange }: { onUnreadCountChange?: (co
     }
   };
 
-  const handleOpen = (contact: ContactMessage) => {
+  const handleOpen = (contact: ContactMessage): void => {
     setSelectedId(contact.id);
     setConfirmingDelete(false);
     // Opening a new message marks it as read
     if (contact.status === "new") handleStatusChange(contact.id, "read");
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number): Promise<void> => {
     setIsBusy(true);
     try {
       await deleteContact(id);
-      setContacts((current) => current.filter((c) => c.id !== id));
+      setContacts((current: ContactMessage[]) => current.filter((c: ContactMessage) => c.id !== id));
       setSelectedId(null);
       setConfirmingDelete(false);
     } catch (err) {
@@ -85,7 +86,7 @@ export function ContactsTab({ onUnreadCountChange }: { onUnreadCountChange?: (co
   };
 
   const count = contacts.length;
-  const filterButton = (value: Filter, label: string) => (
+  const filterButton = (value: Filter, label: string): JSX.Element => (
     <Button variant="ghost" aria-pressed={filter === value} onClick={() => setFilter(value)} className="px-4 text-[15px]">
       {label}
     </Button>
@@ -113,7 +114,7 @@ export function ContactsTab({ onUnreadCountChange }: { onUnreadCountChange?: (co
             <p className="p-6 font-display text-base text-slate">Aucun message à afficher.</p>
           ) : (
             <ul aria-label="Messages reçus">
-              {shown.map((contact) => {
+              {shown.map((contact: ContactMessage) => {
                 const unread = contact.status === "new";
                 const current = contact.id === selectedId;
                 return (

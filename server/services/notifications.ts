@@ -8,7 +8,7 @@ type ContactInput = { name: string; email: string; subject: string; message: str
  * Recipient: CONTACT_NOTIFY_EMAIL, or the contact email saved in the hero section.
  * Plain text only, so visitor input can never inject HTML into the email.
  */
-export async function notifyNewContact(contact: ContactInput) {
+export async function notifyNewContact(contact: ContactInput): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return;
 

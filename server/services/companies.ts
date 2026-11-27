@@ -1,9 +1,11 @@
 import { and, asc, count, eq, ne, sql } from 'drizzle-orm';
 import type { z } from 'zod';
-import { db, type Executor } from '../db';
+import { db, type Executor, type Transaction } from '../db';
+import { onlyRow } from '../db/rows';
 import { companies, experiences } from '../db/schema';
 import { HttpError } from '../http';
 import type { updateCompanySchema } from '../validation';
+import type { SQL } from 'drizzle-orm';
 
 export type CompanyDTO = {
   id: number;
@@ -27,7 +29,7 @@ const companyColumns = {
 };
 
 /** "Octelio Conseil" -> "octelio-conseil" (accents removed, anything else becomes a dash). */
-export function slugify(name: string) {
+export function slugify(name: string): string {
   const slug = name
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
@@ -38,20 +40,20 @@ export function slugify(name: string) {
 }
 
 /** A slug no other company uses: "acme", then "acme-2", "acme-3"... */
-async function uniqueSlug(tx: Executor, name: string, exceptId?: number) {
+async function uniqueSlug(tx: Executor, name: string, exceptId?: number): Promise<string> {
   const base = slugify(name);
   const rows = await tx
     .select({ id: companies.id, slug: companies.slug })
     .from(companies)
     .where(sql`${companies.slug} = ${base} or ${companies.slug} like ${`${base}-%`}`);
-  const taken = new Set(rows.filter((row) => row.id !== exceptId).map((row) => row.slug));
+  const taken = new Set(rows.filter((row: { id: number; slug: string }) => row.id !== exceptId).map((row: { id: number; slug: string }) => row.slug));
   if (!taken.has(base)) return base;
   let n = 2;
   while (taken.has(`${base}-${n}`)) n++;
   return `${base}-${n}`;
 }
 
-const sameName = (name: string) => sql`lower(${companies.name}) = lower(${name})`;
+const sameName = (name: string): SQL<unknown> => sql`lower(${companies.name}) = lower(${name})`;
 
 /**
  * Company of a position, found by name whatever the case, or created (positions are typed
@@ -60,11 +62,11 @@ const sameName = (name: string) => sql`lower(${companies.name}) = lower(${name})
 export async function findOrCreateCompany(tx: Executor, name: string): Promise<{ id: number; name: string }> {
   const [existing] = await tx.select({ id: companies.id, name: companies.name }).from(companies).where(sameName(name)).limit(1);
   if (existing) return existing;
-  const [created] = await tx
+  const created = await tx
     .insert(companies)
     .values({ name, slug: await uniqueSlug(tx, name) })
     .returning({ id: companies.id, name: companies.name });
-  return created;
+  return onlyRow(created, 'insert company');
 }
 
 export async function listCompaniesWithUsage(): Promise<CompanyWithUsageDTO[]> {
@@ -81,7 +83,7 @@ export async function listCompaniesWithUsage(): Promise<CompanyWithUsageDTO[]> {
 type UpdateInput = z.infer<typeof updateCompanySchema>;
 
 export async function updateCompany(id: number, changes: UpdateInput): Promise<CompanyDTO> {
-  return db.transaction(async (tx) => {
+  return db.transaction(async (tx: Transaction) => {
     const [current] = await tx.select({ id: companies.id }).from(companies).where(eq(companies.id, id));
     if (!current) throw new HttpError(404, 'Entreprise introuvable');
 
@@ -97,13 +99,13 @@ export async function updateCompany(id: number, changes: UpdateInput): Promise<C
       // Keep the deprecated copy on the positions in step with the new name
       await tx.update(experiences).set({ company: changes.name }).where(eq(experiences.companyId, id));
     }
-    const [company] = await tx.update(companies).set(values).where(eq(companies.id, id)).returning(companyColumns);
-    return company;
+    const company = await tx.update(companies).set(values).where(eq(companies.id, id)).returning(companyColumns);
+    return onlyRow(company, 'update company');
   });
 }
 
 /** Refused while a position points to it: delete or move those positions first. */
-export async function deleteCompany(id: number) {
+export async function deleteCompany(id: number): Promise<void> {
   const [used] = await db.select({ id: experiences.id }).from(experiences).where(eq(experiences.companyId, id)).limit(1);
   if (used) throw new HttpError(409, 'Cette entreprise a encore des postes : supprimez-les ou rattachez-les à une autre entreprise');
   const deleted = await db.delete(companies).where(eq(companies.id, id)).returning({ id: companies.id });

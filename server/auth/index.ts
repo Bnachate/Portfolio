@@ -8,7 +8,7 @@ import { SESSION_COOKIE, verifySessionToken } from './session';
  * Returns the logged-in admin, or null.
  * Also checks that the user still exists, so deleting a user revokes its sessions.
  */
-export async function getCurrentUser() {
+export async function getCurrentUser(): Promise<{ id: number; email: string; name: string } | null> {
   const cookieStore = await cookies();
   const session = await verifySessionToken(cookieStore.get(SESSION_COOKIE)?.value);
   if (!session) return null;

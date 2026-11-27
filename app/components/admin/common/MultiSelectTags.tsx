@@ -9,6 +9,7 @@ import { Input } from "@/app/components/common/input";
 import { Tag as TagLabel } from "@/app/components/common/Tag";
 import { getErrorMessage } from "@/app/config/api.config";
 import type { Tag } from "@/app/types/api";
+import type { ChangeEvent, JSX, KeyboardEvent as ReactKeyboardEvent } from "react";
 
 interface MultiSelectTagsProps {
   id: string;
@@ -27,28 +28,28 @@ export function MultiSelectTags({
   onChange,
   onCreate,
   placeholder = "Sélectionner des tags",
-}: MultiSelectTagsProps) {
+}: MultiSelectTagsProps): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const [newTagName, setNewTagName] = useState("");
   const [createError, setCreateError] = useState("");
   const [isCreating, setIsCreating] = useState(false);
 
-  const selectedIds = new Set(selectedValues.map((value) => value.id));
+  const selectedIds = new Set(selectedValues.map((value: Tag) => value.id));
 
-  const toggleTag = (tag: Tag) => {
+  const toggleTag = (tag: Tag): void => {
     onChange(selectedIds.has(tag.id)
-      ? selectedValues.filter((value) => value.id !== tag.id)
+      ? selectedValues.filter((value: Tag) => value.id !== tag.id)
       : [...selectedValues, tag]);
   };
 
-  const removeTag = (tag: Tag) => onChange(selectedValues.filter((value) => value.id !== tag.id));
+  const removeTag = (tag: Tag): void => onChange(selectedValues.filter((value: Tag) => value.id !== tag.id));
 
-  const handleCreate = async () => {
+  const handleCreate = async (): Promise<void> => {
     const name = newTagName.trim();
     if (!name || !onCreate) return;
 
     // Reuse an existing tag with the same name instead of failing
-    const existing = options.find((option) => option.name.toLowerCase() === name.toLowerCase());
+    const existing = options.find((option: Tag) => option.name.toLowerCase() === name.toLowerCase());
     if (existing) {
       if (!selectedIds.has(existing.id)) onChange([...selectedValues, existing]);
       setNewTagName("");
@@ -76,7 +77,7 @@ export function MultiSelectTags({
     <div className="space-y-2">
       {count > 0 && (
         <ul aria-label="Tags sélectionnés" className="flex flex-wrap gap-1.5">
-          {selectedValues.map((value) => (
+          {selectedValues.map((value: Tag) => (
             <li key={value.id}>
               <TagLabel name={value.name} onRemove={() => removeTag(value)} />
             </li>
@@ -99,11 +100,11 @@ export function MultiSelectTags({
             align="start"
             className="z-50 max-h-72 w-(--radix-dropdown-menu-trigger-width) overflow-y-auto rounded-lg border border-line bg-white p-1 font-display shadow-md"
           >
-            {options.map((option) => (
+            {options.map((option: Tag) => (
               <DropdownMenu.CheckboxItem
                 key={option.id}
                 checked={selectedIds.has(option.id)}
-                onSelect={(e) => e.preventDefault()}
+                onSelect={(e: Event) => e.preventDefault()}
                 onCheckedChange={() => toggleTag(option)}
                 className="relative flex min-h-10 cursor-pointer select-none items-center rounded py-2 pr-8 pl-3 text-base text-ink outline-none data-highlighted:bg-mist data-[state=checked]:font-semibold"
               >
@@ -123,8 +124,8 @@ export function MultiSelectTags({
             <Input
               aria-label="Nom du nouveau tag"
               value={newTagName}
-              onChange={(e) => setNewTagName(e.target.value)}
-              onKeyDown={(e) => {
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setNewTagName(e.target.value)}
+              onKeyDown={(e: ReactKeyboardEvent<HTMLInputElement>) => {
                 // Enter creates the tag instead of submitting the surrounding form
                 if (e.key === "Enter") {
                   e.preventDefault();

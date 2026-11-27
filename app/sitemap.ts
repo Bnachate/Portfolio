@@ -13,7 +13,9 @@ type Content = keyof ContentDates;
  * Texts written in the code (profile, education, languages) and the footer links are left out:
  * they rarely change, and counting every deploy or footer edit would make lastmod meaningless.
  */
-const PAGES: { path: string; priority: number; shows: Content[] }[] = [
+type Page = { path: string; priority: number; shows: Content[] };
+
+const PAGES: Page[] = [
   // Hero, tile counts (projects, experiences, skill domains) and the current position, its company and tags
   { path: "", priority: 1, shows: ["hero", "experiences", "companies", "projects", "tags", "skillDomains"] },
   { path: "/projets", priority: 0.9, shows: ["projects", "tags"] },
@@ -25,8 +27,8 @@ const PAGES: { path: string; priority: number; shows: Content[] }[] = [
   { path: "/contact", priority: 0.6, shows: [] },
 ];
 
-const latest = (dates: (Date | null)[]) =>
-  dates.reduce<Date | null>((max, date) => (date && (!max || date > max) ? date : max), null);
+const latest = (dates: (Date | null)[]): Date | null =>
+  dates.reduce<Date | null>((max: Date | null, date: Date | null) => (date && (!max || date > max) ? date : max), null);
 
 // Served at /sitemap.xml: the pages search engines should index
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -34,8 +36,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // A database hiccup must not break the sitemap: the pages are still listed, without lastmod
   const dates = await getContentDates().catch(() => null);
 
-  const pages: MetadataRoute.Sitemap = PAGES.map(({ path, priority, shows }) => {
-    const lastModified = dates ? latest(shows.map((content) => dates[content])) : null;
+  const pages: MetadataRoute.Sitemap = PAGES.map(({ path, priority, shows }: Page) => {
+    const lastModified = dates ? latest(shows.map((content: keyof ContentDates) => dates[content])) : null;
     return {
       url: `${base}${path}`,
       // No date rather than a made-up one when the page shows no stored content
@@ -51,13 +53,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const projects = CASE_STUDIES_ENABLED ? await getProjectDates().catch(() => []) : [];
   return [
     ...pages,
-    ...employers.map((employer) => ({
+    ...employers.map((employer: { slug: string; updatedAt: Date }) => ({
       url: `${base}/experience/${employer.slug}`,
       lastModified: employer.updatedAt,
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),
-    ...projects.map((project) => ({
+    ...projects.map((project: { id: number; updatedAt: Date }) => ({
       url: `${base}/projets/${project.id}`,
       lastModified: project.updatedAt,
       changeFrequency: "monthly" as const,

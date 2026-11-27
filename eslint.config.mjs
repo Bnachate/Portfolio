@@ -31,6 +31,25 @@ export default defineConfig([
     },
   },
 
+  // Application code: every parameter and every return type is written, `any` is forbidden.
+  // Tests keep type inference (mocks and assertions would get very verbose).
+  {
+    files: ["app/**/*.{ts,tsx}", "server/**/*.ts", "scripts/**/*.ts", "proxy.ts"],
+    rules: {
+      "@typescript-eslint/typedef": ["error", {
+        parameter: true,
+        arrowParameter: true,
+        memberVariableDeclaration: true,
+        propertyDeclaration: true,
+      }],
+      "@typescript-eslint/explicit-function-return-type": ["error", {
+        allowExpressions: false,
+        allowTypedFunctionExpressions: true,
+      }],
+      "@typescript-eslint/no-explicit-any": "error",
+    },
+  },
+
   globalIgnores([
     ".next/**",
     "out/**",

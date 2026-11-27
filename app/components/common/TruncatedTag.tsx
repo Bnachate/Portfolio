@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Tag, type TagVariant } from "./Tag";
 import { cn } from "./utils";
+import type { JSX } from "react";
 
 /**
  * Tag kept on one line: a long text ends with "…" and shows in full in a tooltip below it,
@@ -10,7 +11,7 @@ import { cn } from "./utils";
  * has the keyboard focus. Escape hides it (WCAG 1.4.13). The tooltip only exists when the text is
  * actually cut, and it is aria-hidden: the full text is already in the tag for assistive technologies.
  */
-export function TruncatedTag({ name, variant = "outline", className }: { name: string; variant?: TagVariant; className?: string }) {
+export function TruncatedTag({ name, variant = "outline", className }: { name: string; variant?: TagVariant; className?: string }): JSX.Element {
   const wrapperRef = useRef<HTMLSpanElement>(null);
   const [truncated, setTruncated] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -20,20 +21,20 @@ export function TruncatedTag({ name, variant = "outline", className }: { name: s
   useEffect(() => {
     const tag = wrapperRef.current?.firstElementChild as HTMLElement | null;
     if (!tag) return;
-    const measure = () => setTruncated(tag.scrollWidth > tag.clientWidth);
+    const measure = (): void => setTruncated(tag.scrollWidth > tag.clientWidth);
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(tag);
-    return () => observer.disconnect();
+    return (): void => observer.disconnect();
   }, [name]);
 
   useEffect(() => {
     if (!truncated) return;
-    const onKeyDown = (event: KeyboardEvent) => {
+    const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key === "Escape") setDismissed(true);
     };
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return (): void => document.removeEventListener("keydown", onKeyDown);
   }, [truncated]);
 
   return (

@@ -17,6 +17,6 @@ const DEFAULT_DOMAINS: Record<string, string[]> = {
 /** Name of the default domain of a technology, or null ("Autres"). */
 export function defaultTagDomain(name: string): string | null {
   const key = name.trim().toLowerCase();
-  const match = Object.entries(DEFAULT_DOMAINS).find(([, names]) => names.includes(key));
+  const match = Object.entries(DEFAULT_DOMAINS).find(([, names]: [string, string[]]) => names.includes(key));
   return match ? match[0] : null;
 }

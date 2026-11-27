@@ -10,7 +10,7 @@ export const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days, in seconds
 
 export type SessionPayload = { userId: number; email: string };
 
-function getSecret() {
+function getSecret(): Uint8Array<ArrayBuffer> {
   const secret = process.env.SESSION_SECRET;
   if (!secret || secret.length < 32) {
     throw new Error('SESSION_SECRET must be set and at least 32 characters long');
@@ -18,7 +18,7 @@ function getSecret() {
   return new TextEncoder().encode(secret);
 }
 
-export async function createSessionToken(payload: SessionPayload) {
+export async function createSessionToken(payload: SessionPayload): Promise<string> {
   return new SignJWT({ email: payload.email })
     .setProtectedHeader({ alg: 'HS256' })
     .setSubject(String(payload.userId))

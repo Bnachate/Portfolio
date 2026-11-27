@@ -52,7 +52,7 @@ const EXPERIENCE: Experience = {
   startDate: '2023-01-01',
   endDate: null,
   position: 0,
-  tags: [TAGS[1]],
+  tags: [TAGS[1]!],
 };
 const OLDER: Experience = {
   id: 9,
@@ -89,7 +89,7 @@ const apiError = (message: string) =>
   new AxiosError('Bad Request', '400', undefined, undefined, { status: 400, data: { message } } as AxiosResponse);
 const withMode = (readOnly: boolean, ui: React.ReactNode) => <ReadOnlyProvider value={readOnly}>{ui}</ReadOnlyProvider>;
 const rowOf = (text: string) => screen.getByText(text).closest('tr')!;
-const jobs = () => screen.getAllByRole('row').slice(1).map((r) => within(r).getAllByRole('cell')[1].querySelector('span')!.textContent);
+const jobs = () => screen.getAllByRole('row').slice(1).map((r) => within(r).getAllByRole('cell')[1]!.querySelector('span')!.textContent);
 
 beforeEach(() => {
   flags.caseStudies = true;

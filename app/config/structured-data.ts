@@ -9,7 +9,7 @@ const PARAGRAPH_SEPARATOR = String.fromCharCode(0x2029);
  * The HTML parser ends a script at "</script>" whatever the JSON says, so "<", ">", "&" and the
  * line / paragraph separators are escaped as \uXXXX: the JSON stays identical once parsed.
  */
-export function toInlineJson(data: unknown) {
+export function toInlineJson(data: unknown): string {
   return JSON.stringify(data)
     .replaceAll("<", "\\u003c")
     .replaceAll(">", "\\u003e")
@@ -19,7 +19,7 @@ export function toInlineJson(data: unknown) {
 }
 
 /** Structured data (schema.org Person) that search engines use to describe who the site is about. */
-export function personJsonLd(hero: { githubUrl: string; linkedinUrl: string }) {
+export function personJsonLd(hero: { githubUrl: string; linkedinUrl: string }): string {
   return toInlineJson({
     "@context": "https://schema.org",
     "@type": "Person",

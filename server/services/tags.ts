@@ -1,5 +1,6 @@
 import { and, asc, eq, inArray, ne, sql } from 'drizzle-orm';
 import { db, type Executor } from '../db';
+import { onlyRow } from '../db/rows';
 import { experienceTags, projectTags, tags } from '../db/schema';
 import { HttpError } from '../http';
 import { assertSkillDomainExists } from './skill-domains';
@@ -29,7 +30,7 @@ export async function listTagsWithUsage(): Promise<TagWithUsageDTO[]> {
 }
 
 /** Throws a 409 if another tag already has this name (case-insensitive). */
-async function assertNameAvailable(name: string, exceptId?: number) {
+async function assertNameAvailable(name: string, exceptId?: number): Promise<void> {
   const sameName = sql`lower(${tags.name}) = lower(${name})`;
   const [existing] = await db
     .select({ id: tags.id })
@@ -42,8 +43,8 @@ async function assertNameAvailable(name: string, exceptId?: number) {
 export async function createTag(name: string, domainId: number | null = null): Promise<TagWithDomainDTO> {
   await assertNameAvailable(name);
   await assertSkillDomainExists(domainId);
-  const [tag] = await db.insert(tags).values({ name, domainId }).returning(tagColumns);
-  return tag;
+  const tag = await db.insert(tags).values({ name, domainId }).returning(tagColumns);
+  return onlyRow(tag, 'insert tag');
 }
 
 /** Renames a tag and / or changes its domain. */
@@ -58,13 +59,13 @@ export async function updateTag(
   return tag;
 }
 
-export async function deleteTag(id: number) {
+export async function deleteTag(id: number): Promise<void> {
   const deleted = await db.delete(tags).where(eq(tags.id, id)).returning({ id: tags.id });
   if (deleted.length === 0) throw new HttpError(404, 'Tag introuvable');
 }
 
 /** Throws a 400 if any of the given tag ids does not exist. */
-export async function assertTagsExist(tx: Executor, ids: number[]) {
+export async function assertTagsExist(tx: Executor, ids: number[]): Promise<number[]> {
   const unique = [...new Set(ids)];
   if (unique.length === 0) return unique;
   const found = await tx.select({ id: tags.id }).from(tags).where(inArray(tags.id, unique));

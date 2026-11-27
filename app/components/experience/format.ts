@@ -1,13 +1,17 @@
 const MONTHS = ['Janv.', 'Févr.', 'Mars', 'Avr.', 'Mai', 'Juin', 'Juil.', 'Août', 'Sept.', 'Oct.', 'Nov.', 'Déc.'];
 
 /** Parses 'YYYY-MM-DD' without timezone surprises. */
-function parse(date: string) {
-  const [year, month] = date.split('-').map(Number);
+function parse(date: string): { year: number; month: number } {
+  const [year, month]: (number | undefined)[] = date.split('-').map(Number);
+  // Dates are validated as YYYY-MM-DD by the API and stored as DATE: anything else is a bug
+  if (year === undefined || month === undefined || Number.isNaN(year) || Number.isNaN(month)) {
+    throw new Error(`Invalid date: ${date}`);
+  }
   return { year, month: month - 1 };
 }
 
 /** e.g. 'Janv. 2023 - Présent' */
-export function formatPeriod(startDate: string, endDate: string | null) {
+export function formatPeriod(startDate: string, endDate: string | null): string {
   const start = parse(startDate);
   const startLabel = `${MONTHS[start.month]} ${start.year}`;
   if (!endDate) return `${startLabel} - Présent`;
@@ -16,7 +20,7 @@ export function formatPeriod(startDate: string, endDate: string | null) {
 }
 
 /** e.g. '1 an 9 mois', counted in whole months (the end month is not included). */
-export function formatDuration(startDate: string, endDate: string | null, now = new Date()) {
+export function formatDuration(startDate: string, endDate: string | null, now: Date = new Date()): string {
   const start = parse(startDate);
   const end = endDate ? parse(endDate) : { year: now.getFullYear(), month: now.getMonth() };
   const totalMonths = Math.max(1, (end.year - start.year) * 12 + (end.month - start.month));

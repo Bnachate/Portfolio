@@ -3,6 +3,7 @@ import { CV_URL } from "@/app/config/content";
 import { LogoMark } from "@/app/components/common/LogoMark";
 import { SiteNav, type PageKey } from "./SiteNav";
 import { Container, gutter } from "./ui";
+import type { JSX } from "react";
 
 export type { PageKey };
 
@@ -11,7 +12,7 @@ export type { PageKey };
  * the other pages. The current page is marked with aria-current. Below the `lg` breakpoint the
  * navigation folds behind a "Menu" button (see `SiteNav`).
  */
-export function SiteHeader({ current, tone = "light" }: { current: PageKey; tone?: "dark" | "light" }) {
+export function SiteHeader({ current, tone = "light" }: { current: PageKey; tone?: "dark" | "light" }): JSX.Element {
   const dark = tone === "dark";
   return (
     <header className={dark ? "" : gutter}>

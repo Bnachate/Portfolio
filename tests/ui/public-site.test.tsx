@@ -13,7 +13,6 @@ import EmployerPage from '@/app/experience/[slug]/page';
 import SkillsPage from '@/app/competences/page';
 import ContactPage from '@/app/contact/page';
 import sitemap from '@/app/sitemap';
-import { LOREM } from '@/app/config/content';
 import { getPublicHero } from '@/server/services/hero';
 import { findProject, listProjects } from '@/server/services/projects';
 import { findEmployer, listEmployers, listExperiences, type EmployerDTO } from '@/server/services/experiences';
@@ -117,7 +116,7 @@ const EMPLOYERS: EmployerDTO[] = [
     context: "Weborama est une entreprise d’AdTech.\n\nRéférent Front-End au sein d’une équipe incluant :\n- un Scrum Master\n- 2 développeurs Front-End",
     startDate: '2026-01-01',
     endDate: null,
-    experiences: [EXPERIENCES[0]],
+    experiences: [EXPERIENCES[0]!],
   },
   {
     id: 2,
@@ -128,7 +127,7 @@ const EMPLOYERS: EmployerDTO[] = [
     context: null,
     startDate: '2021-04-01',
     endDate: '2023-01-01',
-    experiences: [EXPERIENCES[1]],
+    experiences: [EXPERIENCES[1]!],
   },
 ];
 
@@ -251,13 +250,26 @@ describe('Home page', () => {
 });
 
 describe('Projects page', () => {
-  it('lists projects with placeholders while the case study is empty', async () => {
+  it('lists projects, without any placeholder text while the case study is empty', async () => {
     render(await ProjectsPage());
     const article = screen.getByRole('heading', { level: 2, name: PROJECT.title }).closest('article')!;
-    expect(within(article).getByText(LOREM.kind)).toBeInTheDocument();
+    expect(article).not.toHaveTextContent(/lorem|ipsum|dolor/i);
     expect(within(article).getByRole('link', { name: /Lire l'étude de cas/ })).toHaveAttribute('href', '/projets/7');
     expect(within(article).getByRole('link', { name: 'Code source sur GitHub' })).toHaveAttribute('href', PROJECT.githubUrl);
     expect(within(article).queryByRole('link', { name: 'Voir la démo' })).not.toBeInTheDocument();
+  });
+
+  it('shows the description intro as a paragraph and each "•" line as its own row', async () => {
+    vi.mocked(listProjects).mockResolvedValue([
+      { ...PROJECT, description: 'Ce site : un portfolio full-stack.\n• Back-end : Next.js et Drizzle\n• Sécurité : session JWT' },
+    ]);
+    render(await ProjectsPage());
+    const article = screen.getByRole('heading', { level: 2, name: PROJECT.title }).closest('article')!;
+    expect(within(article).getByText('Ce site : un portfolio full-stack.').tagName).toBe('P');
+    const rows = within(article).getAllByRole('listitem').filter((li) => !li.querySelector('a, [data-slot]') && /Back-end|Sécurité/.test(li.textContent ?? ''));
+    expect(rows.map((li) => li.textContent)).toEqual(['Back-end : Next.js et Drizzle', 'Sécurité : session JWT']);
+    // The bullet character itself is not shown
+    expect(article).not.toHaveTextContent('•');
   });
 
   it('hides the case study button while the case studies are switched off', async () => {
@@ -278,12 +290,15 @@ describe('Projects page', () => {
 describe('Case study page', () => {
   const page = async (id: string) => ProjectPage({ params: Promise.resolve({ id }) });
 
-  it('shows placeholders for empty case study fields', async () => {
-    render(await page('7'));
+  it('leaves out the empty case study fields, never showing placeholder text', async () => {
+    const { container } = render(await page('7'));
     expect(screen.getByRole('heading', { level: 1, name: PROJECT.title })).toBeInTheDocument();
-    expect(screen.getByText(LOREM.context)).toBeInTheDocument();
-    expect(screen.getByText(LOREM.achievements[0])).toBeInTheDocument();
-    expect(screen.getByText(LOREM.results)).toBeInTheDocument();
+    for (const title of ['Contexte', "Ce que j'ai fait", 'Résultats']) {
+      expect(screen.queryByRole('heading', { level: 2, name: title })).not.toBeInTheDocument();
+    }
+    expect(screen.queryByText('Type')).not.toBeInTheDocument();
+    expect(screen.queryByText('Rôle')).not.toBeInTheDocument();
+    expect(container).not.toHaveTextContent(/lorem|ipsum|dolor/i);
   });
 
   it('shows the written case study, one achievement per line', async () => {
@@ -299,7 +314,7 @@ describe('Case study page', () => {
     expect(screen.getByText('Projet personnel')).toBeInTheDocument();
     expect(screen.getByText('Mon portfolio')).toBeInTheDocument();
     expect(screen.getByText('Tests Playwright').tagName).toBe('LI');
-    expect(screen.queryByText(LOREM.context)).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Résultats' })).toBeInTheDocument();
   });
 
   it('redirects to the home page while the case studies are switched off', async () => {
@@ -353,7 +368,7 @@ describe('Experience page', () => {
     render(await ExperiencePage());
     const cards = within(screen.getByRole('region', { name: 'Entreprises' })).getAllByRole('link');
     expect(cards.map((card) => card.getAttribute('href'))).toEqual(['/experience/weborama', '/experience/ipocamp']);
-    expect(within(cards[0]).getByRole('heading', { level: 2, name: 'Weborama' })).toBeInTheDocument();
+    expect(within(cards[0]!).getByRole('heading', { level: 2, name: 'Weborama' })).toBeInTheDocument();
     expect(cards[0]).toHaveTextContent('AdTech · Data marketing');
     expect(cards[0]).toHaveTextContent('En poste');
     expect(cards[0]).toHaveTextContent('Développeur Full-Stack');
@@ -451,7 +466,7 @@ describe('page data helpers', () => {
   it('builds skill groups in domain order, skills alphabetical, still knowing the current ones', () => {
     const groups = buildSkillGroups(DOMAINS, TAGS, EXPERIENCES, [PROJECT]);
     expect(groups.map((g) => g.title)).toEqual(['API et données', 'Front-end', 'Autres']);
-    expect(groups[1].skills).toEqual([
+    expect(groups[1]!.skills).toEqual([
       { name: 'React', current: false },
       { name: 'Vue.js', current: true },
     ]);

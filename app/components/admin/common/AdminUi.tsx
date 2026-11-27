@@ -5,13 +5,14 @@ import { ArrowDown, ArrowUp, Check, ExternalLink, Pencil, Trash2, X } from "luci
 import { Button } from "../../common/Button";
 import { IconButton, IconLink } from "../../common/IconButton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../common/dialog";
+import type { JSX, KeyboardEvent as ReactKeyboardEvent } from "react";
 
 /**
  * Admin building blocks ("Encre et menthe"): named icon buttons, deletion confirmations,
  * move up / down buttons and the section panel. Generic pieces live in `app/components/common/`.
  */
 
-export function EditButton({ label, onClick }: { label: string; onClick: () => void }) {
+export function EditButton({ label, onClick }: { label: string; onClick: () => void }): JSX.Element {
   return (
     <IconButton label={label} onClick={onClick}>
       <Pencil size={20} aria-hidden="true" />
@@ -19,7 +20,7 @@ export function EditButton({ label, onClick }: { label: string; onClick: () => v
   );
 }
 
-export function DeleteButton({ label, onClick }: { label: string; onClick: () => void }) {
+export function DeleteButton({ label, onClick }: { label: string; onClick: () => void }): JSX.Element {
   return (
     <IconButton label={label} tone="danger" onClick={onClick}>
       <Trash2 size={20} aria-hidden="true" />
@@ -28,7 +29,7 @@ export function DeleteButton({ label, onClick }: { label: string; onClick: () =>
 }
 
 /** Opens a page of the site (or an external URL, in a new tab). */
-export function ViewLink({ label, href }: { label: string; href: string }) {
+export function ViewLink({ label, href }: { label: string; href: string }): JSX.Element {
   return (
     <IconLink label={label} href={href} newTab={/^https?:\/\//.test(href)}>
       <ExternalLink size={20} aria-hidden="true" />
@@ -50,7 +51,7 @@ export function InlineDeleteConfirm({
   onConfirm: () => void;
   onCancel: () => void;
   busy?: boolean;
-}) {
+}): JSX.Element {
   const cancelRef = useRef<HTMLButtonElement>(null);
   useEffect(() => cancelRef.current?.focus(), []);
 
@@ -59,7 +60,7 @@ export function InlineDeleteConfirm({
       role="group"
       aria-label={question}
       className="flex flex-wrap items-center justify-end gap-2"
-      onKeyDown={(event) => {
+      onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) => {
         if (event.key === "Escape") onCancel();
       }}
     >
@@ -91,14 +92,14 @@ export function DeleteConfirmDialog({
   onConfirm: () => void;
   onCancel: () => void;
   busy?: boolean;
-}) {
+}): JSX.Element {
   const cancelRef = useRef<HTMLButtonElement>(null);
   return (
-    <Dialog open onOpenChange={(open) => !open && !busy && onCancel()}>
+    <Dialog open onOpenChange={(open: boolean) => !open && !busy && onCancel()}>
       <DialogContent
         role="alertdialog"
         className="sm:max-w-md"
-        onOpenAutoFocus={(event) => {
+        onOpenAutoFocus={(event: Event) => {
           event.preventDefault();
           cancelRef.current?.focus();
         }}
@@ -134,7 +135,7 @@ export function InlineEditActions({
   onCancel: () => void;
   canSave: boolean;
   busy?: boolean;
-}) {
+}): JSX.Element {
   return (
     <div className="flex justify-end gap-2">
       <IconButton label={`Enregistrer le nouveau nom de ${name}`} tone="ghost" onClick={onSave} disabled={busy || !canSave} className="text-ink">
@@ -162,7 +163,7 @@ export function ReorderButtons({
   isFirst: boolean;
   isLast: boolean;
   disabled?: boolean;
-}) {
+}): JSX.Element {
   return (
     <div className="flex gap-1">
       <IconButton label={`Monter ${name}`} tone="outline" size="sm" onClick={onUp} disabled={disabled || isFirst}>
@@ -186,7 +187,7 @@ export function AdminPanel({
   summary?: ReactNode;
   action?: ReactNode;
   children: ReactNode;
-}) {
+}): JSX.Element {
   return (
     <section className="rounded-2xl border border-line bg-white">
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line p-6">
@@ -202,15 +203,18 @@ export function AdminPanel({
 }
 
 /** Position that puts a new item at the end of the list (gaps left by deletions are fine). */
-export function nextPosition(items: { position: number }[]) {
-  return items.reduce((max, item) => Math.max(max, item.position + 1), 0);
+export function nextPosition(items: { position: number }[]): number {
+  return items.reduce((max: number, item: { position: number }) => Math.max(max, item.position + 1), 0);
 }
 
 /** Moves the item at `index` one step up or down and returns the new id order. */
-export function movedIds<T extends { id: number }>(items: T[], index: number, direction: -1 | 1) {
-  const ids = items.map((item) => item.id);
+export function movedIds<T extends { id: number }>(items: T[], index: number, direction: -1 | 1): number[] {
+  const ids = items.map((item: T) => item.id);
   const target = index + direction;
-  if (target < 0 || target >= ids.length) return ids;
-  [ids[index], ids[target]] = [ids[target], ids[index]];
+  const current: number | undefined = ids[index];
+  const other: number | undefined = ids[target];
+  if (current === undefined || other === undefined) return ids;
+  ids[index] = other;
+  ids[target] = current;
   return ids;
 }

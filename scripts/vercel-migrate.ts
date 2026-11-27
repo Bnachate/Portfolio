@@ -7,7 +7,7 @@ import { closeDb, runMigrations } from '../server/db';
  * - Preview deployments: skipped, so an unmerged pull request never alters the production database.
  * Migrations are idempotent: already applied ones are skipped.
  */
-async function main() {
+async function main(): Promise<void> {
   if (process.env.VERCEL_ENV !== 'production') {
     console.log(`Skipping database migrations (VERCEL_ENV=${process.env.VERCEL_ENV ?? 'unset'})`);
     return;
@@ -20,7 +20,7 @@ async function main() {
 }
 
 main()
-  .catch((error) => {
+  .catch((error: unknown) => {
     console.error(error);
     // Fail the deployment: shipping code without its database schema would break the site
     process.exitCode = 1;

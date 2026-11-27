@@ -33,7 +33,7 @@ describe('TruncatedTag', () => {
     expect(tooltip()).toHaveAttribute('aria-hidden', 'true');
     expect(tooltip()).toHaveClass('hidden');
 
-    await user.hover(screen.getAllByText('Legal Tech · Propriété intellectuelle')[0]);
+    await user.hover(screen.getAllByText('Legal Tech · Propriété intellectuelle')[0]!);
     expect(tooltip()).toHaveClass('block', 'top-full');
     expect(tooltip()).toHaveTextContent('Legal Tech · Propriété intellectuelle');
 
@@ -42,10 +42,10 @@ describe('TruncatedTag', () => {
     expect(tooltip()).not.toHaveClass('group-focus-visible:block');
 
     // Hovering again brings it back; leaving hides it
-    await user.unhover(screen.getAllByText('Legal Tech · Propriété intellectuelle')[0]);
-    await user.hover(screen.getAllByText('Legal Tech · Propriété intellectuelle')[0]);
+    await user.unhover(screen.getAllByText('Legal Tech · Propriété intellectuelle')[0]!);
+    await user.hover(screen.getAllByText('Legal Tech · Propriété intellectuelle')[0]!);
     expect(tooltip()).toHaveClass('block');
-    await user.unhover(screen.getAllByText('Legal Tech · Propriété intellectuelle')[0]);
+    await user.unhover(screen.getAllByText('Legal Tech · Propriété intellectuelle')[0]!);
     expect(tooltip()).toHaveClass('hidden');
   });
 

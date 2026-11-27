@@ -25,7 +25,7 @@ export const DEFAULT_HERO: HeroDTO = {
 
 // Every column except technical ones
 const heroColumns = Object.fromEntries(
-  Object.entries(getTableColumns(hero)).filter(([key]) => !['id', 'createdAt', 'updatedAt'].includes(key)),
+  Object.entries(getTableColumns(hero)).filter(([key]: [string, unknown]) => !['id', 'createdAt', 'updatedAt'].includes(key)),
 ) as Omit<ReturnType<typeof getTableColumns<typeof hero>>, 'id' | 'createdAt' | 'updatedAt'>;
 
 export async function getHero(): Promise<HeroDTO> {

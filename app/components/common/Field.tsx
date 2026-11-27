@@ -1,6 +1,7 @@
 import { cloneElement, isValidElement, type ReactElement, type ReactNode } from "react";
 import { Label } from "./label";
 import { cn } from "./utils";
+import type { JSX } from "react";
 
 /**
  * Form field layout: visible label above the control, optional help text and footer below.
@@ -22,7 +23,7 @@ export function Field({
   footer?: ReactNode;
   className?: string;
   children: ReactNode;
-}) {
+}): JSX.Element {
   const hintId = `${id}-hint`;
   const control =
     hint && isValidElement<{ "aria-describedby"?: string }>(children)
@@ -43,7 +44,7 @@ export function Field({
 }
 
 /** Group of fields under a title (a `fieldset` with its `legend`). */
-export function FieldGroup({ title, className, children }: { title: ReactNode; className?: string; children: ReactNode }) {
+export function FieldGroup({ title, className, children }: { title: ReactNode; className?: string; children: ReactNode }): JSX.Element {
   return (
     <fieldset className={cn("flex min-w-0 flex-col gap-4", className)}>
       <legend className="mb-4 w-full border-b border-line pb-2 font-display text-lg font-bold">{title}</legend>
