@@ -10,7 +10,7 @@ export const SITE = {
     "Portfolio de Brahim Nachate, développeur full-stack avec 6 ans d'expérience : Vue.js, React, Node.js et Java / Spring Boot. Découvrez mes projets et mon parcours.",
   skills: ["Vue.js", "React", "TypeScript", "Node.js", "Java / Spring Boot"],
   locale: "fr_FR",
-  location: "Paris, France",
+  location: "Île-de-France, France",
 };
 
 /**

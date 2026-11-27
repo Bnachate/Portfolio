@@ -18,7 +18,7 @@ test.describe('Public site (visitor)', () => {
 
     await expect(page).toHaveTitle('Brahim Nachate — Développeur Full-Stack');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Développeur Full-Stack');
-    await expect(page.getByText('Ouvert aux opportunités, Paris')).toBeVisible();
+    await expect(page.getByText('Ouvert aux opportunités, Île-de-France')).toBeVisible();
     const tiles = page.getByRole('region', { name: 'Pages du portfolio' });
     for (const name of ['Projets', 'Expérience', 'Compétences']) {
       await expect(tiles.getByRole('link', { name: new RegExp(name) })).toBeVisible();

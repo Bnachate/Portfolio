@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-// Browser tab icon: "BN" monogram in the site's cyan, generated at build time
+// Browser tab icon: the "BN" monogram of the site header (mint on ink), generated at build time
 export const size = { width: 64, height: 64 };
 export const contentType = "image/png";
 
@@ -14,9 +14,9 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#0891b2",
+          background: "#3DD6A8",
           borderRadius: 14,
-          color: "#ffffff",
+          color: "#0F1B2D",
           fontSize: 34,
           fontWeight: 700,
           fontFamily: "sans-serif",

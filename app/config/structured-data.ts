@@ -26,7 +26,7 @@ export function personJsonLd(hero: { githubUrl: string; linkedinUrl: string }) {
     name: SITE.name,
     jobTitle: SITE.jobTitle,
     url: getSiteUrl(),
-    address: { "@type": "PostalAddress", addressLocality: "Paris", addressCountry: "FR" },
+    address: { "@type": "PostalAddress", addressRegion: "Île-de-France", addressCountry: "FR" },
     knowsAbout: SITE.skills,
     // Admin-edited URLs: the escaping above keeps them from breaking out of the script tag
     sameAs: [hero.githubUrl, hero.linkedinUrl],

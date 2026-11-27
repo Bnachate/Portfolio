@@ -31,7 +31,7 @@ const HERO: Hero = {
   linkedinUrl: 'https://www.linkedin.com/in/someone/',
   email: 'private@example.com',
   availabilityEnabled: true,
-  availabilityText: 'Ouvert aux opportunités, Paris',
+  availabilityText: 'Ouvert aux opportunités, Île-de-France',
 };
 
 const withMode = (readOnly: boolean, ui: React.ReactNode) => <ReadOnlyProvider value={readOnly}>{ui}</ReadOnlyProvider>;
