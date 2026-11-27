@@ -259,17 +259,35 @@ describe('Projects page', () => {
     expect(within(article).queryByRole('link', { name: 'Voir la démo' })).not.toBeInTheDocument();
   });
 
-  it('shows the description intro as a paragraph and each "•" line as its own row', async () => {
+  it('shows the intro on the left and each "•" point as a "label | text" row on the right', async () => {
     vi.mocked(listProjects).mockResolvedValue([
-      { ...PROJECT, description: 'Ce site : un portfolio full-stack.\n• Back-end : Next.js et Drizzle\n• Sécurité : session JWT' },
+      {
+        ...PROJECT,
+        kind: 'Projet personnel',
+        scope: 'Full-stack',
+        description: 'Ce site : un portfolio full-stack.\n• Back-end : route handlers Next.js\n• Sécurité : session JWT\n• Déploiement continu sur Vercel',
+      },
     ]);
     render(await ProjectsPage());
     const article = screen.getByRole('heading', { level: 2, name: PROJECT.title }).closest('article')!;
+    expect(within(article).getByText('Projet personnel · Full-stack')).toBeInTheDocument();
     expect(within(article).getByText('Ce site : un portfolio full-stack.').tagName).toBe('P');
-    const rows = within(article).getAllByRole('listitem').filter((li) => !li.querySelector('a, [data-slot]') && /Back-end|Sécurité/.test(li.textContent ?? ''));
-    expect(rows.map((li) => li.textContent)).toEqual(['Back-end : Next.js et Drizzle', 'Sécurité : session JWT']);
+    const rows = within(within(article).getByRole('list', { name: `Détails techniques de ${PROJECT.title}` })).getAllByRole('listitem');
+    // The label is split from the text (capitalized); a line without a short label keeps its whole text
+    expect(rows.map((li) => [...li.children].map((child) => child.textContent))).toEqual([
+      ['Back-end', 'Route handlers Next.js'],
+      ['Sécurité', 'Session JWT'],
+      ['Déploiement continu sur Vercel'],
+    ]);
     // The bullet character itself is not shown
     expect(article).not.toHaveTextContent('•');
+  });
+
+  it('leaves out the details column when the description has no points', async () => {
+    render(await ProjectsPage());
+    const article = screen.getByRole('heading', { level: 2, name: PROJECT.title }).closest('article')!;
+    expect(within(article).queryByRole('list', { name: /Détails techniques/ })).not.toBeInTheDocument();
+    expect(within(article).getByText('Ce site')).toBeInTheDocument();
   });
 
   it('hides the case study button while the case studies are switched off', async () => {

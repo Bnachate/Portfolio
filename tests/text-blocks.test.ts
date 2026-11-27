@@ -1,5 +1,33 @@
 import { describe, expect, it } from 'vitest';
-import { toTextBlocks } from '@/app/components/site/data';
+import { toProjectDescription, toProjectPoint, toTextBlocks } from '@/app/components/site/data';
+
+describe('toProjectPoint', () => {
+  it('splits a short label before " : " and capitalizes the text', () => {
+    expect(toProjectPoint('Back-end : route handlers Next.js, PostgreSQL')).toEqual({ label: 'Back-end', text: 'Route handlers Next.js, PostgreSQL' });
+    expect(toProjectPoint('Qualité: 312 tests')).toEqual({ label: 'Qualité', text: '312 tests' });
+  });
+
+  it('keeps the whole line without a short label, or when the colon is not followed by a space', () => {
+    expect(toProjectPoint('Déploiement continu sur Vercel')).toEqual({ label: null, text: 'Déploiement continu sur Vercel' });
+    expect(toProjectPoint('Une phrase bien trop longue pour être un libellé de ligne : suite')).toEqual({
+      label: null,
+      text: 'Une phrase bien trop longue pour être un libellé de ligne : suite',
+    });
+    expect(toProjectPoint('Lien https://example.com')).toEqual({ label: null, text: 'Lien https://example.com' });
+  });
+});
+
+describe('toProjectDescription', () => {
+  it('returns the intro paragraphs and the points of every list', () => {
+    expect(toProjectDescription('Intro.\n\nSuite.\n- A : un\n- B : deux')).toEqual({
+      intro: ['Intro.', 'Suite.'],
+      points: [
+        { label: 'A', text: 'Un' },
+        { label: 'B', text: 'Deux' },
+      ],
+    });
+  });
+});
 
 describe('toTextBlocks', () => {
   it('splits paragraphs on blank lines and turns "- " lines into a list', () => {
