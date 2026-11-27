@@ -72,8 +72,9 @@ export async function updateExperience(id: number, { tags, ...fields }: UpdateIn
       throw new HttpError(400, 'endDate: La date de fin doit être après la date de début');
     }
 
-    if (Object.keys(fields).length > 0) {
-      await tx.update(experiences).set(fields).where(eq(experiences.id, id));
+    // Always touch the row, so a change of tags alone also moves updated_at (sitemap lastmod)
+    if (Object.keys(fields).length > 0 || tags) {
+      await tx.update(experiences).set({ ...fields, updatedAt: new Date() }).where(eq(experiences.id, id));
     }
     if (tags) await setTags(tx, id, tags);
     return getExperience(tx, id);
