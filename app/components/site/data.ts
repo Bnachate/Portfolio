@@ -82,3 +82,27 @@ export function buildSkillGroups(domains: SkillDomain[], tags: TagWithDomain[], 
     }))
     .filter((group: SkillGroup) => group.skills.length > 0);
 }
+
+/** One point of a project description: "Back-end : route handlers…" gives the label "Back-end". */
+export type ProjectPoint = { label: string | null; text: string };
+
+const capitalize = (text: string): string => text.charAt(0).toLocaleUpperCase("fr") + text.slice(1);
+
+/** A short label before " : " becomes the label; a line without one keeps its whole text. */
+export function toProjectPoint(item: string): ProjectPoint {
+  const match: RegExpMatchArray | null = item.match(/^([^:]{1,32}?)\s*:\s+(.+)$/);
+  const label: string | undefined = match?.[1];
+  const text: string | undefined = match?.[2];
+  return label && text ? { label: label.trim(), text: capitalize(text.trim()) } : { label: null, text: item };
+}
+
+/** Project description as the projects page shows it: the intro paragraphs, then the points of its lists. */
+export function toProjectDescription(description: string): { intro: string[]; points: ProjectPoint[] } {
+  const intro: string[] = [];
+  const points: ProjectPoint[] = [];
+  for (const block of toTextBlocks(description)) {
+    if (block.type === "paragraph") intro.push(block.text);
+    else points.push(...block.items.map(toProjectPoint));
+  }
+  return { intro, points };
+}
