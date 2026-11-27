@@ -12,6 +12,7 @@ import { ContactsTab } from '@/app/components/admin/ContactsTab';
 import Home from '@/app/page';
 import ProjectPage from '@/app/projets/[id]/page';
 import ExperiencePage from '@/app/experience/page';
+import EmployerPage from '@/app/experience/[slug]/page';
 import SkillsPage from '@/app/competences/page';
 import { ReadOnlyProvider } from '@/app/admin/ReadOnlyContext';
 import { sendContactMessage, getContacts } from '@/app/services/admin/contacts.service';
@@ -22,7 +23,7 @@ import { createExperience, getExperiences, getTags } from '@/app/services/admin/
 import * as tagsService from '@/app/services/admin/tags.service';
 import { getPublicHero } from '@/server/services/hero';
 import { findProject, listProjects } from '@/server/services/projects';
-import { listExperiences } from '@/server/services/experiences';
+import { findEmployer, listEmployers, listExperiences, type EmployerDTO } from '@/server/services/experiences';
 import { listTags } from '@/server/services/tags';
 import { listSkillDomains } from '@/server/services/skill-domains';
 import { getSkillDomains } from '@/app/services/admin/skill-domains.service';
@@ -55,7 +56,7 @@ vi.mock('@/app/services/admin/experiences.service', () => ({
 // Public pages are server components reading the database through these services
 vi.mock('@/server/services/hero', () => ({ getPublicHero: vi.fn() }));
 vi.mock('@/server/services/projects', () => ({ listProjects: vi.fn(), findProject: vi.fn() }));
-vi.mock('@/server/services/experiences', () => ({ listExperiences: vi.fn() }));
+vi.mock('@/server/services/experiences', () => ({ listExperiences: vi.fn(), listEmployers: vi.fn(), findEmployer: vi.fn() }));
 vi.mock('@/server/services/tags', () => ({ listTags: vi.fn() }));
 vi.mock('@/server/services/skill-domains', () => ({ listSkillDomains: vi.fn() }));
 vi.mock('@/app/services/admin/skill-domains.service', () => ({ getSkillDomains: vi.fn() }));
@@ -229,6 +230,8 @@ describe('injection payloads are displayed as plain text, never run', () => {
       id: 1,
       job: XSS,
       company: XSS,
+      companyId: 1,
+      companySlug: 'xss',
       description: XSS,
       startDate: '2024-01-01',
       endDate: null,
@@ -255,12 +258,25 @@ describe('injection payloads are displayed as plain text, never run', () => {
     const { email, ...publicHero } = { ...HERO, title: XSS, subtitle: XSS, description: XSS, availabilityText: XSS };
     vi.mocked(getPublicHero).mockResolvedValue(publicHero);
     vi.mocked(listExperiences).mockResolvedValue([experience]);
+    // Context with a hostile paragraph and a hostile bullet
+    const employer: EmployerDTO = {
+      id: 1, name: XSS, slug: 'xss', sector: XSS, websiteUrl: 'https://example.com/', context: `${XSS}\n- ${XSS}`,
+      startDate: '2024-01-01', endDate: null, experiences: [experience],
+    };
+    vi.mocked(listEmployers).mockResolvedValue([employer]);
+    vi.mocked(findEmployer).mockResolvedValue(employer);
     vi.mocked(listProjects).mockResolvedValue([project]);
     vi.mocked(findProject).mockResolvedValue(project);
     vi.mocked(listTags).mockResolvedValue([{ id: 1, name: XSS, domainId: 1 }]);
     vi.mocked(listSkillDomains).mockResolvedValue([{ id: 1, name: XSS, position: 0 }]);
 
-    const pages = [await Home(), await ProjectPage({ params: Promise.resolve({ id: '1' }) }), await ExperiencePage(), await SkillsPage()];
+    const pages = [
+      await Home(),
+      await ProjectPage({ params: Promise.resolve({ id: '1' }) }),
+      await ExperiencePage(),
+      await EmployerPage({ params: Promise.resolve({ slug: 'xss' }) }),
+      await SkillsPage(),
+    ];
     for (const page of pages) {
       const { container, unmount } = render(page);
       expect(screen.getAllByText(XSS)).not.toHaveLength(0);

@@ -10,7 +10,7 @@ test.describe('Read-only admin (visitor)', () => {
     await expect(page).toHaveURL('/admin');
     await expect(page.getByText(/Mode lecture seule/)).toBeVisible();
     await expect(page.getByRole('link', { name: 'Connexion' })).toBeVisible();
-    await expect(page.getByRole('tab')).toHaveText(['Expériences', 'Projets', 'Tags', 'Domaines', 'Hero']);
+    await expect(page.getByRole('tab')).toHaveText(['Expériences', 'Entreprises', 'Projets', 'Tags', 'Domaines', 'Hero']);
     await expect(page.getByRole('tab', { name: 'Messages' })).toHaveCount(0);
   });
 

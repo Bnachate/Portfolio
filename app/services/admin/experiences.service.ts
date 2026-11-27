@@ -1,7 +1,8 @@
 import apiClient, { unwrap } from '@/app/config/api.config';
 import type { Experience, WithTagIds } from '@/app/types/api';
 
-export type ExperiencePayload = WithTagIds<Experience>;
+// The company is sent by name: the server links it to its employer (or creates one)
+export type ExperiencePayload = Omit<WithTagIds<Experience>, 'companyId' | 'companySlug'>;
 
 export const getExperiences = () => unwrap<Experience[]>(apiClient.get('/experiences'));
 

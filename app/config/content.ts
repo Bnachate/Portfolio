@@ -7,7 +7,7 @@ export const CV_URL = "/CV_Brahim_Nachate_Developpeur_Full-Stack.pdf";
 
 /** Key facts next to the profile photo on the home page. */
 export const HERO_FACTS = [
-  { label: "Expérience", value: "7 ans" },
+  { label: "Expérience", value: "6 ans" },
   { label: "Spécialité", value: "Vue.js, Nuxt, TypeScript" },
   { label: "Basé à", value: "Paris" },
 ];

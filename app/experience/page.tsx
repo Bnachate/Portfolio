@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { getPublicHero } from "@/server/services/hero";
-import { listExperiences } from "@/server/services/experiences";
+import { listEmployers } from "@/server/services/experiences";
 import { CV_URL, EDUCATION } from "@/app/config/content";
 import { SiteHeader } from "@/app/components/site/SiteHeader";
 import { SiteFooter } from "@/app/components/site/SiteFooter";
-import { PageTitle, Section } from "@/app/components/site/ui";
+import { ArrowIcon, PageTitle, Section, TileLink } from "@/app/components/site/ui";
 import { ButtonLink } from "@/app/components/common/Button";
 import { TextLink } from "@/app/components/common/AppLink";
-import { TagList } from "@/app/components/common/Tag";
-import { toBulletPoints } from "@/app/components/site/data";
+import { StatusBadge } from "@/app/components/common/StatusBadge";
+import { TruncatedTag } from "@/app/components/common/TruncatedTag";
 import { formatDuration, formatPeriod } from "@/app/components/experience/format";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ExperiencePage() {
-  const [hero, experiences] = await Promise.all([getPublicHero(), listExperiences()]);
+  const [hero, employers] = await Promise.all([getPublicHero(), listEmployers()]);
 
   return (
     <div className="min-h-screen">
@@ -28,51 +28,46 @@ export default async function ExperiencePage() {
       <main>
         <PageTitle title="Expérience" lead="Du marketing automation au développement full-stack, en passant par React, Node.js et Vue.js." />
 
-        {/* Timeline */}
-        <Section className="pt-[72px]">
-          {experiences.length === 0 ? (
+        {/* One card per employer: its page tells the context and the missions */}
+        <Section className="pt-[72px]" aria-label="Entreprises">
+          {employers.length === 0 ? (
             <p className="text-[19px] text-slate">Le parcours arrive bientôt.</p>
           ) : (
-            <ol className="flex flex-col gap-16">
-              {experiences.map((experience) => {
-                const current = experience.endDate === null;
+            <ul className="flex flex-wrap gap-5">
+              {employers.map((employer) => {
+                const current = employer.endDate === null;
                 return (
-                  <li key={experience.id} className="flex flex-wrap gap-x-10 gap-y-4">
-                    <div className="flex min-w-0 flex-[0_0_200px] flex-col gap-1.5 pt-1">
-                      <span className="font-mono text-[15px]">{formatPeriod(experience.startDate, experience.endDate)}</span>
-                      <span className="font-mono text-[13px] text-slate">{formatDuration(experience.startDate, experience.endDate)}</span>
-                    </div>
-                    <div className="relative flex min-w-0 flex-[1_1_440px] flex-col gap-[18px] border-l-2 border-line pl-9">
-                      {current ? (
-                        <span aria-hidden="true" className="absolute -left-2 top-1.5 h-3.5 w-3.5 rounded-full bg-mint" />
-                      ) : (
-                        <span aria-hidden="true" className="absolute -left-[7px] top-1.5 h-3 w-3 rounded-full border-2 border-slate bg-paper" />
-                      )}
-                      <div className="flex flex-col gap-1.5">
-                        <h2 className="font-display text-[clamp(26px,3vw,32px)] font-bold leading-[1.1] tracking-[-0.02em]">
+                  <li key={employer.id} className="flex min-w-0 flex-[1_1_320px]">
+                    <TileLink href={`/experience/${employer.slug}`} className="group flex min-h-[300px] w-full flex-col justify-between gap-8 p-8">
+                      <span className="flex flex-col gap-3.5">
+                        {/* One line, always the same height: every company name starts at the same level */}
+                        <span className="flex min-h-7 items-center gap-2">
+                          {employer.sector && <TruncatedTag name={employer.sector} />}
                           {current && (
-                            <>
-                              <span className="sr-only">Poste actuel :</span>{" "}
-                            </>
+                            <span className="shrink-0">
+                              <StatusBadge tone="current">En poste</StatusBadge>
+                            </span>
                           )}
-                          {experience.job}
-                        </h2>
-                        <span className="font-display text-[19px] font-semibold text-slate">{experience.company}</span>
-                      </div>
-                      <ul className="flex max-w-[62ch] flex-col gap-2.5 text-lg leading-[1.65]">
-                        {toBulletPoints(experience.description).map((point, index) => (
-                          <li key={`${index}-${point}`} className="relative pl-5">
-                            <span aria-hidden="true" className="absolute left-0 top-[0.8em] h-0.5 w-2 bg-slate" />
-                            {point}
-                          </li>
-                        ))}
-                      </ul>
-                      <TagList names={experience.tags.map((tag) => tag.name)} label={`Technologies chez ${experience.company}`} />
-                    </div>
+                        </span>
+                        <h2 className="font-display text-[clamp(34px,4vw,44px)] font-bold leading-[1.02] tracking-[-0.025em]">{employer.name}</h2>
+                        <span className="font-mono text-[15px] text-slate transition-colors duration-150 group-hover:text-on-ink-soft">
+                          {formatPeriod(employer.startDate, employer.endDate)} · {formatDuration(employer.startDate, employer.endDate)}
+                        </span>
+                        <span className="flex flex-col gap-1 text-lg leading-[1.45]">
+                          {employer.experiences.map((experience) => (
+                            <span key={experience.id}>{experience.job}</span>
+                          ))}
+                        </span>
+                      </span>
+                      <span className="flex items-center justify-between gap-4 font-display text-base font-semibold">
+                        Contexte et missions
+                        <ArrowIcon size={26} />
+                      </span>
+                    </TileLink>
                   </li>
                 );
               })}
-            </ol>
+            </ul>
           )}
         </Section>
 

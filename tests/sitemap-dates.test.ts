@@ -32,10 +32,11 @@ const PROJECT = { title: 'Portfolio', description: 'Site', projectImageUrl: 'htt
 describe('sitemap lastmod', () => {
   it('never invents a date: no lastmod for a page without stored content, nor for /contact', async () => {
     const dates = await lastmods();
-    // The migration created the skill domains, but there are no projects, experiences or tags yet
+    // The migrations created the skill domains and the CV employers, but there are no projects, positions or tags yet
     expect(dates['/projets']).toBeUndefined();
-    expect(dates['/experience']).toBeUndefined();
     expect(dates['/contact']).toBeUndefined();
+    // Employers without a position have no page
+    expect(Object.keys(dates).filter((path) => path.startsWith('/experience/'))).toEqual([]);
     expect(dates['/competences']).toBeTypeOf('number');
     // Never the time of the request
     expect(dates['/competences']!).toBeLessThan(Date.now() - 5);
@@ -83,6 +84,20 @@ describe('sitemap lastmod', () => {
     expect(after['/']).toBeGreaterThan(before['/']!);
     expect(after['/experience']).toBe(before['/experience']);
     expect(after['/projets']).toBe(before['/projets']);
+  });
+});
+
+describe('employer page dates', () => {
+  it('list the employers with a position, dated by the company, its positions and their tags', async () => {
+    const dates = await lastmods();
+    // "Acme" was created by the experience of the tests above; the CV employers have no position here
+    expect(Object.keys(dates).filter((path) => path.startsWith('/experience/'))).toEqual(['/experience/acme']);
+    const before = dates['/experience/acme']!;
+
+    await tick();
+    const used = (await call(experiences.GET, 'GET', '/api/experiences')).json.data[0].tags[0].id as number;
+    await call(tag.PATCH, 'PATCH', `/api/tags/${used}`, { body: { name: 'Phoenix LiveView' }, params: { id: String(used) } });
+    expect((await lastmods())['/experience/acme']).toBeGreaterThan(before);
   });
 });
 

@@ -25,6 +25,7 @@ vi.mock('@/app/services/admin/contacts.service', () => ({
   sendContactMessage: vi.fn(),
 }));
 vi.mock('@/app/services/auth.service', () => ({ login: vi.fn(), logout: vi.fn() }));
+vi.mock('@/app/services/admin/companies.service', () => ({ getCompanies: vi.fn(async () => []), updateCompany: vi.fn(), deleteCompany: vi.fn() }));
 
 const message = (id: number, status: ContactMessage['status']): ContactMessage => ({
   id,
@@ -52,7 +53,7 @@ describe('AdminDashboard (read-only visitor)', () => {
     expect(screen.queryByRole('button', { name: /déconnexion/i })).not.toBeInTheDocument();
 
     const tabs = screen.getAllByRole('tab').map((tab) => tab.textContent);
-    expect(tabs).toEqual(['Expériences', 'Projets', 'Tags', 'Domaines', 'Hero']);
+    expect(tabs).toEqual(['Expériences', 'Entreprises', 'Projets', 'Tags', 'Domaines', 'Hero']);
     // Contact messages are never even requested
     await screen.findByRole('heading', { level: 2, name: 'Expériences' });
     expect(contactsService.getContacts).not.toHaveBeenCalled();
@@ -65,7 +66,7 @@ describe('AdminDashboard (admin)', () => {
     render(<AdminDashboard readOnly={false} />);
 
     expect(screen.queryByText(/Mode lecture seule/)).not.toBeInTheDocument();
-    expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual(['Expériences', 'Messages', 'Projets', 'Tags', 'Domaines', 'Hero']);
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual(['Expériences', 'Entreprises', 'Messages', 'Projets', 'Tags', 'Domaines', 'Hero']);
 
     await user.click(screen.getByRole('tab', { name: 'Messages' }));
     expect(await screen.findByRole('heading', { level: 2, name: 'Messages' })).toBeInTheDocument();
